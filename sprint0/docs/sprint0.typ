@@ -78,25 +78,9 @@ La traccia del progetto può essere scaricata dal seguente #link("https://anatal
 ]
 
 #domanda[
-  *Trasporto fisico dei container.* I requisiti non specificano come il
-  cargorobot trasporti fisicamente i container. In questa fase interessa solo il
-  fatto osservabile che il container venga spostato tra le aree richieste; il dettaglio
-  meccanico va chiarito senza attribuire al robot responsabilità di business logic.
-]
-
-#domanda[
   *Area di copertura del sonar.* La _sensor area_ coincide con l'area
   dell'IOPort o è una cella adiacente? Il chiarimento è essenziale per definire
   il comportamento di rilevazione e movimentazione.
-]
-
-#domanda[
-  *Interfaccia del pushbutton / IOPort.* Il pushbutton è un dispositivo fisico
-  dedicato oppure può essere realizzato tramite un'interfaccia software (es. pagina web)?
-  Se si opta per una web GUI, l'IOPort diventa un microservizio indipendente: il
-  customer interagisce con essa tramite browser (pulsante virtuale + display), e l'IOPort
-  comunica con cargoservice. Le responsabilità dei due servizi risultano così
-  completamente disaccoppiate e sviluppabili in parallelo.
 ]
 
 #domanda[
@@ -105,12 +89,6 @@ La traccia del progetto può essere scaricata dal seguente #link("https://anatal
   viene semplicemente rifiutata / respinta con _retrylater_ senza accodamento?
   Dai requisiti si interpreta che le richieste *non siano bufferizzate*: se il sistema è
   occupato, la risposta è immediata (_retrylater_ o _refused_) senza code di attesa.
-]
-
-#domanda[
-  *LED: fisico o virtuale.* Il LED indicatore dello stato _engaged_ deve essere
-  necessariamente un dispositivo fisico oppure è accettabile una rappresentazione
-  virtuale (es. elemento grafico nel display dell'IOPort o nella web GUI)?
 ]
 
 // =============================================================================
