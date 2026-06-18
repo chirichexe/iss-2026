@@ -168,7 +168,7 @@ La sequenza principale ricavata dai requisiti è:
     [Fisico fornito \ sw da sviluppare],
   [*LED*],
     [Indicatore stato _engaged_. Può essere fisico o virtuale (es. elemento grafico
-     nella web GUI). La scelta dipende dall'infrastruttura disponibile (D6).],
+     nella web GUI). La scelta dipende dall'infrastruttura disponibile.],
     [Fisico o virtuale \ sw da sviluppare],
   [*hold*],
     [Struttura dati per lo stato della stiva (occupazione slot). Passivo.],
@@ -300,9 +300,8 @@ riga5 [  I ][  X ][  X ][  X ][  X ][  X ][  X ]
 ```
 
 #nota[
-  La posizione esatta dell'IOPort e del sonar richiede conferma dalla committente
-  (Domande D1 e D3). Lo schema è una prima interpretazione fedele alla figura
-  allegata ai requisiti.
+  La posizione esatta dell'IOPort e del sonar richiede conferma dalla committente.
+  Lo schema è una prima interpretazione fedele alla figura allegata ai requisiti.
 ]
 
 // =============================================================================
