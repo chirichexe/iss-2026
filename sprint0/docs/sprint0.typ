@@ -177,25 +177,40 @@ La sequenza principale ricavata dai requisiti è:
 
 == Motivazione dell'uso del linguaggio QAK
 
-Il linguaggio QAK non è assunto come vincolo a priori; viene usato perché consente di
-produrre un primo modello eseguibile che cattura i requisiti in termini di stati,
-messaggi e transizioni osservabili. La motivazione deriva da tre evidenze ricavate
-direttamente dai requisiti:
+QAK (_Quasi-Actor-based Kotlin_) è il linguaggio messo a disposizione dalla nostra
+software house (unibo.issLab) per modellare sistemi software distribuiti. Non è quindi
+assunto come vincolo esterno, ma è lo strumento di modellazione interno che la nostra
+organizzazione adotta sistematicamente prima di qualsiasi scelta implementativa.
+
+QAK è un DSL basato su Kotlin che permette di definire:
+
+- *Contesti* (`context`) -- processi JVM indipendenti che ospitano uno o più attori;
+- *Attori* (`qactor`) -- entità autonome con macchina a stati esplicita, che comunicano
+  esclusivamente via messaggi;
+- *Messaggi* tipizzati (`Request`/`Reply`, `Dispatch`, `Event`) -- il vocabolario del
+  dominio reso formale e verificabile.
+
+Dal modello QAK viene generato automaticamente codice Kotlin eseguibile, il che consente
+di disporre di un *primo prototipo osservabile già nello Sprint 0*, prima ancora di
+scrivere una riga di logica applicativa.
+
+La scelta è motivata da tre evidenze ricavate direttamente dai requisiti:
 
 - *Natura reattiva e proattiva di cargoservice*: il servizio risponde a stimoli
   esterni (richieste, segnalazioni sonar e marker device) e avvia autonomamente
   sequenze di azioni (comandi al cargorobot, aggiornamenti display). Un POJO
   (Plain Old Java Object), componente passivo attivato da chiamate sincrone,
-  non cattura questo comportamento.
+  non cattura questo comportamento; un attore QAK sì.
 
 - *Sistema event-driven*: sonar, marker device, IOPort e cargorobot producono o
   consumano informazioni che non sono naturalmente descrivibili come una singola
-  chiamata sincrona. È quindi utile esplicitare i messaggi del dominio.
+  chiamata sincrona. QAK rende esplicito il vocabolario dei messaggi del dominio,
+  distinguendo richieste con risposta da segnalazioni unidirezionali.
 
 - *Riduzione dell'abstraction gap*: il linguaggio QAK permette di rappresentare le
   entità rilevanti come attori autonomi e message-driven, mantenendo vicine le frasi
-  dei requisiti e la loro formalizzazione. Il modello risultante può essere eseguito
-  e usato come base per test funzionali già nello Sprint 0.
+  dei requisiti e la loro formalizzazione. Il modello è eseguibile e costituisce la
+  base dei test funzionali definiti in questo sprint.
 
 == Formalizzazione dei messaggi QAK
 
