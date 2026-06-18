@@ -31,7 +31,7 @@ Ogni scelta è strettamente ancorata ai requisiti: il modello qui presentato ser
 catturare il comportamento richiesto, senza anticipare decisioni progettuali o scelte
 implementative che verranno affrontate negli sprint successivi. 
 
-La traccia del progetto può essere scaricata dal seguente [link](https://anatali.github.io/issLab2026/_static/docs/Protobook.pdf)
+La traccia del progetto può essere scaricata dal seguente #link("https://anatali.github.io/issLab2026/_static/docs/Protobook.pdf")[link]
 
 // =============================================================================
 = Requirements
