@@ -72,26 +72,26 @@ La traccia del progetto può essere scaricata dal seguente #link("https://anatal
 == Domande aperte alla committente
 
 #domanda[
-  *D1. Posizione dell'IOPort nella mappa.* I requisiti indicano che il cargorobot
+  *Posizione dell'IOPort nella mappa.* I requisiti indicano che il cargorobot
   sposta il container _dall'IOPort a slot5_, lasciando intendere che l'IOPort sia
   una cella praticabile. Come si colloca nella griglia?
 ]
 
 #domanda[
-  *D2. Trasporto fisico dei container.* I requisiti non specificano come il
+  *Trasporto fisico dei container.* I requisiti non specificano come il
   cargorobot trasporti fisicamente i container. In questa fase interessa solo il
   fatto osservabile che il container venga spostato tra le aree richieste; il dettaglio
   meccanico va chiarito senza attribuire al robot responsabilità di business logic.
 ]
 
 #domanda[
-  *D3. Area di copertura del sonar.* La _sensor area_ coincide con l'area
+  *Area di copertura del sonar.* La _sensor area_ coincide con l'area
   dell'IOPort o è una cella adiacente? Il chiarimento è essenziale per definire
   il comportamento di rilevazione e movimentazione.
 ]
 
 #domanda[
-  *D4. Interfaccia del pushbutton / IOPort.* Il pushbutton è un dispositivo fisico
+  *Interfaccia del pushbutton / IOPort.* Il pushbutton è un dispositivo fisico
   dedicato oppure può essere realizzato tramite un'interfaccia software (es. pagina web)?
   Se si opta per una web GUI, l'IOPort diventa un microservizio indipendente: il
   customer interagisce con essa tramite browser (pulsante virtuale + display), e l'IOPort
@@ -100,7 +100,7 @@ La traccia del progetto può essere scaricata dal seguente #link("https://anatal
 ]
 
 #domanda[
-  *D5. Richieste concorrenti.* Il sistema deve bufferizzare più richieste di carico
+  *Richieste concorrenti.* Il sistema deve bufferizzare più richieste di carico
   contemporanee, oppure una nuova richiesta ricevuta mentre il sistema è _engaged_
   viene semplicemente rifiutata / respinta con _retrylater_ senza accodamento?
   Dai requisiti si interpreta che le richieste *non siano bufferizzate*: se il sistema è
@@ -108,7 +108,7 @@ La traccia del progetto può essere scaricata dal seguente #link("https://anatal
 ]
 
 #domanda[
-  *D6. LED: fisico o virtuale.* Il LED indicatore dello stato _engaged_ deve essere
+  *LED: fisico o virtuale.* Il LED indicatore dello stato _engaged_ deve essere
   necessariamente un dispositivo fisico oppure è accettabile una rappresentazione
   virtuale (es. elemento grafico nel display dell'IOPort o nella web GUI)?
 ]

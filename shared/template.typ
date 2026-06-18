@@ -27,9 +27,10 @@
 
 #let domanda(body) = block(
   width: 100%,
+  fill: luma(245),
   stroke: (left: 2pt + luma(80)),
   inset: (left: 10pt, right: 6pt, top: 5pt, bottom: 5pt),
-)[#text(weight: "semibold")[Domanda al committente.] #h(4pt) #body]
+)[#text(weight: "semibold")[Domanda al committente.] \ #body]
 
 // ── Template ─────────────────────────────────────────────────────────────────
 
