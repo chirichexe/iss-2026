@@ -23,13 +23,13 @@ intende automatizzare le operazioni di carico dei container nella stiva della na
 (Differential Drive Robot, d'ora in poi *cargorobot*).
 
 L'obiettivo dello Sprint 0 è formalizzare i requisiti forniti dalla committente in modo
-preciso e non ambiguo, costruire un primo modello dei macro-componenti del sistema
-distinguendo ciò che è fornito da ciò che deve essere sviluppato, evidenziare il
-_core business_, motivare la scelta del linguaggio di modellazione e definire un primo
-insieme di piani di test funzionali.
+preciso e non ambiguo, costruire un primo modello logico dei macro-componenti del
+sistema, evidenziare il _core business_, motivare la scelta del linguaggio di
+modellazione e definire un primo insieme di piani di test funzionali.
 
-Ogni scelta è strettamente ancorata ai requisiti: non si anticipano né decisioni
-progettuali né scelte implementative, che verranno affrontate negli sprint successivi.
+Ogni scelta è strettamente ancorata ai requisiti: il modello qui presentato serve a
+catturare il comportamento richiesto, senza anticipare decisioni progettuali o scelte
+implementative che verranno affrontate negli sprint successivi.
 
 == Glossario
 
@@ -53,8 +53,8 @@ progettuali né scelte implementative, che verranno affrontate negli sprint succ
     [Attore esterno che interagisce fisicamente con l'IOPort per richiedere il
      carico e per depositare il container nell'area del sonar.],
   [*cargorobot*],
-    [Robot a guida differenziale (DDR) fornito dalla committente, responsabile
-     della movimentazione fisica dei container nella hold.],
+    [Robot a guida differenziale (DDR) previsto dal dominio applicativo,
+     responsabile della movimentazione fisica dei container nella hold.],
   [*cargoservice*],
     [Servizio software principale da costruire. Orchestra il ciclo di carico:
      ricezione richieste, verifica precondizioni, guida del cargorobot,
@@ -91,6 +91,8 @@ progettuali né scelte implementative, che verranno affrontate negli sprint succ
 - Se tutti gli slot1--slot4 sono occupati, cargoservice *rifiuta* la richiesta.
 - Altrimenti, cargoservice entra in stato _engaged_, riserva uno slot libero e
   restituisce al customer il nome dello slot riservato.
+- La scelta dello slot non introduce, nei requisiti, criteri di ottimizzazione:
+  è sufficiente selezionare uno degli slot liberi.
 - Fintanto che il sistema è _engaged_, un *LED lampeggia*.
 - Dopo l'accettazione, il customer ha un tempo prefissato (es. 30 s) per depositare
   il container nell'area del sonar.
@@ -109,7 +111,9 @@ progettuali né scelte implementative, che verranno affrontate negli sprint succ
 
 - La hold è un'area rettangolare piatta con slot1--slot4, slot5 e IOPort.
 - L'IOPort è dotata di pushbutton, display e sonar.
-- Il cargorobot è un DDR fornito dalla committente.
+- Il cargorobot è l'entità software/robotica che dovrà governare un DDR; i requisiti
+  non stabiliscono ancora quale parte sia già disponibile e quale debba essere
+  realizzata.
 - Il tempo massimo di attesa per il deposito è un parametro prefissato (es. 30 s).
 - La soglia temporale per le rilevazioni del sonar è di almeno 3 secondi.
 
@@ -123,8 +127,9 @@ progettuali né scelte implementative, che verranno affrontate negli sprint succ
 
 #domanda[
   *D2. Trasporto fisico dei container.* I requisiti non specificano come il
-  cargorobot trasporti fisicamente i container. Il robot li spinge, li raccoglie
-  con un meccanismo, oppure la gestione meccanica è trasparente al software?
+  cargorobot trasporti fisicamente i container. In questa fase interessa solo il
+  fatto osservabile che il container venga spostato tra le aree richieste; il dettaglio
+  meccanico va chiarito senza attribuire al robot responsabilità di business logic.
 ]
 
 #domanda[
@@ -145,6 +150,9 @@ progettuali né scelte implementative, che verranno affrontate negli sprint succ
 == Core business
 
 Il *core business* del sistema è la gestione del ciclo di carico di un container.
+La responsabilità della sequenza applicativa resta in *cargoservice*: il cargorobot è
+coinvolto per eseguire spostamenti richiesti dal servizio, non per decidere se una
+richiesta debba essere accettata, rifiutata o sospesa.
 La sequenza principale ricavata dai requisiti è:
 
 + Il customer preme il pushbutton dell'IOPort.
@@ -165,8 +173,8 @@ La sequenza principale ricavata dai requisiti è:
     [Orchestratore principale. Natura reattiva (richieste) e proattiva (comandi).],
     [Da sviluppare],
   [*cargorobot*],
-    [Robot DDR per la movimentazione fisica. Simulatore e interfaccia forniti.],
-    [Fornito],
+    [Entità che governa il DDR per la movimentazione fisica richiesta dal cargoservice.],
+    [Da chiarire / da sviluppare],
   [*IOPort*],
     [Interfaccia con il customer (pushbutton + display). Fisico fornito; sw da sviluppare.],
     [Fisico fornito \ sw da sviluppare],
@@ -186,8 +194,10 @@ La sequenza principale ricavata dai requisiti è:
 
 == Motivazione dell'uso del linguaggio QAK
 
-Il linguaggio QAK non è assunto come vincolo a priori; la sua adozione è motivata
-da tre evidenze ricavate dai requisiti:
+Il linguaggio QAK non è assunto come vincolo a priori; viene usato perché consente di
+produrre un primo modello eseguibile che cattura i requisiti in termini di stati,
+messaggi e transizioni osservabili. La motivazione deriva da tre evidenze ricavate
+direttamente dai requisiti:
 
 - *Natura reattiva e proattiva di cargoservice*: il servizio risponde a stimoli
   esterni (richieste, segnalazioni sonar e marker device) e avvia autonomamente
@@ -195,19 +205,21 @@ da tre evidenze ricavate dai requisiti:
   (Plain Old Java Object), componente passivo attivato da chiamate sincrone,
   non cattura questo comportamento.
 
-- *Sistema event-driven*: sonar, marker device e cargorobot comunicano tramite
-  eventi asincroni. Un modello a oggetti tradizionale gestisce l'asincronicità
-  con difficoltà e produce codice artificioso.
+- *Sistema event-driven*: sonar, marker device, IOPort e cargorobot producono o
+  consumano informazioni che non sono naturalmente descrivibili come una singola
+  chiamata sincrona. È quindi utile esplicitare i messaggi del dominio.
 
-- *Riduzione dell'abstraction gap*: il linguaggio QAK modella ogni entità del dominio
-  come *attore* (automa a stati finiti, autonomo, message-driven), riducendo la
-  distanza concettuale tra requisiti e codice. Il modello è *automaticamente
-  eseguibile*, permettendo di verificare proprietà comportamentali già dallo Sprint 0.
+- *Riduzione dell'abstraction gap*: il linguaggio QAK permette di rappresentare le
+  entità rilevanti come attori autonomi e message-driven, mantenendo vicine le frasi
+  dei requisiti e la loro formalizzazione. Il modello risultante può essere eseguito
+  e usato come base per test funzionali già nello Sprint 0.
 
 == Formalizzazione dei messaggi QAK
 
-*Request/Reply* per interazioni con risposta attesa; *Dispatch* per notifiche
-asincrone senza risposta diretta.
+La seguente formalizzazione non introduce ancora scelte di progetto: elenca i messaggi
+necessari per esprimere i requisiti. *Request/Reply* viene usato quando il requisito
+prevede una risposta osservabile; *Dispatch* quando il requisito parla di una
+segnalazione o di un aggiornamento senza risposta diretta.
 
 === customer / IOPort → cargoservice
 
@@ -257,12 +269,13 @@ Dispatch led_off            : ledOff(none)
   columns: (auto, 1fr),
   [*Contesto*], [*Componenti e responsabilità*],
   [*ctxCargoService*],
-    [Contiene l'attore cargoservice. Nucleo e punto di orchestrazione.],
+    [Contiene l'attore cargoservice. Nucleo del comportamento richiesto e punto di
+     orchestrazione del ciclo di carico.],
   [*ctxIO*],
-    [Interfacciamento con i dispositivi fisici: ioport, sonar, led, markerdevice.
-     Gestisce l'abstraction gap hardware/software.],
+    [Raggruppa le entità legate all'IOPort e ai dispositivi citati dai requisiti:
+     ioport, sonar, led, markerdevice.],
   [*ctxRobot*],
-    [Interfacciamento con il cargorobot DDR (controllo di movimento).],
+    [Raggruppa le entità legate al cargorobot e alla movimentazione richiesta.],
 )
 
 == Schema della hold
@@ -297,7 +310,7 @@ in modo indipendente dall'implementazione.
 
 *Precondizioni:* _disengaged_, non _Out of service_, IOPort libera, almeno uno slot libero. \
 *Azioni:* il customer preme il pushbutton. \
-*Risultato:* risposta _load\_accepted_ con slot riservato; sistema _engaged_; LED acceso.
+*Risultato:* risposta _load\_accepted_ con slot riservato; sistema _engaged_; LED lampeggiante.
 
 == Rifiuto (hold piena)
 
@@ -345,22 +358,23 @@ in modo indipendente dall'implementazione.
 = Project
 // ═════════════════════════════════════════════════════════════════════════════
 
-Dall'analisi dei requisiti si propone una struttura a *tre sprint* con integrazione
-progressiva dei componenti: si parte dal nucleo logico con mock, si aggiungono
-gradualmente le interfacce software, e infine i dispositivi fisici reali.
+Dall'analisi dei requisiti si propone, come ipotesi iniziale, una struttura a *tre
+sprint* con integrazione progressiva dei componenti. La suddivisione serve a
+organizzare il lavoro e i test, non a fissare decisioni architetturali definitive.
 
 == Sprint 1: Core business
 
-*Goal:* implementare cargoservice con tutti i dispositivi simulati (mock).
+*Goal:* realizzare il primo nucleo eseguibile di cargoservice con collaboratori
+simulati.
 
-Funzionalità: ciclo di carico completo (RF1--RF10 con mock), struttura dati hold,
-LED simulato, timeout.
+Funzionalità: ciclo di carico completo con collaboratori simulati, modello dello
+stato della hold, LED simulato, timeout.
 
 *Test:* TF01, TF02, TF05, TF06 (con mock).
 
 == Sprint 2: IOPort, display e sonar
 
-*Goal:* interfaccia utente IOPort (pushbutton + display) e sonar software.
+*Goal:* rendere esplicita l'interazione con IOPort, display e sonar a livello software.
 
 Funzionalità: ioport come interfaccia web, sonar simulato (rilevazione container
 e malfunzionamento), aggiornamento display con stato e messaggi.
@@ -369,9 +383,11 @@ e malfunzionamento), aggiornamento display con stato e messaggi.
 
 == Sprint 3: Dispositivi fisici
 
-*Goal:* sostituire i mock con i dispositivi fisici reali e verificare end-to-end.
+*Goal:* integrare, dove disponibili, i dispositivi fisici o i servizi forniti e
+verificare il comportamento end-to-end.
 
-Funzionalità: cargorobot DDR reale, sonar fisico, marker device fisico, LED fisico.
+Funzionalità: cargorobot e servizio DDR disponibile, sonar fisico, marker device
+fisico, LED fisico.
 
 *Test:* TF06 (end-to-end su hardware), TF07, TF08.
 
