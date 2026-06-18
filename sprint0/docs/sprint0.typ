@@ -39,15 +39,14 @@ La traccia del progetto può essere scaricata dal seguente #link("https://anatal
 
 == Requisiti funzionali
 
-- Il servizio da realizzare è *cargoservice*.
-- Il customer invia a cargoservice una richiesta di carico tramite il pushbutton dell'IOPort.
+- Il servizio da realizzare è *cargoservice*: il customer gli invia una richiesta di carico
+  tramite il pushbutton dell'IOPort.
 - L'IOPort è un dispositivo di ingresso/uscita dotato di: pushbutton (richieste di carico),
-     display (stato e messaggi) e sonar (rilevazione presenza container)
+     display (stato e messaggi) e sonar (rilevazione presenza container).
 - Se l'IOPort è occupata o il sistema è _Out of service_, cargoservice risponde *_retrylater_*.
 - Se tutti gli slot1--slot4 (ciascuno capace di contenere un container) sono occupati, cargoservice *rifiuta* la richiesta.
-- Altrimenti, cargoservice entra in stato _engaged_, riserva uno slot libero e restituisce al customer il nome dello slot riservato.
-- La scelta dello slot non introduce, nei requisiti, criteri di ottimizzazione:
-  è sufficiente selezionare uno degli slot liberi.
+- Altrimenti, cargoservice entra in stato _engaged_, riserva uno slot libero (senza criteri
+  di ottimizzazione) e restituisce al customer il nome dello slot riservato.
 - Fintanto che il sistema è _engaged_, un *LED lampeggia*.
 - Dopo l'accettazione, il customer ha un tempo prefissato (es. 30 s) per depositare
   il container nell'area del sonar.
@@ -55,8 +54,8 @@ La traccia del progetto può essere scaricata dal seguente #link("https://anatal
 - Quando la presenza del container è confermata dal sonar, cargoservice comanda al cargorobot di spostare il container *dall'IOPort* allo *slot5* (adibito al deposito temporaneo di un container prima della collocazione definitiva).
 - Il marker device etichetta il container in slot5 e *segnala il completamento*.
 - cargoservice comanda al cargorobot di spostare il container *da slot5 allo slot riservato*.
-- Il display mostra in ogni momento lo *stato corrente della hold*.
-- Il display mostra il messaggio *"Service working"* durante il normale funzionamento.
+- Il display mostra in ogni momento lo *stato corrente della hold* e il messaggio
+  *"Service working"* durante il normale funzionamento.
 - Se il sonar misura D > D#sub[FREE] per >= 3 s, il sistema passa _Out of service_ e
   mostra *"Out of service"* sul display.
 - Il sonar rileva la presenza di un container quando misura D < D#sub[FREE]/2 per >= 3 s.
@@ -64,12 +63,11 @@ La traccia del progetto può essere scaricata dal seguente #link("https://anatal
 == Requisiti non funzionali
 
 - La hold è un'area rettangolare piatta con slot1--slot4, slot5 e IOPort.
-- L'IOPort è dotata di pushbutton, display e sonar.
 - Il cargorobot è l'entità software/robotica che dovrà governare un DDR; i requisiti
   non stabiliscono ancora quale parte sia già disponibile e quale debba essere
   realizzata.
-- Il tempo massimo di attesa per il deposito è un parametro prefissato (es. 30 s).
-- La soglia temporale per le rilevazioni del sonar è di almeno 3 secondi.
+- Il tempo massimo di attesa per il deposito e la soglia di rilevazione sonar sono
+  parametri prefissati (es. 30 s e 3 s rispettivamente).
 
 == Domande aperte alla committente
 
