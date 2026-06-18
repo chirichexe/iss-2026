@@ -43,7 +43,7 @@ La traccia del progetto può essere scaricata dal seguente #link("https://anatal
   tramite il pushbutton dell'IOPort.
 - L'IOPort è un dispositivo di ingresso/uscita dotato di: pushbutton (richieste di carico),
      display (stato e messaggi) e sonar (rilevazione presenza container).
-- Se l'IOPort è occupata o il sistema è _Out of service_, cargoservice risponde *_retrylater_*.
+- Se l'IOPort è occupata da un container o il sistema è _Out of service_, cargoservice risponde *_retrylater_*.
 - Se tutti gli slot1--slot4 (ciascuno capace di contenere un container) sono occupati, cargoservice *rifiuta* la richiesta.
 - Altrimenti, cargoservice entra in stato _engaged_, riserva uno slot libero (senza criteri
   di ottimizzazione) e restituisce al customer il nome dello slot riservato.
