@@ -286,56 +286,45 @@ riga5 [  I ][  X ][  X ][  X ][  X ][  X ][  X ]
 = Test plan
 // =============================================================================
 
-I test funzionali verificano il comportamento del sistema rispetto ai requisiti,
-in modo indipendente dall'implementazione.
+I test funzionali verificano il comportamento osservabile del sistema rispetto ai
+requisiti, indipendentemente dall'implementazione.
 
-== Accettazione della richiesta
+#iss-table(
+  columns: (auto, 1fr, 1fr),
+  [*Scenario*], [*Precondizioni*], [*Risultato atteso*],
 
-*Precondizioni:* _disengaged_, non _Out of service_, IOPort libera, almeno uno slot libero. \
-*Azioni:* il customer preme il pushbutton. \
-*Risultato:* risposta _load\_accepted_ con slot riservato; sistema _engaged_; LED lampeggiante.
+  [Accettazione],
+  [_disengaged_, non OoS, IOPort libera, slot disponibile],
+  [_load\_accepted_ con slot riservato; stato _engaged_; LED lampeggiante],
 
-== Rifiuto (hold piena)
+  [Rifiuto (hold piena)],
+  [_disengaged_, non OoS, IOPort libera, slot1--4 tutti occupati],
+  [_load\_refused_; stato _disengaged_; LED spento],
 
-*Precondizioni:* _disengaged_, non _Out of service_, IOPort libera, slot1--slot4 tutti occupati. \
-*Azioni:* il customer preme il pushbutton. \
-*Risultato:* risposta _load\_refused_; sistema _disengaged_; LED spento.
+  [Retrylater (OoS)],
+  [Sistema _Out of service_],
+  [_load\_retrylater_; stato immutato],
 
-== Retrylater (Out of service)
+  [Retrylater (IOPort occupata)],
+  [_disengaged_, non OoS, IOPort occupata da un container],
+  [_load\_retrylater_; stato _disengaged_],
 
-*Precondizioni:* sistema _Out of service_. \
-*Azioni:* il customer preme il pushbutton. \
-*Risultato:* risposta _load\_retrylater_; stato immutato.
+  [Timeout deposito],
+  [Sistema _engaged_; customer non deposita entro il tempo prefissato],
+  [Sistema _disengaged_; LED spento],
 
-== Retrylater (IOPort occupata)
+  [Ciclo completo],
+  [_disengaged_, non OoS, IOPort libera, slot disponibile],
+  [Container nello slot riservato; display _"Service working"_; _disengaged_; LED spento],
 
-*Precondizioni:* _disengaged_, non _Out of service_, IOPort occupata. \
-*Azioni:* il customer preme il pushbutton. \
-*Risultato:* risposta _load\_retrylater_; sistema _disengaged_.
+  [Guasto sonar],
+  [Sistema operativo; sonar misura D > D#sub[FREE] per >= 3 s],
+  [Sistema _Out of service_; display _"Out of service"_],
 
-== Timeout deposito container
-
-*Precondizioni:* sistema _engaged_. \
-*Azioni:* il customer non deposita il container entro il tempo prefissato. \
-*Risultato:* sistema _disengaged_; LED spento.
-
-== Ciclo completo di carico
-
-*Precondizioni:* _disengaged_, non _Out of service_, IOPort libera, slot disponibile. \
-*Azioni:* (a) pushbutton -> (b) _load\_accepted_ -> (c) deposito container -> (d) rilevazione sonar -> (e) cargorobot: IOPort->slot5 -> (f) etichettatura -> (g) cargorobot: slot5->slot riservato. \
-*Risultato:* container nello slot riservato; display aggiornato con _"Service working"_; sistema _disengaged_; LED spento.
-
-== Malfunzionamento sonar
-
-*Precondizioni:* sistema operativo. \
-*Azioni:* sonar misura D > D#sub[FREE] per >= 3 s consecutivi. \
-*Risultato:* sistema _Out of service_; display mostra _"Out of service"_.
-
-== Rilevazione container (sonar)
-
-*Precondizioni:* sistema _engaged_; sensor area vuota. \
-*Azioni:* deposito container; sonar misura D < D#sub[FREE]/2 per >= 3 s. \
-*Risultato:* cargoservice riceve _container\_detected_ e avvia la movimentazione.
+  [Rilevazione container],
+  [Sistema _engaged_; sensor area vuota; sonar misura D < D#sub[FREE]/2 per >= 3 s],
+  [cargoservice avvia la movimentazione verso slot5],
+)
 
 // =============================================================================
 = Project
