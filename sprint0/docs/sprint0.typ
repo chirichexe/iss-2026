@@ -1,5 +1,5 @@
 // -----------------------------------------------------------------------------
-//  sprint0.typ  -  contenuto
+//  Sprint 0 esame Natali
 // -----------------------------------------------------------------------------
 
 #import "../../shared/template.typ": iss-template, iss-table, nota, domanda
@@ -31,7 +31,8 @@ Ogni scelta è strettamente ancorata ai requisiti: il modello qui presentato ser
 catturare il comportamento richiesto, senza anticipare decisioni progettuali o scelte
 implementative che verranno affrontate negli sprint successivi. 
 
-La traccia del progetto può essere scaricata dal seguente #link("https://anatali.github.io/issLab2026/_static/docs/Protobook.pdf")[link]
+La traccia del progetto può essere scaricata dal seguente 
+#link("https://anatali.github.io/issLab2026/_static/docs/Protobook.pdf")[link]
 
 // =============================================================================
 = Requirements
@@ -155,44 +156,18 @@ La sequenza principale ricavata dai requisiti è:
 
 == Motivazione dell'uso del linguaggio QAK
 
-QAK (_Quasi-Actor-based Kotlin_) è il linguaggio messo a disposizione dalla nostra
-software house (unibo.issLab) per modellare sistemi software distribuiti. Non è quindi
-assunto come vincolo esterno, ma è lo strumento di modellazione interno che la nostra
-organizzazione adotta sistematicamente prima di qualsiasi scelta implementativa.
-
-QAK è un DSL basato su Kotlin che permette di definire:
-
-- *Contesti* (`context`) -- processi JVM indipendenti che ospitano uno o più attori;
-- *Attori* (`qactor`) -- entità autonome con macchina a stati esplicita, che comunicano
-  esclusivamente via messaggi;
-- *Messaggi* tipizzati (`Request`/`Reply`, `Dispatch`, `Event`) -- il vocabolario del
-  dominio reso formale e verificabile.
-
+QAK è il linguaggio messo a disposizione dalla nostra
+software house (unibo.issLab) per modellare sistemi software distribuiti, particolarmente 
+espressivo nel formalizzare il concetto di *attore autonomo* e di *messaggio*, riducendo 
+di molto l'"Abstraction Gap" tra requisiti e modello.
+La natura *reattiva e proattiva* di cargoservice, che deve rispondere a stimoli esterni e avviare autonomamente sequenze di azioni, è infatti catturata in modo naturale da un attore QAK, cosa che un POJO (Plain Old Java Object), componente passivo attivato da chiamate sincrone, non catturerebbe altrettanto bene.
 Dal modello QAK viene generato automaticamente codice Kotlin eseguibile, il che consente
 di disporre di un *primo prototipo osservabile già nello Sprint 0*, prima ancora di
 scrivere una riga di logica applicativa.
 
-La scelta è motivata da tre evidenze ricavate direttamente dai requisiti:
-
-- *Natura reattiva e proattiva di cargoservice*: il servizio risponde a stimoli
-  esterni (richieste, segnalazioni sonar e marker device) e avvia autonomamente
-  sequenze di azioni (comandi al cargorobot, aggiornamenti display). Un POJO
-  (Plain Old Java Object), componente passivo attivato da chiamate sincrone,
-  non cattura questo comportamento; un attore QAK sì.
-
-- *Sistema event-driven*: sonar, marker device, IOPort e cargorobot producono o
-  consumano informazioni che non sono naturalmente descrivibili come una singola
-  chiamata sincrona. QAK rende esplicito il vocabolario dei messaggi del dominio,
-  distinguendo richieste con risposta da segnalazioni unidirezionali.
-
-- *Riduzione dell'abstraction gap*: il linguaggio QAK permette di rappresentare le
-  entità rilevanti come attori autonomi e message-driven, mantenendo vicine le frasi
-  dei requisiti e la loro formalizzazione. Il modello è eseguibile e costituisce la
-  base dei test funzionali definiti in questo sprint.
-
 == Formalizzazione dei messaggi QAK
 
-La seguente formalizzazione non introduce ancora scelte di progetto: elenca i messaggi
+La seguente formalizzazione non introduce ancora scelte di progetto, limitandosi ad elencare i messaggi
 necessari per esprimere i requisiti. *Request/Reply* viene usato quando il requisito
 prevede una risposta osservabile; *Dispatch* quando il requisito parla di una
 segnalazione o di un aggiornamento senza risposta diretta.
@@ -216,7 +191,7 @@ Dispatch sonar_failure      : sonarFailure(none)
 
 #nota[
   La scelta _Dispatch_ (e non _Request_) per i messaggi del sonar è una
-  *ipotesi di analisi*, non una scelta di progetto: il sonar segnala eventi
+  *ipotesi di analisi*: il sonar segnala eventi
   al cargoservice senza aspettarsi una risposta diretta. Se l'analisi rivelasse
   la necessità di una conferma (es. handshake di rilevazione), il tipo del
   messaggio andrà rivisto nello sprint 1.
