@@ -23,41 +23,24 @@ L'obiettivo dello Sprint 0 è formalizzare i requisiti forniti dalla committente
 
 Ogni scelta è strettamente ancorata ai requisiti: il modello qui presentato serve a catturare il comportamento richiesto, senza anticipare decisioni progettuali o scelte implementative che verranno affrontate negli sprint successivi.  
 
-La traccia del progetto può essere scaricata dal seguente #link("https://anatali.github.io/issLab2026/_static/docs/Protobook.pdf")[link] 
+La traccia del progetto può essere scaricata dal seguente #link("https://anatali.github.io/issLab2026/_static/docs/Protobook.pdf#page=331")[link] 
 
 // =============================================================================
 = Requirements   
 // =============================================================================
 
-== Requisiti funzionali 
+L'azienda richiede di realizzare un servizio denominato *cargoservice* con il seguente funzionamento:
 
-- Il servizio da realizzare è *cargoservice*: il customer gli invia una richiesta di carico tramite il pushbutton dell'IOPort. 
-- L'IOPort è un dispositivo di ingresso/uscita dotato di:  
-  - *Pushbutton*, premuto dal cliente per inviare una richiesta di caricamento di un container sul carico. 
-  - *Display*, utilizzato per mostrare la risposta alla richiesta e per mostrare lo stato attuale del blocco. 
-- Se l'IOPort è occupata da un container o il sistema è _Out of service_, cargoservice risponde *_retrylater_*. 
-- Se tutti gli slot1--slot4 (ciascuno capace di contenere un container) sono occupati, cargoservice *rifiuta* la richiesta. 
-- Se l’IOPort è libera, il sistema è in servizio e almeno uno tra slot1--slot4 è libero, cargoservice entra nello stato _engaged_, riserva uno slot libero senza criteri di ottimizzazione e restituisce al customer il nome dello slot riservato. 
-- Fintanto che il sistema è _engaged_, un *LED lampeggia*. 
-- Dopo l'accettazione, il customer ha un tempo prefissato (es. 30 s) per depositare il container nell'area del sonar. 
-- Se il customer non deposita entro il timeout, il sistema torna _disengaged_. 
-- Quando la presenza del container è confermata dal sonar, cargoservice comanda al cargorobot di spostare il container *dall'IOPort* allo *slot5* (adibito al deposito temporaneo di un container prima della collocazione definitiva). 
-- Il marker device etichetta il container in slot5 e *segnala il completamento*. 
-- Alla ricezione del segnale di completamento da parte del marker device, cargoservice comanda al cargorobot di spostare il container *da slot5 allo slot riservato*. 
-- Il display dell’IOPort mostra in ogni momento: 
-  - lo *stato corrente della hold*. 
-  - il messaggio *"Service working"* durante il normale funzionamento. 
-  - Il messaggio *"Out of service"* se il sonar misura D > D#sub[FREE] per >= 3 s. 
-- Il sonar rileva la presenza di un container quando misura D < D#sub[FREE]/2 per >= 3 s. 
-
-== Requisiti non funzionali 
-
-- La hold è un'area rettangolare piatta contenente: 
-  - 4 slots per contenere i container (slot1—slot4). 
-  - 1 slot speciale (slot5). 
-- Il cargorobot è l'entità software/robotica che dovrà governare un DDR; i requisiti non stabiliscono ancora quale parte sia già disponibile e quale debba essere realizzata. 
-- Il tempo massimo di attesa per il deposito e la soglia di rilevazione sonar sono parametri prefissati (es. 30 s e 3 s rispettivamente). 
-- Il Sensore è un dispositivo di rilevamento (un sonar) associato all'IOPort. Il suo compito è quello di rilevare la presenza di container da caricare. 
+- Il cargoservice è in grado di ricevere una richiesta di carico di un container inviata da un cliente tramite il pulsante dell'IOPort.
+- Invia la risposta *retrylater* se l'IOPort è attualmente occupato da un container oppure se il sistema è *Out of service*.
+- Rifiuta la richiesta quando la hold è già piena, ovvero gli slot1-4 sono già tutti occupati.
+- Altrimenti, considera il sistema come *engaged*, rileva uno slot libero e restituisce come risposta il nome dello slot riservato. Mentre il sistema è engaged, il LED deve lampeggiare.
+- Quando la richiesta di carico viene accettata, il cliente deve spostare il container nell'area del sensore entro un tempo prefissato (ad esempio 30 secondi), altrimenti il sistema diventa *disengaged*.
+- Successivamente, il cargoservice utilizza il cargorobot per spostare il container dall'IOPort a slot5 (per l'etichettatura del container) e poi allo slot riservato.
+- Il servizio deve inoltre mostrare sul display dell'IOPort:
+  - lo stato attuale della hold
+  - il messaggio *"Service working"* quando tutto sta procedendo correttamente
+  - il messaggio *"Out of service"* se il sensore sonar misura una distanza D > D#sub[FREE] per almeno 3 secondi (possibile guasto del sonar)
 
 == Domande aperte alla committente 
 
