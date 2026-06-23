@@ -74,7 +74,68 @@ Il *core business* del sistema è la gestione del ciclo di carico di un containe
 + Il customer deposita il container nell'area del sonar entro il timeout. 
 + cargoservice comanda al cargorobot di spostare il container da IOPort a slot5. 
 + Il marker device etichetta il container e segnala il completamento. 
-+ cargoservice comanda al cargorobot di spostare il container da slot5 allo slot riservato; il sistema torna _disengaged_. 
++ cargoservice comanda al cargorobot di spostare il container da slot5 allo slot riservato; il sistema torna _disengaged_.
+
+
+```
+System cargosystem
+
+Request load_request  : load_request(X)
+Reply load_accepted   : load_accepted(SLOT) for load_request
+Reply load_refused    : load_refused(REASON) for load_request
+Reply load_retrylater : load_retrylater(REASON) for load_request
+
+// Evento per simulare la percezione del container da parte del sonar
+// (D < DFREE/2 per >= 3 secondi)
+Event container_detected : container_detected(D)
+
+Context ctxcargoservice ip [host="localhost" port=8050]
+
+QActor cargoservice context ctxcargoservice {
+    
+    State s0 initial {
+        println("cargoservice | started")
+    }
+    Goto disengaged
+
+      // STATO: DISENGAGED (Il sistema è pronto ad accogliere richieste)
+    State disengaged {
+      println("cargoservice | DISENGAGED: waiting for load_request...")
+    }
+
+    Transition t0
+        whenRequest load_request -> handle_load_request
+
+    // STATO: VALUTAZIONE PRECONDIZIONI
+    State handle_load_request {
+        replyTo load_request with load_accepted : load_accepted(1)
+    }
+    Goto engaged // Assumendo che la richiesta sia accettata
+
+    // STATO: ENGAGED (Il sistema attende l'azione fisica del customer)
+    State engaged {
+        println("cargoservice | ENGAGED: waiting for customer to deposit container...")
+    }
+    Transition t1
+        whenTime 10000 -> handle_timeout            // Requisito: Timeout deposito
+        whenEvent container_detected -> move_to_slot5 // Requisito: Rilevazione container
+
+    // STATO: GESTIONE TIMEOUT (Il customer non ha depositato in tempo)
+    State handle_timeout {
+        println("cargoservice | TIMEOUT: customer did not deposit in time. Freeing IOPort...")
+        // Logica per liberare la prenotazione
+    }
+    Goto disengaged
+
+    // STATO: PRESA IN CARICO DEL CONTAINER
+    State move_to_slot5 {
+        println("cargoservice | CONTAINER RILEVATO: avvio movimentazione verso slot5...")
+        // NOTA ANALISI: In Sprint successivi qui ci sarà l'interazione (Dispatch/Request)
+        // con il 'cargorobot' per lo spostamento fisico.
+    }
+    Goto disengaged // Al termine del ciclo di carico, torna disponibile
+}
+```
 
 == Macro-componenti e natura software 
 
