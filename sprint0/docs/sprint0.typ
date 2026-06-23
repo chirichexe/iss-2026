@@ -66,8 +66,128 @@ L'azienda richiede di realizzare un servizio denominato *cargoservice* con il se
 
 
 // =============================================================================
-= Requirement analysis  
+= Requirement analysis
 // =============================================================================
+
+== Macro-componenti e natura software
+
+=== cargoservice
+
+Il cargoservice è l'orchestratore principale del sistema. Gestisce le richieste di carico, verifica le condizioni della hold, controlla i timeout e coordina le altre componenti.
+
+Il componente è da sviluppare.
+
+Dal punto di vista della natura software, presenta un comportamento sia reattivo (gestione di richieste ed eventi) sia proattivo (invio di comandi e aggiornamenti). Per questo motivo si ritiene opportuno rappresentarlo come un QAK Actor.
+
+```qak
+QActor cargoservice context ctxCargoService {
+    // DA SVILUPPARE: definizione degli stati e delle transizioni secondo i requisiti
+}
+```
+
+=== cargorobot
+
+Il *cargorobot* è l'entità incaricata di governare il DDR per la movimentazione dei container all'interno della hold.
+
+Il componente è da sviluppare.
+
+Dal punto di vista della natura software, la scelta architetturale è ancora oggetto di analisi. Se fosse modellato come un semplice POJO, il cargoservice gli cederebbe il controllo durante la movimentazione e non potrebbe reagire ad altri eventi del sistema fino al completamento dell'operazione. Se invece fosse realizzato come QActor, la comunicazione avverrebbe in modo asincrono, garantendo un maggiore disaccoppiamento tra le componenti.
+
+```qak
+QActor cargorobot context ctxRobot {
+  // DA SVILUPPARE
+}
+```
+
+=== IOPort
+
+L'IOPort rappresenta l'interfaccia tra customer e sistema, composta da pushbutton e display.
+
+Il software dell'interfaccia è da sviluppare.
+
+Dal punto di vista della natura software, può essere realizzato come componente separato dal cargoservice.
+
+```qak
+QActor ioport context ctxCustomer {
+  // DA SVILUPPARE
+}
+```
+
+=== sonar
+
+Il sonar rileva la presenza di un container nella sensor_area.
+
+Il dispositivo fisico è considerato fornito ed è collegato al PicoW, mentre il software di integrazione è da sviluppare.
+
+```qak
+QActor sonar context ctxDevices {
+  // DA SVILUPPARE
+}
+```
+
+=== markerdevice
+
+Il markerdevice etichetta i container depositati nello slot5 e notifica il completamento della marcatura.
+
+Il dispositivo è considerato disponibile in forma simulata, mentre il software di controllo è da sviluppare.
+
+```qak
+QActor markerdevice context ctxDevices {
+  // DA SVILUPPARE
+}
+```
+
+=== LED
+
+Il LED indica lo stato engaged/disengaged del sistema.
+
+Dopo una consultazione con la committente, si è definito che il LED è un dispositivo fisico integrato all'interno del PicoW che gestisce il sonar. Il software di controllo è da sviluppare.
+
+=== hold
+
+La hold mantiene lo stato logico della stiva e l'occupazione degli slot.
+
+Il componente è da sviluppare.
+
+Dal punto di vista della natura software, può essere rappresentata come una semplice struttura dati passiva, responsabile della memorizzazione dello stato degli slot. In alternativa, potrebbe essere modellata come componente autonomo incaricato di gestire le operazioni di prenotazione e rilascio degli slot, separando la gestione dello stato dalla logica di business del cargoservice.
+
+```text
+Legenda:  H = HOME   S = sonar/sensor area   1-4 = slot1-4 
+          5 = slot5  I = IOPort  X = ostacolo  . = libero 
+ 
+       col0  col1  col2  col3  col4  col5  col6 
+riga0 [  H ][  S ][  . ][  . ][  . ][  . ][  . ] 
+riga1 [  . ][  1 ][  X ][  X ][  2 ][  . ][  . ] 
+riga2 [  . ][  . ][  . ][  . ][  X ][  5 ][  . ] 
+riga3 [  . ][  3 ][  X ][  X ][  4 ][  . ][  . ] 
+riga4 [  . ][  . ][  . ][  . ][  . ][  . ][  . ] 
+riga5 [  I ][  . ][  . ][  . ][  . ][  . ][  . ] 
+
+```
+
+== Formalizzazione dei messaggi QAK 
+
+Dai requisiti, l'unica richiesta che si evince è quella di carico, che viene modellata come request in qak.
+La richiesta viene inviata dal customer al cargoservice tramite l'IOPort.
+
+```qak
+Request  load_request    : loadRequest(none) 
+```
+
+== Contesti logici
+
+#iss-table(
+columns: (auto, 1fr),
+[*Contesto*], [*Componenti e responsabilità*],
+[*ctxCargoService*],
+[Contiene l'attore cargoservice. Nucleo del comportamento richiesto e punto di orchestrazione del ciclo di carico.],
+[*ctxCustomer*],
+[Raggruppa le entità dedicate all'interazione con l'utente: IOPort (con display e pushbutton) e LED.],
+[*ctxDevices*],
+[Raggruppa i dispositivi presenti nella hold: sonar, hold e markerdevice.],
+[*ctxRobot*],
+[Raggruppa le entità legate al cargorobot e alla movimentazione richiesta.],
+)
 
 == Core business 
 
@@ -78,9 +198,6 @@ System cargosystem
 
 // Vocabolario delle interazioni
 Request load_request  : loadRequest(none)
-Reply load_accepted   : loadAccepted(slotID)   for load_request
-Reply load_retrylater : loadRetryLater(none)   for load_request
-Reply load_refused    : loadRefused(none)      for load_request
 
 Event sonar_distance  : distance(D)
 Dispatch marking_done : markingDone(containerID)
@@ -103,8 +220,7 @@ QActor cargoservice context ctxcargoservice {
 
     State handle_load_request {
         printCurrentMessage
-        // MOCK Sprint 0: Simuliamo l'accettazione (Caso Felice)
-        // La logica reale di calcolo slot e OoS sarà nello Sprint 1
+        // Simulazione accettazione
         replyTo load_request with load_accepted : loadAccepted(1)
     }
     Goto engaged
@@ -123,194 +239,11 @@ QActor cargoservice context ctxcargoservice {
 
     State move_to_slot5 {
         println("cargoservice | CONTAINER RILEVATO: avvio movimentazione verso slot 5")
-        // Qui ci sarà la delega al cargorobot (Sprint futuri)
+        // Qui ci sarà la delega al cargorobot
     }
     Goto disengaged
 }
 ```
-
-== Macro-componenti e natura software 
-
-#iss-table( 
-  columns: (14%, 28%, 18%, 40%), 
-  [*Componente*], [*Ruolo*], [*Stato di disponibilità*], [*Natura Software*],
-  [*cargoservice*], 
-    [Orchestratore centrale del sistema. Riceve le richieste di carico, verifica le precondizioni della hold, valida i timeout e coordina cargorobot e marker.], 
-    [Da sviluppare],
-    [Si ritiene opportuno rappresentare cargoservice come un QAK Actor, dato che deve gestire il ciclo di business, reagire in tempo reale agli eventi del sonar e inviare comandi.],
- 
-  [*cargorobot*], 
-    [Entità logica che si occupa del movimento del DDR. Riceve i comandi di trasferimento e sposta i container dall'IOPort allo slot5, e successivamente allo slot finale riservato.], 
-    [Da sviluppare (Mock in Sprint 0)], 
-    [Si ritiene opportuno rappresentare il cargorobot come un QAK Actor: dato che deve governare i movimenti del DDR all'interno della hold, necessita di un controllo autonomo per poter ricevere ed eseguire in modo asincrono le richieste di movimento.],
- 
-  [*IOPort*], 
-    [Interfaccia virtuale di Input/Output, ha pushbutton e display. Il primo rileva la richiesta di carico, mentre il secondo mostra i messaggi di stato del servizio e della hold.], 
-    [Da sviluppare (Mock in Sprint 0)], 
-    [Si ritiene opportuno rappresentare IOPort come un QAK Actor. Le funzionalità del pushbutton richiedono un funzionamento proattivo (per generare le request), e il display un funzionamento reattivo per mostrare i messaggi di stato.],
- 
-  [*sensore*], 
-    [Sorgente logica di eventi. Simula le misurazioni sulla distanza di un eventuale container dalla sensor_area per comunicarle al sistema.], 
-    [Da sviluppare (Mock in Sprint 0)], 
-    [Si ritiene opportuno rappresentare il sensore come QAK Actor, essendo un'entità attiva che effettua misurazioni ed emette eventi in maniera completamente autonoma.],
-  
-  [*marker device*], 
-    [Dispositivo che fornisce un codice a barre ai container nello slot5, segnalando poi l'avvenuto completamento.], 
-    [Da sviluppare (Mock in Sprint 0)], 
-    [Si ritiene opportuno rappresentare il marker come un QAK Actor, in grado di ricevere comandi ed emettere conferme.],
- 
-  [*LED*], 
-    [Indicatore lampeggiante di stato del sistema (engaged o disengaged).], 
-    [Da sviluppare (Mock in Sprint 0)], 
-    [Si ritiene opportuno rappresentare il LED come un QAK Actor (attuatore reattivo). Solo in veste di attore dotato di message queue autonoma può ricevere ed elaborare correttamente i messaggi di Dispatch asincroni inviati dal cargoservice.],
- 
-  [*hold*], 
-    [Rappresentazione e gestione dello stato della hold, tiene traccia degli slot occupati.], 
-    [Da sviluppare], 
-    [Si ritiene opportuno rappresentare la hold come QAK Actor (oppure come POJO incapsulato in cargoservice), permettendo così di separare la logica dei dati dalla logica di business.],
-)
-
-
-== Formalizzazione dei messaggi QAK 
-
-La seguente formalizzazione non introduce ancora scelte di progetto, limitandosi ad elencare i messaggi necessari per esprimere i requisiti. *Request/Reply* viene usato quando il requisito prevede una risposta osservabile. ;
-*Event* viene invece tipicamente usato quando l'emettitore non sa a chi arriverà il messaggio e si "preoccupa" solamente di emettere informazioni.
-
-=== customer / IOPort -> cargoservice 
-
-```qak
-Request  load_request    : loadRequest(none) 
-Reply    load_accepted   : loadAccepted(slotID)    for load_request 
-Reply    load_retrylater : loadRetryLater(none)    for load_request 
-Reply    load_refused    : loadRefused(none)       for load_request 
-
-```
-
-La Request `load_request` rappresenta il momento nel quale viene effetuata una richiesta tramite il pushbutton dell'IOPort e le 3 Reply sono le relative risposte del cargoservice: nel caso la richiesta venisse accettata si consegna anche l'ID dello slot nel quale va posizionato il carico.
-
-=== Sonar -> 
-
-```qak
-Event sonar_distance : distance(D)
-
-```
-
-Questo evento rappresenta la comunicazione dei propri dati da parte del sonar al sistema. Probabilmente sarà cargoservice ad "ascoltare" questo evento.
-
-
-/*
-=== sonar -> cargoservice
-
-```qak
-Dispatch sonar_data         : sonarData(distance) 
-Dispatch container_detected : containerDetected(none) 
-Dispatch sonar_failure      : sonarFailure(none) 
-
-```
-
-Il Dispatch `sonar_data` rappresenta il monitoraggio costante del Sensore della distanza tra il container e la sensor_area. Quando viene rilevato un container entro la distanza D > D#sub[FREE] per >= 3 s verrà inviato il Dispatch `container_detected`, mentre se la distanza è D < D#sub[FREE]/2 per >= 3 s verrà inviato `sonar_failure`.
-
-#nota[
-La scelta *Dispatch* (e non *Request*) per i messaggi del sonar è una *ipotesi di analisi*: il sonar segnala eventi al cargoservice senza aspettarsi una risposta diretta. Se l'analisi rivelasse la necessità di una conferma (es. handshake di rilevazione), il tipo del messaggio andrà rivisto nello sprint 1.
-]
-
-=== cargoservice -> cargorobot
-
-```qak
-Dispatch  move_to_slot5 : moveToSlot5(none) 
-Dispatch  move_to_slot  : moveToSlot(slotID) 
-
-```
-
-I Dispatch `move_to_slot5` e `move_to_slot` rappresentano rispettivamente le richieste di spostamento da parte di cargoservice al robot. Si preferisce usare dei Dispatch al posto del modello Request/Reply per il possibile lungo tempo che potrebbe intercorrere tra una Request e la sua eventuale Reply.
-
-=== cargorobot -> cargoservice
-
-```qak
-Dispatch    move_done     : moveDone(none)     
-Dispatch    move_done     : moveDone(none)     
-
-```
-
-I Dispatch `move_done` sono le corrispettive risposte a `move_to_slot5` e `move_to_slot`. La `move_to_slot5` avverrà solamente quando il container in questione dovrà essere sottoposto al marker, subito dopo cargoservice chiederà al robot di spostare quel container in uno degli altri slot.
-*/
-
-
-
-=== marker device -> cargoservice
-
-```qak
-Dispatch marking_done : markingDone(containerID) 
-
-```
-
-Messaggio di conferma a cargoservice di fine lavoro del marker.
-
-
-
-
-/*
-===  cargoservice -> marker device
-
-```qak
-Dispatch start_marking : startMarking(containerID) 
-
-```
-
-Messaggio di richiesta di inizio lavoro al marker, avverrà quando un container verrà depositato nello slot5.
-*/
-
-
-
-
-=== cargoservice -> display / LED
-
-```qak
-Dispatch display_hold_state : holdState(state) 
-Dispatch display_status     : displayStatus(message) 
-Dispatch led_on             : ledOn(none) 
-Dispatch led_off            : ledOff(none) 
-
-```
-
-Questi Dispatch rappresentano rispettivamente la "consegna" dei dati sullo status generale e sullo stato della hold da parte del cargoservice al display e le richieste di accendere o spegnere il LED. Le richieste al LED avverranno in corrispondenza di eventuali cambi di stato (*engaged* o *disengaged*).
-
-
-
-== Contesti logici
-
-#iss-table(
-columns: (auto, 1fr),
-[*Contesto*], [*Componenti e responsabilità*],
-[*ctxCargoService*],
-[Contiene l'attore cargoservice. Nucleo del comportamento richiesto e punto di orchestrazione del ciclo di carico.],
-[*ctxCustomer*],
-[Raggruppa le entità dedicate all'interazione con l'utente: IOPort (con display e pushbutton) e LED.],
-[*ctxDevices*],
-[Raggruppa i dispositivi presenti nella hold: sonar, hold e markerdevice.],
-[*ctxRobot*],
-[Raggruppa le entità legate al cargorobot e alla movimentazione richiesta.],
-)
-
-== Schema della hold
-
-```text
-Legenda:  H = HOME   S = sonar/sensor area   1-4 = slot1-4 
-          5 = slot5  I = IOPort  X = ostacolo  . = libero 
- 
-       col0  col1  col2  col3  col4  col5  col6 
-riga0 [  H ][  S ][  . ][  . ][  . ][  . ][  . ] 
-riga1 [  . ][  1 ][  X ][  X ][  2 ][  . ][  . ] 
-riga2 [  . ][  . ][  . ][  . ][  X ][  5 ][  . ] 
-riga3 [  . ][  3 ][  X ][  X ][  4 ][  . ][  . ] 
-riga4 [  . ][  . ][  . ][  . ][  . ][  . ][  . ] 
-riga5 [  I ][  X ][  X ][  X ][  X ][  X ][  X ] 
-
-```
-
-#nota[
-La posizione esatta dell'IOPort e del sonar richiede conferma dalla committente. Lo schema è una prima interpretazione fedele alla figura allegata ai requisiti.
-]
 
 // =============================================================================
 

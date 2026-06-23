@@ -13,3 +13,8 @@
   • evidenziare il core businness del sistema
   • definire un primo insieme di Piani di Test Funzionali
   • defnire il sottoinsieme di requisiti (il goal) che si intende soddisfare con lo Sprint1
+
+-domani discutiamo a proposito di:
+  -Reply load_accepted : loadAccepted(slotID) for load_request
+  -Reply load_retrylater : loadRetryLater(none) for load_request
+  -Reply load_refused : loadRefused(none) for load_request
