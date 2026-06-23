@@ -80,5 +80,8 @@
     radius: 1pt,
   )[#it]
 
+  // Link azzurri
+  show link: it => text(fill: rgb("#0077CC"))[#it]
+
   body
 }
