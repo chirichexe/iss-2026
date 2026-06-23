@@ -69,6 +69,18 @@ L'azienda richiede di realizzare un servizio denominato *cargoservice* con il se
 = Requirement analysis
 // =============================================================================
 
+== Motivazione dell’uso del linguaggio QAK
+QAK è il linguaggio messo a disposizione dalla nostra software house (unibo.issLab)
+per modellare sistemi software distribuiti, particolarmente espressivo nel formalizzare
+il concetto di *attore autonomo* e di *messaggio*, riducendo di molto l’“Abstraction
+Gap” tra requisiti nel contesto di un sistema distribuito eterogeneo. La natura *reattiva* e *proattiva* di cargoservice, che
+deve rispondere a stimoli esterni e avviare autonomamente sequenze di azioni, è infatti
+catturata in modo naturale da un attore QAK, cosa che un POJO (Plain Old Java
+Object), componente passivo attivato da chiamate sincrone, non catturerebbe altret-
+tanto bene. Dal modello QAK viene generato automaticamente codice Kotlin eseguibile,
+il che consente di disporre di un *primo prototipo osservabile già nello Sprint 0*,
+prima ancora di scrivere una riga di logica applicativa.
+
 == Macro-componenti e natura software
 
 === cargoservice
