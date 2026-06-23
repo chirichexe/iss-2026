@@ -27,7 +27,7 @@ La traccia del progetto può essere scaricata dal seguente #link("https://anatal
 
 // =============================================================================
 = Requirements   
-// =============================================================================
+// ============================================================================
 
 L'azienda richiede di realizzare un servizio denominato *cargoservice* con il seguente funzionamento:
 
@@ -71,31 +71,23 @@ L'azienda richiede di realizzare un servizio denominato *cargoservice* con il se
 
 == Core business 
 
-Il *core business* del sistema è la gestione del ciclo di carico di un container. La responsabilità della sequenza applicativa resta in *cargoservice*: il cargorobot è coinvolto per eseguire spostamenti richiesti dal servizio, non per decidere se una richiesta debba essere accettata, rifiutata o sospesa. La sequenza principale ricavata dai requisiti è: 
-
-+ Il customer preme il pushbutton dell'IOPort, quest'ultimo invia una Request a cargoservice. 
-+ cargoservice, interrogando hold, verifica le precondizioni (stato sistema, IOPort, disponibilità slot). 
-+ Se soddisfatte cargoservice imposta lo stato di sistema  _engaged_, comunica alla hold di prenotare uno slot, invia al LED l'ordine di lampeggiare e notifica al customer. 
-+ cargoservice fa partire il timer interno di 30 s.  
-+ Se il sonar entro il timeout rileva un container, cargoservice comanda al cargorobot di spostarlo da IOPort a slot5. 
-+ Il marker device etichetta il container e segnala il completamento. 
-+ cargoservice comanda al cargorobot di spostare il container da slot5 allo slot riservato, reimpostando lo stato di sistema a _disengaged_. 
-
+Il *core business* del sistema è la gestione del ciclo di carico di un container. La responsabilità della sequenza applicativa resta in *cargoservice*: il cargorobot è coinvolto per eseguire spostamenti richiesti dal servizio, non per decideree se una richiesta debba essere accettata, rifiutata o sospesa. La sequenza principale ricavata dai requisiti è espressa dal metamodello ccome segue:
 
 ```
 System cargosystem
 
-Request load_request  : load_request(X)
-Reply load_accepted   : load_accepted(SLOT) for load_request
-Reply load_refused    : load_refused(REASON) for load_request
-Reply load_retrylater : load_retrylater(REASON) for load_request
+// Vocabolario delle interazioni
+Request load_request  : loadRequest(none)
+Reply load_accepted   : loadAccepted(slotID)   for load_request
+Reply load_retrylater : loadRetryLater(none)   for load_request
+Reply load_refused    : loadRefused(none)      for load_request
 
-// Evento per simulare la percezione del container da parte del sonar
-// (D < DFREE/2 per >= 3 secondi)
-Event container_detected : container_detected(D)
+Event sonar_distance  : distance(D)
+Dispatch marking_done : markingDone(containerID)
 
 Context ctxcargoservice ip [host="localhost" port=8050]
 
+// Core Business
 QActor cargoservice context ctxcargoservice {
     
     State s0 initial {
@@ -103,47 +95,41 @@ QActor cargoservice context ctxcargoservice {
     }
     Goto disengaged
 
-      // STATO: DISENGAGED (Il sistema è pronto ad accogliere richieste)
     State disengaged {
-      println("cargoservice | DISENGAGED: waiting for load_request...")
+        println("cargoservice | DISENGAGED: waiting for load_request...")
     }
-
     Transition t0
         whenRequest load_request -> handle_load_request
 
-    // STATO: VALUTAZIONE PRECONDIZIONI
     State handle_load_request {
-        replyTo load_request with load_accepted : load_accepted(1)
+        printCurrentMessage
+        // MOCK Sprint 0: Simuliamo l'accettazione (Caso Felice)
+        // La logica reale di calcolo slot e OoS sarà nello Sprint 1
+        replyTo load_request with load_accepted : loadAccepted(1)
     }
-    Goto engaged // Assumendo che la richiesta sia accettata
+    Goto engaged
 
-    // STATO: ENGAGED (Il sistema attende l'azione fisica del customer)
     State engaged {
-        println("cargoservice | ENGAGED: waiting for customer to deposit container...")
+        println("cargoservice | ENGAGED: waiting for container (sonar)...")
     }
     Transition t1
-        whenTime 10000 -> handle_timeout            // Requisito: Timeout deposito
-        whenEvent container_detected -> move_to_slot5 // Requisito: Rilevazione container
+        whenTime 10000 -> handle_timeout            // Requisito: timeout deposito
+        whenEvent sonar_distance -> move_to_slot5   // Requisito: rilevamento container
 
-    // STATO: GESTIONE TIMEOUT (Il customer non ha depositato in tempo)
     State handle_timeout {
-        println("cargoservice | TIMEOUT: customer did not deposit in time. Freeing IOPort...")
-        // Logica per liberare la prenotazione
+        println("cargoservice | TIMEOUT: container non depositato, libero l'IOPort")
     }
     Goto disengaged
 
-    // STATO: PRESA IN CARICO DEL CONTAINER
     State move_to_slot5 {
-        println("cargoservice | CONTAINER RILEVATO: avvio movimentazione verso slot5...")
-        // NOTA ANALISI: In Sprint successivi qui ci sarà l'interazione (Dispatch/Request)
-        // con il 'cargorobot' per lo spostamento fisico.
+        println("cargoservice | CONTAINER RILEVATO: avvio movimentazione verso slot 5")
+        // Qui ci sarà la delega al cargorobot (Sprint futuri)
     }
-    Goto disengaged // Al termine del ciclo di carico, torna disponibile
+    Goto disengaged
 }
 ```
 
 == Macro-componenti e natura software 
-
 
 #iss-table( 
   columns: (14%, 28%, 18%, 40%), 
@@ -188,7 +174,7 @@ QActor cargoservice context ctxcargoservice {
 
 == Formalizzazione dei messaggi QAK 
 
-La seguente formalizzazione non introduce ancora scelte di progetto, limitandosi ad elencare i messaggi necessari per esprimere i requisiti. *Request/Reply* viene usato quando il requisito prevede una risposta osservabile. /* *Dispatch* quando il requisito parla di una segnalazione o di un aggiornamento senza risposta diretta.*/ ;
+La seguente formalizzazione non introduce ancora scelte di progetto, limitandosi ad elencare i messaggi necessari per esprimere i requisiti. *Request/Reply* viene usato quando il requisito prevede una risposta osservabile. ;
 *Event* viene invece tipicamente usato quando l'emettitore non sa a chi arriverà il messaggio e si "preoccupa" solamente di emettere informazioni.
 
 === customer / IOPort -> cargoservice 
@@ -328,6 +314,7 @@ La posizione esatta dell'IOPort e del sonar richiede conferma dalla committente.
 ]
 
 // =============================================================================
+
 = Test plan
 // =============================================================================
 
