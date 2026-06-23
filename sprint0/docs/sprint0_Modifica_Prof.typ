@@ -70,7 +70,7 @@ riservato per determinate funzionalità.
  
 - Un sensore di rilevamento della distanza
 
-Si ritiene opportuno che rappresentare la hold come QAK Actor sia ottimale, permettendo così di separare al meglio la logica dei dati dalla logica di business (responsabilità di cargoservice).
+Si ritiene opportuno rappresentare la hold come QAK Actor, permettendo così di separare al meglio la logica dei dati dalla logica di business (responsabilità di cargoservice).
 Anche IOPort, nonostante l'attività di ricevere e mostrare messaggi del Display sia passiva, verrà rappresentato come un QAK Actor, dato che le funzionalità del pushbutton richiedono un funzionamento autonomo
 in grado di generare request al cargoservice.
 
@@ -116,7 +116,7 @@ generale dell'applicazione, in particolare dovrà soddisfare le seguenti indicaz
   - Il marker device etichetti il container in slot5 e *ne segnali il completamento*, dopo il quale cargoservice dovrà comandare al cargorobot di spostare il container *da slot5 allo slot riservato*. 
 
 Si ritiene opportuno rappresentare cargoservice come un QAK Actor, dovendo gestire il ciclo di business reagendo in tempo reale agli eventi del sonar e inviando comandi.
-Il LED invece, svolgendo solamente attività passive, sarà rappresentato da un POJO. 
+Si ritiene opportuno rappresentare il LED, dato che svolge solamente attività passive, come un POJO. 
 
 == Domande aperte alla committente 
 
