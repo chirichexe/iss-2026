@@ -140,36 +140,35 @@ QActor cargoservice context ctxcargoservice {
     [Si ritiene opportuno rappresentare cargoservice come un QAK Actor, dato che deve gestire il ciclo di business, reagire in tempo reale agli eventi del sonar e inviare comandi.],
  
   [*cargorobot*], 
-    [Entità logica che si occupa del movimento del DDR. Riceve i comandi di trasferimento e sposta i container dall'IOPort allo slot5, e successivamente allo slot finale riservato], 
-    [Da chiarire / da sviluppare], 
+    [Entità logica che si occupa del movimento del DDR. Riceve i comandi di trasferimento e sposta i container dall'IOPort allo slot5, e successivamente allo slot finale riservato.], 
+    [Da sviluppare (Mock in Sprint 0)], 
     [Si ritiene opportuno rappresentare il cargorobot come un QAK Actor: dato che deve governare i movimenti del DDR all'interno della hold, necessita di un controllo autonomo per poter ricevere ed eseguire in modo asincrono le richieste di movimento.],
  
   [*IOPort*], 
-    [Interfaccia virtuale di Input/Output, ha pushbutton e display. Il primo rileva la richiesta di carico, mentre il secondo mostra i messaggi di stato del servizio e della hold], 
-    [Dispositivo fisico fornito \ sw da sviluppare], 
-    [Si ritiene opportuno rappresentare IOPort, nonostante la sua attività di ricevere e mostrare messaggi del Display sia passiva, come un QAK Actor, dato che le funzionalità del pushbutton richiedono un funzionamento autonomo in grado di generare request al cargoservice.],
+    [Interfaccia virtuale di Input/Output, ha pushbutton e display. Il primo rileva la richiesta di carico, mentre il secondo mostra i messaggi di stato del servizio e della hold.], 
+    [Da sviluppare (Mock in Sprint 0)], 
+    [Si ritiene opportuno rappresentare IOPort come un QAK Actor. Le funzionalità del pushbutton richiedono un funzionamento proattivo (per generare le request), e il display un funzionamento reattivo per mostrare i messaggi di stato.],
  
   [*sensore*], 
-    [Dispositivo di rilevamento associato all'IOPort. Deve effettuare misurazioni sulla distanza di un eventuale container dalla sensor_area e successivamente comunicarle], 
-    [Dispositivo fisico fornito \ driver sw da sviluppare], 
-    [Si ritiene opportuno rappresentare il sensore come QAK Actor, essendo un'entità attiva che effettua e invia misurazioni in maniera completamente autonoma.],
+    [Sorgente logica di eventi. Simula le misurazioni sulla distanza di un eventuale container dalla sensor_area per comunicarle al sistema.], 
+    [Da sviluppare (Mock in Sprint 0)], 
+    [Si ritiene opportuno rappresentare il sensore come QAK Actor, essendo un'entità attiva che effettua misurazioni ed emette eventi in maniera completamente autonoma.],
   
   [*marker device*], 
     [Dispositivo che fornisce un codice a barre ai container nello slot5, segnalando poi l'avvenuto completamento.], 
-    [Dispositivo fisico simulato fornito \ sw da sviluppare], 
-    [Si ritiene opportuno rappresentare il marker come un QAK Actor.],
+    [Da sviluppare (Mock in Sprint 0)], 
+    [Si ritiene opportuno rappresentare il marker come un QAK Actor, in grado di ricevere comandi ed emettere conferme.],
  
   [*LED*], 
-    [Indicatore lampeggiante di stato del sistema (engaged o disengaged)], 
-    [Fisico o virtuale \ sw da sviluppare], 
-    [Si ritiene opportuno rappresentare il LED, dato che svolge solamente attività passive, come un POJO.],
+    [Indicatore lampeggiante di stato del sistema (engaged o disengaged).], 
+    [Da sviluppare (Mock in Sprint 0)], 
+    [Si ritiene opportuno rappresentare il LED come un QAK Actor (attuatore reattivo). Solo in veste di attore dotato di message queue autonoma può ricevere ed elaborare correttamente i messaggi di Dispatch asincroni inviati dal cargoservice.],
  
   [*hold*], 
     [Rappresentazione e gestione dello stato della hold, tiene traccia degli slot occupati.], 
     [Da sviluppare], 
-    [Si ritiene opportuno rappresentare la hold come QAK Actor, permettendo così di separare al meglio la logica dei dati dalla logica di business (responsabilità di cargoservice).],
-) 
-
+    [Si ritiene opportuno rappresentare la hold come QAK Actor (oppure come POJO incapsulato in cargoservice), permettendo così di separare la logica dei dati dalla logica di business.],
+)
 
 
 == Formalizzazione dei messaggi QAK 
