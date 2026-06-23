@@ -3,3 +3,13 @@
   Sono il modello di partenza per disambiguare le richeiste (stretta cooperazione col committente)
 
 
+32.1.1 Lo Sprint0
+  Nel Il nostro metodo di lavoro, lo SPRINT0 ho lo scopo di formalizzare quanto più possibile i singoli termini del testo
+  dei requisiti, usando un qualche linguaggio di programmazione (e.g. Java) e/o di modellazione.
+  Lo SPRINT0 deve essere condootto in stretta cooperazione con il committente, per:
+  • fonrnire un modello delle macro-parti del sistema da realzzare, evidenziando quali componenti sono for-
+  niti/indicati dal committente e quelli che invece bisogna sviluppare, dando indicazioni sulla natura software
+  dei componenti stessi.
+  • evidenziare il core businness del sistema
+  • definire un primo insieme di Piani di Test Funzionali
+  • defnire il sottoinsieme di requisiti (il goal) che si intende soddisfare con lo Sprint1
