@@ -155,20 +155,28 @@ La hold mantiene lo stato logico della stiva e l'occupazione degli slot.
 
 Il componente è da sviluppare.
 
-Dal punto di vista della natura software, può essere rappresentata come una semplice struttura dati passiva, responsabile della memorizzazione dello stato degli slot. In alternativa, potrebbe essere modellata come componente autonomo incaricato di gestire le operazioni di prenotazione e rilascio degli slot, separando la gestione dello stato dalla logica di business del cargoservice.
+Dal punto di vista della natura software, può essere rappresentata come una semplice struttura dati passiva, responsabile della memorizzazione dello stato della stiva. Una possibile implementazione consiste in una matrice bidimensionale di celle, in cui ogni elemento rappresenta una posizione dell'ambiente e ne descrive il contenuto (area libera, ostacolo, slot, IOPort, Home, area sensore, ecc.).
+
+```java
+enum CellType {
+    FREE, OBSTACLE, HOME, SENSOR,
+    IOPORT, SLOT1, SLOT2, SLOT3, SLOT4, SLOT5
+}
+
+CellType[][] hold = new CellType[6][7];
+```
 
 ```text
-Legenda:  H = HOME   S = sonar/sensor area   1-4 = slot1-4 
-          5 = slot5  I = IOPort  X = ostacolo  . = libero 
- 
-       col0  col1  col2  col3  col4  col5  col6 
-riga0 [  H ][  S ][  . ][  . ][  . ][  . ][  . ] 
-riga1 [  . ][  1 ][  X ][  X ][  2 ][  . ][  . ] 
-riga2 [  . ][  . ][  . ][  . ][  X ][  5 ][  . ] 
-riga3 [  . ][  3 ][  X ][  X ][  4 ][  . ][  . ] 
-riga4 [  . ][  . ][  . ][  . ][  . ][  . ][  . ] 
-riga5 [  I ][  . ][  . ][  . ][  . ][  . ][  . ] 
+Legenda:  H = HOME   S = sonar/sensor area   1-4 = slot1-4
+          5 = slot5  I = IOPort  X = ostacolo  . = libero
 
+       col0  col1  col2  col3  col4  col5  col6
+riga0 [  H ][  S ][  . ][  . ][  . ][  . ][  . ]
+riga1 [  . ][  1 ][  X ][  X ][  2 ][  . ][  . ]
+riga2 [  . ][  . ][  . ][  . ][  X ][  5 ][  . ]
+riga3 [  . ][  3 ][  X ][  X ][  4 ][  . ][  . ]
+riga4 [  . ][  . ][  . ][  . ][  . ][  . ][  . ]
+riga5 [  I ][  . ][  . ][  . ][  . ][  . ][  . ]
 ```
 
 == Formalizzazione dei messaggi QAK 

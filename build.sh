@@ -1,13 +1,19 @@
 #!/bin/bash
 
-if [ $# -ne 1 ]; then
-    echo "Usage: ./build.sh <0|1|2|3>"
+if [ $# -ne 2 ]; then
+    echo "Usage: ./build.sh <0|1|2|3> <version>"
     exit 1
 fi
 
-case "$1" in
+SPRINT=$1
+VERSION=$2
+
+case "$SPRINT" in
     0|1|2|3)
-        typst compile --root . "sprint$1/docs/sprint$1.typ" "sprint$1/docs/sprint$1.pdf"
+        typst compile \
+            --root . \
+            "sprint$SPRINT/docs/sprint$SPRINT.typ" \
+            "sprint$SPRINT/docs/sprint${SPRINT}_v${VERSION}.pdf"
         ;;
     *)
         echo "Error: sprint must be 0, 1, 2 or 3"
