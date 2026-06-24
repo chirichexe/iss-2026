@@ -105,12 +105,6 @@ Il componente è da sviluppare.
 
 Dal punto di vista della natura software, la scelta architetturale è ancora oggetto di analisi. Se fosse modellato come un semplice POJO, il cargoservice gli cederebbe il controllo durante la movimentazione e non potrebbe reagire ad altri eventi del sistema fino al completamento dell'operazione. Se invece fosse realizzato come QActor, la comunicazione avverrebbe in modo asincrono, garantendo un maggiore disaccoppiamento tra le componenti.
 
-```qak
-QActor cargorobot context ctxRobot {
-  // DA SVILUPPARE
-}
-```
-
 === IOPort
 
 L'IOPort rappresenta l'interfaccia tra customer e sistema, composta da pushbutton e display.
