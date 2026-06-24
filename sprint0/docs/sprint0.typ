@@ -183,7 +183,10 @@ Dai requisiti, l'unica richiesta che si evince è quella di carico, che viene mo
 La richiesta viene inviata dal customer al cargoservice tramite l'IOPort.
 
 ```qak
-Request  load_request    : loadRequest(none) 
+Request  load_request    : loadRequest(none)
+Reply load_accepted : loadAccepted(slotID) for load_request
+Reply load_retrylater : loadRetryLater(none) for load_request
+Reply load_refused : loadRefused(none) for load_request
 ```
 
 == Contesti logici
@@ -210,6 +213,9 @@ System cargosystem
 
 // Vocabolario delle interazioni
 Request load_request  : loadRequest(none)
+Reply load_accepted : loadAccepted(slotID) for load_request
+Reply load_retrylater : loadRetryLater(none) for load_request
+Reply load_refused : loadRefused(none) for load_request
 
 Event sonar_distance  : distance(D)
 Dispatch marking_done : markingDone(containerID)
