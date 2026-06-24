@@ -42,3 +42,25 @@ il robot? Andiamo a cercare un cargorobot che sia
   colmare questo abstraction gap tramite un DSL. Interoduciamo come concetti primitivi quelli di Servizio, Messaggio, Dispatch, Event
 
   QUando attori non hanno memoria comune interagiscono con nanoservizi (così perchè ambienti locali) quindi concetto attore utilizzabile anche all'interno di una stessa jvm. mi avvalgo di questo linguaggio che è molto piu vicino al concetto di message passing rispetto a quanto lo sia java. è comodo già in questa fase perchè ci libera da dettagli che ci distolgono dal focus dei requisiti
+
+  - da subito posso fare un test plan e farlo funzionare. COME??? 
+    L'unica cosa che posso fare adesso è modellare la hold vuota. Il test plan che posso fare è che se adesso c'à qualcuno che simula IoPort, dico "request_load" e mando al service request load, la hold è vuota, il cargoservice risponde con "load_accepted" e mette il sistema "engaged" e "slot riservato"
+
+    poi modellare hold piena e simulare altra casistica...
+
+
+    RISPOSTE A MACCA
+
+    - La natura deve essere definita: nel cargorobot abbiamo identificato service, ioport un service. il modo di dire service in qak non c'è, usiamo la parola ACTOR
+
+      cargoservice come qactor: deve rispondere a delle richieste remote, rispondere a una request to load, è un servizio per forza
+
+      cargorobot: se facciamo un pojo siamo indotti ad avere lo stesso linguaggio del pojo. Motivato dal fatto che anche il committente concorda sul fatto che sviluppare entita come microsevizio ha vantaggi rispetto a modellarla come pojo
+
+      ioport: dobbiamo dire che il committente ha detto che si aspetta una realizzazione come webgui. esempio di modello come qaktor che poi sarà sviluppato in modo completamente diverso. idea: anche lui viene visto dalle altre parti come un servizio, come ogni servizio ha senso solo se ci sono dei messaggi a cui può rispodnere emettere/. Ora però possiamo dire una cosa: siamo scurissimi che IoPort emetterà la richiesta request_load a cargoservice. questa cosa è certa, è un requisito
+p. ma non possiamo ancora parlare di dispatch, quella è analisi del problema
+
+- sprint1 faremo evolvere testplan dello sprint0. Ciò che gli preme è che vediamo nel test del problema qualcosa che può portare a motivare delle forme di costruzione del software come quelle del qak dove io faccio in modo che questo livello venga colmato da qualcosa che non sono solo librerie ma un linguaggio.
+
+  - risistemiamo sprint0 e facciamo versione2
+  - facciamo subito lo sprint1 alla luce delle considerazioni
