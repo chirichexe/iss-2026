@@ -4,7 +4,7 @@
 
 
 32.1.1 Lo Sprint0
-  Nel Il nostro metodo di lavoro, lo SPRINT0 ho lo scopo di formalizzare quanto più possibile i singoli termini del testo
+  Nel Il nostro metodo di lavoro, lo SPRINT0 ho lo scopo di formalizzare quanto piùdoo possibile i singoli termini del testo
   dei requisiti, usando un qualche linguaggio di programmazione (e.g. Java) e/o di modellazione.
   Lo SPRINT0 deve essere condootto in stretta cooperazione con il committente, per:
   • fonrnire un modello delle macro-parti del sistema da realzzare, evidenziando quali componenti sono for-
@@ -18,3 +18,27 @@
   -Reply load_accepted : loadAccepted(slotID) for load_request
   -Reply load_retrylater : loadRetryLater(none) for load_request
   -Reply load_refused : loadRefused(none) for load_request
+
+-----------------none
+
+- Ogni termine che compare nel documento dovrebbe essere formalizzato / disambiguato
+
+- ora dobbiamo capire quali software riutilizzare per sviluppare il cargorobot
+poi possimao pensare che il cargorobot COINCIDA con uno di essi?
+
+- 
+
+- cargorobot non ha senso modellarlo come QActor. Chi ha la responsabilità di muovere
+il robot? Andiamo a cercare un cargorobot che sia 
+
+- IOPort è una pagina HTML, dopo aver parlato con il committente. Unica cosa da chiederci è se il server dell'IOPort è lo stesso di cargoservice oppure otteniamo un ulteriore disaccoppiamento modellando IoPort come un servizio a sè stante
+
+
+- cARGOservice possiamo realizzarla in java, ma come fare a parlare col servizio?
+  come interagire col servizio da requisito? col servizio interagiamo percgè qualcuno
+  manda al servizio una RICHIESTA. essendo una richiesta sappiamo che qualcuno manderà
+  una risposta. che problema sorge? non abbiamo la capacità in java (object committente) di esprimere altro tipo di interazione se non procedure call bloccanti
+
+  colmare questo abstraction gap tramite un DSL. Interoduciamo come concetti primitivi quelli di Servizio, Messaggio, Dispatch, Event
+
+  QUando attori non hanno memoria comune interagiscono con nanoservizi (così perchè ambienti locali) quindi concetto attore utilizzabile anche all'interno di una stessa jvm. mi avvalgo di questo linguaggio che è molto piu vicino al concetto di message passing rispetto a quanto lo sia java. è comodo già in questa fase perchè ci libera da dettagli che ci distolgono dal focus dei requisiti
