@@ -17,9 +17,13 @@
 = Introduction   
 // =============================================================================
 
-Una compagnia di trasporto marittimo di container (d'ora in poi _la committente_) intende automatizzare le operazioni di carico dei container nella hold della nave (d'ora in poi *hold*). A tal fine prevede di impiegare un robot a guida differenziale (Differential Drive Robot, d'ora in poi *cargorobot*). 
+Una compagnia di trasporto marittimo di container (d'ora in poi _la committente_) intende automatizzare le operazioni di carico 
+dei container nella hold della nave (d'ora in poi *hold*). A tal fine prevede di impiegare un robot a guida differenziale 
+(Differential Drive Robot, d'ora in poi *cargorobot*). 
 
-L'obiettivo dello Sprint 0 è formalizzare i requisiti forniti dalla committente in modo preciso e non ambiguo, costruire un primo modello logico dei macro-componenti del sistema, evidenziare il _core business_, motivare la scelta del linguaggio di modellazione e definire un primo insieme di piani di test funzionali. 
+L'obiettivo dello Sprint 0 è formalizzare e disambiguare i requisiti forniti dalla committente in linguaggio naturale, 
+costruire un primo modello del sistema, evidenziare il _core business_, 
+motivare la scelta del linguaggio di modellazione e definire un primo insieme di piani di test funzionali e il goal dello Sprint 1. 
 
 Ogni scelta è strettamente ancorata ai requisiti: il modello qui presentato serve a catturare il comportamento richiesto, senza anticipare decisioni progettuali o scelte implementative che verranno affrontate negli sprint successivi.  
 
@@ -70,16 +74,44 @@ L'azienda richiede di realizzare un servizio denominato *cargoservice* con il se
 // =============================================================================
 
 == Motivazione dell’uso del linguaggio QAK
-QAK è il linguaggio messo a disposizione dalla nostra software house (unibo.issLab)
+QAK è il linguaggio messo a disposizione dalla nostra software house
 per modellare sistemi software distribuiti, particolarmente espressivo nel formalizzare
-il concetto di *attore autonomo* e di *messaggio*, riducendo di molto l’“Abstraction
-Gap” tra requisiti nel contesto di un sistema distribuito eterogeneo. La natura *reattiva* e *proattiva* di cargoservice, che
-deve rispondere a stimoli esterni e avviare autonomamente sequenze di azioni, è infatti
-catturata in modo naturale da un attore QAK, cosa che un POJO (Plain Old Java
-Object), componente passivo attivato da chiamate sincrone, non catturerebbe altret-
-tanto bene. Dal modello QAK viene generato automaticamente codice Kotlin eseguibile,
+il concetto di *attore autonomo* e di *messaggio*, riducendo di molto l'“Abstraction
+Gap” tra requisiti nel contesto di un sistema distribuito eterogeneo.
+
+I requisiti descrivono un sistema composto da entità che ricevono richieste, inviano risposte, 
+osservano eventi e coordinano dispositivi. Java, preso come linguaggio general purpose, 
+esprime invece in modo naturale soprattutto interazioni tramite chiamate di procedura, spesso sincrone e bloccanti. 
+Questo rischia di introdurre precocemente dettagli implementativi che distolgono dal problema principale:
+formalizzare il comportamento osservabile richiesto dalla committente.
+
+QAK introduce invece come concetti primitivi quelli di *attore*, *messaggio*,
+*request*, *reply*, *dispatch* ed *event*, rendendo il modello più vicino al dominio
+del problema. La natura *reattiva* e *proattiva* di servizi che devono rispondere
+a stimoli esterni e avviare autonomamente sequenze di azioni è infatti catturata in
+modo naturale da un attore QAK, cosa che un POJO, componente
+passivo attivato da chiamate sincrone, non catturerebbe altrettanto bene.
+
+Dal modello QAK viene inoltre generato automaticamente codice Kotlin eseguibile,
 il che consente di disporre di un *primo prototipo osservabile già nello Sprint 0*,
 prima ancora di scrivere una riga di logica applicativa.
+
+== Vocabolario
+
+#iss-table(
+columns: (auto, 1fr),
+[*Termine*], [*Significato*],
+
+[*engaged*], [Stato nel quale il sistema sta gestendo una richiesta di carico.],
+
+[*disengaged*], [Stato nel quale il sistema può accettare una nuova richiesta.],
+
+[*Out of service*], [Stato nel quale il servizio non può accettare richieste a causa del malfunzionamento del sonar.],
+
+[*hold*], [Modello logico della stiva e dell'occupazione degli slot.],
+
+[*slot libero*], [Primo slot disponibile tra slot1-slot4.],
+)
 
 == Macro-componenti e natura software
 
@@ -99,19 +131,34 @@ QActor cargoservice context ctxCargoService {
 
 === cargorobot
 
-Il *cargorobot* è l'entità incaricata di governare il DDR per la movimentazione dei container all'interno della hold.
+Il *cargorobot* è il sottosistema responsabile della movimentazione fisica del container all'interno della hold.
 
-Il componente è da sviluppare.
+Dopo una discussione con la committente, si conviene che la responsabilità di decidere
+la sequenza applicativa resta in capo al *cargoservice*: il cargorobot non decide se
+una richiesta debba essere accettata, rifiutata o sospesa, ma viene guidato dal
+cargoservice per eseguire operazioni di movimentazione.
 
-Dal punto di vista della natura software, la scelta architetturale è ancora oggetto di analisi. Se fosse modellato come un semplice POJO, il cargoservice gli cederebbe il controllo durante la movimentazione e non potrebbe reagire ad altri eventi del sistema fino al completamento dell'operazione. Se invece fosse realizzato come QActor, la comunicazione avverrebbe in modo asincrono, garantendo un maggiore disaccoppiamento tra le componenti.
+Per ora non assumiamo che il cargorobot coincida con un QActor sviluppato da noi.
+È invece opportuno analizzare quali software già disponibili nella software house
+o in rete siano adeguati al problema, ad esempio servizi già esistenti per il controllo
+del DDR. In particolare, andrà valutato se riutilizzare software come *robosmart26* o
+*robotservice26*.
+
+Nel modello dei requisiti il cargorobot viene quindi considerato come collaboratore
+del cargoservice, eventualmente realizzato come servizio autonomo. La decisione sulla
+sua realizzazione concreta è rinviata all'analisi del problema.
 
 === IOPort
 
-L'IOPort rappresenta l'interfaccia tra customer e sistema, composta da pushbutton e display.
+L'IOPort rappresenta l'interfaccia tra customer e sistema. 
+Dopo una discussione con la committente, si comprende che esso viene interpretato come una Web GUI composta almeno da un pushbutton e 
+da un display. Dai requisiti si deduce che è IOPort ad emettere la richiesta *load_request* verso *cargoservice* e mostrare informazioni 
+di stato.
+Viene demandata all'analisi del problea la scelta se il server dell'IOPort coincida con quello del cargoservice oppure se sia modellato 
+come servizio separato per ottenere maggiore disaccoppiamento.
 
-Il software dell'interfaccia è da sviluppare.
-
-Dal punto di vista della natura software, può essere realizzato come componente separato dal cargoservice.
+Nel modello QAK può essere rappresentato come attore per modellarne il comportamento comunicativo,
+non perché la sua implementazione finale debba necessariamente essere QAK.
 
 ```qak
 QActor ioport context ctxCustomer {
@@ -145,38 +192,57 @@ QActor markerdevice context ctxDevices {
 
 === LED
 
-Il LED indica lo stato engaged/disengaged del sistema.
+=== LED
 
-Dopo una consultazione con la committente, si è definito che il LED è un dispositivo fisico integrato all'interno del PicoW che gestisce il sonar. Il software di controllo è da sviluppare.
+Il LED è un dispositivo fisico usato per rendere osservabile lo stato *engaged* del sistema.
+
+La frase dei requisiti _"while engaged, the system blink a Led"_ viene formalizzata
+nel seguente modo: quando il cargoservice entra nello stato *engaged*, il LED deve
+lampeggiare; quando il sistema torna nello stato *disengaged*, il LED deve essere spento.
+
+Dopo una consultazione con la committente, si è definito che il LED è considerato un dispositivo 
+fisico integrato nel PicoW che gestisce anche il sonar. Il software di controllo del LED è quindi 
+da sviluppare o integrare nel software eseguito sul PicoW.
 
 === hold
 
-La hold mantiene lo stato logico della stiva e l'occupazione degli slot.
+La hold è l'entità che rappresenta logicamente la stiva della nave e lo stato di occupazione degli slot.
 
 Il componente è da sviluppare.
 
-Dal punto di vista della natura software, può essere rappresentata come una semplice struttura dati passiva, responsabile della memorizzazione dello stato della stiva. Una possibile implementazione consiste in una matrice bidimensionale di celle, in cui ogni elemento rappresenta una posizione dell'ambiente e ne descrive il contenuto (area libera, ostacolo, slot, IOPort, Home, area sensore, ecc.).
+Dal punto di vista della natura software, può essere rappresentata come una struttura dati passiva composta
+composta da Celle. Ogni Cella può indicare uno spazio libero, un ostacolo, una posizione speciale o uno slot
+Una possibile implementazione consiste in una matrice bidimensionale di celle, In particolare, la hold contiene gli slot
+di destinazione *slot1*--*slot4* e lo *slot5* usato per la marcatura.
+
+La seguebnte rappresentazione non vincola l'implementazione finale, ma permette di formalizzare il concetto di hold piena e di slot libero.
 
 ```java
-enum CellType {
+num CellType {
     FREE, OBSTACLE, HOME, SENSOR,
     IOPORT, SLOT1, SLOT2, SLOT3, SLOT4, SLOT5
 }
 
-CellType[][] hold = new CellType[6][7];
-```
+class Hold {
+    private final CellType[][] cells;
+    private final boolean[] occupiedSlots = new boolean[4];
 
-```text
-Legenda:  H = HOME   S = sonar/sensor area   1-4 = slot1-4
-          5 = slot5  I = IOPort  X = ostacolo  . = libero
+    boolean isFull() {
+        return occupiedSlots[0]
+            && occupiedSlots[1]
+            && occupiedSlots[2]
+            && occupiedSlots[3];
+    }
 
-       col0  col1  col2  col3  col4  col5  col6
-riga0 [  H ][  S ][  . ][  . ][  . ][  . ][  . ]
-riga1 [  . ][  1 ][  X ][  X ][  2 ][  . ][  . ]
-riga2 [  . ][  . ][  . ][  . ][  X ][  5 ][  . ]
-riga3 [  . ][  3 ][  X ][  X ][  4 ][  . ][  . ]
-riga4 [  . ][  . ][  . ][  . ][  . ][  . ][  . ]
-riga5 [  I ][  . ][  . ][  . ][  . ][  . ][  . ]
+    Optional<String> firstFreeSlot() {
+        for (int i = 0; i < occupiedSlots.length; i++) {
+            if (!occupiedSlots[i]) {
+                return Optional.of("slot" + (i + 1));
+            }
+        }
+        return Optional.empty();
+    }
+}
 ```
 
 == Formalizzazione dei messaggi QAK 
@@ -186,10 +252,35 @@ La richiesta viene inviata dal customer al cargoservice tramite l'IOPort.
 
 ```qak
 Request  load_request    : loadRequest(none)
-Reply load_accepted : loadAccepted(slotID) for load_request
-Reply load_retrylater : loadRetryLater(none) for load_request
-Reply load_refused : loadRefused(none) for load_request
+Reply load_accepted : loadAccepted(slotID) for load_request // accettazione
+Reply load_retrylater : loadRetryLater(none) for load_request // rinvio temporaneo
+Reply load_refused : loadRefused(none) for load_request // rifiuto definitivo
 ```
+
+Il payload *none* indica che, al livello dei requisiti attuali, il messaggio non trasporta informazioni applicative aggiuntive. 
+La richiesta di carico è generata dal pulsante dell'IOPort.
+
+== Distribuzione preliminare del software
+
+Dai requisiti emerge che il sistema non è naturalmente concentrato in un unico
+processo. Le entità coinvolte possono richiedere processori distinti:
+
+#iss-table(
+columns: (auto, 1fr),
+[*Unità di esecuzione*], [*Responsabilità*],
+
+[*Applicazione cargoservice*], [Gestione della logica applicativa e delle richieste di carico.],
+
+[*PicoW*], [Gestione dei dispositivi fisici locali, in particolare sonar e LED.],
+
+[*Robot*], [Esecuzione del software di controllo del DDR o di un servizio robotico riusato.],
+
+[*IOPort*], [Esecuzione della Web GUI o del relativo server applicativo.]
+)
+
+Questa osservazione motiva ulteriormente il passaggio da componenti passivi di tipo
+POJO a servizi comunicanti tramite messaggi: un POJO implica trasferimento di controllo,
+mentre un servizio autonomo viene interrogato tramite scambio di messaggi.
 
 == Contesti logici
 
@@ -214,19 +305,16 @@ Il *core business* del sistema è la gestione del ciclo di carico di un containe
 System cargosystem
 
 // Vocabolario delle interazioni
-Request load_request  : loadRequest(none)
-Reply load_accepted : loadAccepted(slotID) for load_request
-Reply load_retrylater : loadRetryLater(none) for load_request
-Reply load_refused : loadRefused(none) for load_request
-
-Event sonar_distance  : distance(D)
-Dispatch marking_done : markingDone(containerID)
+Request load_request      : loadRequest(none)
+Reply load_accepted       : loadAccepted(slotID) for load_request
+Reply load_retrylater     : loadRetryLater(none) for load_request
+Reply load_refused        : loadRefused(none) for load_request
 
 Context ctxcargoservice ip [host="localhost" port=8050]
 
 // Core Business
 QActor cargoservice context ctxcargoservice {
-    
+
     State s0 initial {
         println("cargoservice | started")
     }
@@ -240,73 +328,55 @@ QActor cargoservice context ctxcargoservice {
 
     State handle_load_request {
         printCurrentMessage
-        // Simulazione accettazione
-        replyTo load_request with load_accepted : loadAccepted(1)
+
+        // simulazione di una richiesta accettata
+        replyTo load_request with load_accepted : loadAccepted(slot1)
     }
     Goto engaged
 
     State engaged {
-        println("cargoservice | ENGAGED: waiting for container (sonar)...")
+        println("cargoservice | ENGAGED: slot reserved")
     }
-    Transition t1
-        whenTime 10000 -> handle_timeout            // Requisito: timeout deposito
-        whenEvent sonar_distance -> move_to_slot5   // Requisito: rilevamento container
-
-    State handle_timeout {
-        println("cargoservice | TIMEOUT: container non depositato, libero l'IOPort")
-    }
-    Goto disengaged
-
-    State move_to_slot5 {
-        println("cargoservice | CONTAINER RILEVATO: avvio movimentazione verso slot 5")
-        // Qui ci sarà la delega al cargorobot
-    }
-    Goto disengaged
 }
 ```
 
 // =============================================================================
 
 = Test plan
+
 // =============================================================================
 
-I test funzionali verificano il comportamento osservabile del sistema rispetto ai requisiti, indipendentemente dall'implementazione.
+I test funzionali verificano il comportamento osservabile del sistema rispetto ai
+requisiti, indipendentemente dall'implementazione concreta dei componenti.
 
 #iss-table(
-columns: (auto, 1fr, 1fr),
-[*Scenario*], [*Precondizioni*], [*Risultato atteso*],
+columns: (auto, 1fr, 1fr, 1fr),
+[*Test*], [*Precondizioni*], [*Azione*], [*Risultato atteso*],
 
-[Accettazione],
-[*disengaged*, non OoS, IOPort libera, slot disponibile],
-[*load_accepted* con slot riservato; stato *engaged*; LED lampeggiante],
+[*T1 - Accettazione richiesta*],
+[*disengaged*, sistema non *Out of service*, IOPort libera, almeno uno slot libero],
+[Invio di *load_request* al cargoservice],
+[Reply *load_accepted(slotID)*; lo slot indicato viene riservato; il sistema diventa *engaged*; il LED lampeggia],
 
-[Rifiuto (hold piena)],
-[*disengaged*, non OoS, IOPort libera, slot1--4 tutti occupati],
-[*load_refused*; stato *disengaged*; LED spento],
+[*T2 - Hold piena*],
+[*disengaged*, sistema non *Out of service*, IOPort libera, slot1--slot4 occupati],
+[Invio di *load_request* al cargoservice],
+[Reply *load_refused*; il sistema resta *disengaged*; il LED resta spento],
 
-[Retrylater (OoS)],
-[Sistema *Out of service*],
-[*load_retrylater*; stato immutato],
+[*T3 - Sistema Out of service*],
+[Sistema in stato *Out of service*],
+[Invio di *load_request* al cargoservice],
+[Reply *load_retrylater*; lo stato del sistema non cambia],
 
-[Retrylater (IOPort occupata)],
-[*disengaged*, non OoS, IOPort occupata da un container],
-[*load_retrylater*; stato *disengaged*],
+[*T4 - IOPort occupata*],
+[*disengaged*, sistema non *Out of service*, IOPort occupata da un container],
+[Invio di *load_request* o pressione del pushbutton],
+[Reply *load_retrylater* oppure richiesta non inoltrata; il sistema resta *disengaged*],
 
-[Timeout deposito],
-[Sistema *engaged*; customer non deposita entro il tempo prefissato],
-[Sistema *disengaged*; LED spento],
-
-[Ciclo completo],
-[*disengaged*, non OoS, IOPort libera, slot disponibile],
-[Container nello slot riservato; display *"Service working"*; *disengaged*; LED spento],
-
-[Guasto sonar],
-[Sistema operativo; sonar misura D > D#sub[FREE] per >= 3 s],
-[Sistema *Out of service*; display *"Out of service"*],
-
-[Rilevazione container],
-[Sistema *engaged*; sensor area vuota; sonar misura D < D#sub[FREE]/2 per >= 3 s],
-[cargoservice avvia la movimentazione verso slot5],
+[*T5 - Timeout deposito*],
+[Sistema *engaged* dopo una richiesta accettata],
+[Il customer non deposita il container nella sensor area entro il tempo massimo],
+[Il sistema torna *disengaged*; il LED viene spento]
 )
 
 // =============================================================================

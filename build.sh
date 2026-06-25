@@ -1,12 +1,19 @@
 #!/bin/bash
 
-if [ $# -ne 2 ]; then
-    echo "Usage: ./build.sh <0|1|2|3> <version>"
+if [ $# -lt 1 ] || [ $# -gt 2 ]; then
+    echo "Usage: ./build.sh [<sprint>] <version>"
+    echo "  sprint:  0, 1, 2, or 3 (default: 0)"
+    echo "  version: version number"
     exit 1
 fi
 
-SPRINT=$1
-VERSION=$2
+if [ $# -eq 1 ]; then
+    SPRINT=0
+    VERSION=$1
+else
+    SPRINT=$1
+    VERSION=$2
+fi
 
 case "$SPRINT" in
     0|1|2|3)
