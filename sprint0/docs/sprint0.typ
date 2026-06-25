@@ -387,9 +387,24 @@ Dall'analisi dei requisiti si propone, come ipotesi iniziale, una struttura a *t
 
 == Sprint 1: Core business
 
-*Goal:* realizzare il primo nucleo eseguibile di cargoservice con collaboratori simulati.
+*Goal:* realizzare un primo prototipo eseguibile del *cargoservice* che implementi il
+comportamento principale descritto dai requisiti mediante collaboratori simulati.
 
-Funzionalità: ciclo di carico completo con collaboratori simulati, modello dello stato della hold, LED simulato, timeout.
+Al termine dello Sprint1 il sistema dovrà essere in grado di:
+
+- ricevere una *load_request* proveniente dall'IOPort;
+- verificare lo stato della hold, dell'IOPort e del servizio;
+- produrre una delle tre risposte previste:
+  - *load_accepted(slotID)*;
+  - *load_retrylater*;
+  - *load_refused*;
+- mantenere il modello logico della hold e la prenotazione dello slot;
+- gestire gli stati *engaged* e *disengaged*;
+- pilotare il LED in funzione dello stato del sistema;
+- superare i test funzionali definiti nello Sprint0.
+
+In questa fase il cargorobot, il sonar, il markerdevice e l'IOPort saranno rappresentati
+tramite collaboratori simulati.
 
 == Sprint 2: IOPort, display e sonar
 
