@@ -334,7 +334,7 @@ I test funzionali verificano il comportamento osservabile del sistema rispetto a
 requisiti, indipendentemente dall'implementazione concreta dei componenti.
 
 #iss-table(
-columns: (auto, 1fr, 1fr, 1fr),
+columns: (1.2fr, 2fr, 2fr, 2fr),
 [*Test*], [*Precondizioni*], [*Azione*], [*Risultato atteso*],
 
 [*T1 - Accettazione richiesta*],
@@ -362,6 +362,118 @@ columns: (auto, 1fr, 1fr, 1fr),
 [Il customer non deposita il container nella sensor area entro il tempo massimo],
 [Il sistema torna *disengaged*; il LED viene spento]
 )
+
+```java
+  /**
+    * Scenario di test 1:
+    * Verifica che una richiesta di carico venga accettata quando
+    * il sistema è disponibile, la IOPort è libera e almeno uno slot
+    * della hold è disponibile. Il cargoservice deve rispondere con
+    * LOAD_ACCEPTED, riservare lo slot, passare allo stato ENGAGED
+    * e attivare il lampeggio del LED.
+    */
+  @Test
+  void T1_loadRequestAccepted() {
+      CargoService service = new CargoService();
+
+      service.setOutOfService(false);
+      service.setIoPortFree(true);
+      service.setSlotFree("slot1");
+
+      LoadReply reply = service.loadRequest();
+
+      assertEquals(LoadReplyType.LOAD_ACCEPTED, reply.getType());
+      assertEquals("slot1", reply.getSlotId());
+      assertTrue(service.isSlotReserved("slot1"));
+      assertEquals(ServiceState.ENGAGED, service.getState());
+      assertTrue(service.isLedBlinking());
+  }
+
+  /**
+    * Scenario di test 2:
+    * Verifica che una richiesta di carico venga rifiutata quando
+    * tutti gli slot della hold risultano occupati. Il cargoservice
+    * deve rispondere con LOAD_REFUSED e rimanere nello stato
+    * DISENGAGED senza attivare il LED.
+    */
+  @Test
+  void T2_loadRequestRefusedWhenHoldIsFull() {
+      CargoService service = new CargoService();
+
+      service.setOutOfService(false);
+      service.setIoPortFree(true);
+      service.occupyAllSlots();
+
+      LoadReply reply = service.loadRequest();
+
+      assertEquals(LoadReplyType.LOAD_REFUSED, reply.getType());
+      assertEquals(ServiceState.DISENGAGED, service.getState());
+      assertFalse(service.isLedOn());
+  }
+
+  /**
+    * Scenario di test 3:
+    * Verifica che una richiesta di carico venga rinviata quando
+    * il sistema si trova nello stato Out of service. Il cargoservice
+    * deve rispondere con LOAD_RETRYLATER senza modificare
+    * il proprio stato interno.
+    */
+  @Test
+  void T3_retryLaterWhenSystemIsOutOfService() {
+      CargoService service = new CargoService();
+
+      service.setOutOfService(true);
+      ServiceState previousState = service.getState();
+
+      LoadReply reply = service.loadRequest();
+
+      assertEquals(LoadReplyType.LOAD_RETRYLATER, reply.getType());
+      assertEquals(previousState, service.getState());
+  }
+
+  /**
+    * Scenario di test 4:
+    * Verifica che una richiesta di carico non venga accettata
+    * quando la IOPort è già occupata. Il cargoservice deve
+    * rispondere con LOAD_RETRYLATER e rimanere nello
+    * stato DISENGAGED.
+    */
+  @Test
+  void T4_retryLaterWhenIoPortIsOccupied() {
+      CargoService service = new CargoService();
+
+      service.setOutOfService(false);
+      service.setIoPortFree(false);
+
+      LoadReply reply = service.loadRequest();
+
+      assertEquals(LoadReplyType.LOAD_RETRYLATER, reply.getType());
+      assertEquals(ServiceState.DISENGAGED, service.getState());
+  }
+
+  /**
+    * Scenario di test 5:
+    * Verifica che, dopo l'accettazione di una richiesta di carico,
+    * il mancato deposito del container entro il tempo massimo
+    * provochi il timeout dell'operazione. Il cargoservice deve
+    * tornare nello stato DISENGAGED e spegnere il LED.
+    */
+  @Test
+  void T5_systemReturnsDisengagedAfterDepositTimeout() {
+      CargoService service = new CargoService();
+
+      service.setOutOfService(false);
+      service.setIoPortFree(true);
+      service.setSlotFree("slot1");
+
+      service.loadRequest();
+
+      service.depositTimeoutExpired();
+
+      assertEquals(ServiceState.DISENGAGED, service.getState());
+      assertFalse(service.isLedOn());
+  }
+```
 
 // =============================================================================
 = Project
