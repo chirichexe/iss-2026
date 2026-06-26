@@ -153,8 +153,12 @@ QActor cargoservice context ctxcargoservice {
     // Se l'IOPort diventa occupied durante lo stato engaged, il customer ha depositato il container! Iniziamo il lavoro.
     Goto do_robot_job if [# IOPortStatus == "occupied" && CargoState == "engaged" #] else engaged
 
+
+
+
+
     // -----------------------------------------------------
-    // FASI DI LAVORO CON IL ROBOT (Mock Sprint 1)
+    // INTERAZIONI MOCK CON IL ROBOT
     // -----------------------------------------------------
     State do_robot_job {
         println("cargoservice | Container deposited! Asking robot to move to slot5 (marker)...") color magenta
@@ -184,6 +188,9 @@ QActor cargoservice context ctxcargoservice {
         forward ledmock -m led_ctrl : ledCmd(off)
     }
     Goto disengaged
+
+
+
 
     // -----------------------------------------------------
     // GESTIONE TIMEOUT E AGGIORNAMENTI STATO
@@ -217,8 +224,13 @@ QActor cargoservice context ctxcargoservice {
     Goto engaged if [# CargoState == "engaged" #] else disengaged
 }
 
+
+
+
+
+
 // =========================================================
-// MOCKS PER LO SPRINT 1
+// COMPONENTI MOCK
 // =========================================================
 
 // Mock del LED: riceve i comandi e stampa il proprio stato
