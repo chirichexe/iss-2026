@@ -61,9 +61,11 @@ Come emerso in precedenza, il fulcro del sistema è l'attore *cargoservice*, la 
 Tuttavia, i requisiti affrontati in questo sprint presupporrebbero già l'implementazione e la presenza di altri componenti del sistema, come la stiva (hold), i sensori (sonar), i dispositivi di I/O (IOPort, LED, markerdevice) e l'interazione con l'hardware del robot (cargorobot).
 Per focalizzarci unicamente sulla logica di business e rispettare un processo di costruzione incrementale, in questo Sprint 1 verranno utilizzati dei componenti *simulati* 
 
-L'uso del linguaggio qak ci permetterà di modellare il *cargoservice* come un *attore autonomo*
+L'uso del linguaggio qak ci permetterà di modellare il *cargoservice* come un *attore autonomo*. 
 
 = Problem analysis
+
+Come emerso dai requisiti, questo componente funge da *orchestratore*: coordina le operazioni degli altri componenti del sistema al fine di eseguire le procedure di carico nel giusto ordine 
 
 = Test plans
 
