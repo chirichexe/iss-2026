@@ -54,6 +54,15 @@ L'azienda richiede di realizzare un servizio denominato *cargoservice* con il se
 
 = Requirement analysis
 
+L'analisi dettagliata del dominio e dei requisiti è già stata affrontata nello Sprint 0, in questa fase ci concentriamo esclusivamente sul ciclo di gestione delle richieste di carico (*core business*) del sistema.
+
+Come emerso in precedenza, il fulcro del sistema è l'attore *cargoservice*, la cui responsabilità principale è fungere da orchestratore per coordinare le operazioni.
+
+Tuttavia, i requisiti affrontati in questo sprint presupporrebbero già l'implementazione e la presenza di altri componenti del sistema, come la stiva (hold), i sensori (sonar), i dispositivi di I/O (IOPort, LED, markerdevice) e l'interazione con l'hardware del robot (cargorobot).
+Per focalizzarci unicamente sulla logica di business e rispettare un processo di costruzione incrementale, in questo Sprint 1 verranno utilizzati dei componenti *simulati* 
+
+L'uso del linguaggio qak ci permetterà di modellare il *cargoservice* come un *attore autonomo*
+
 = Problem analysis
 
 = Test plans
