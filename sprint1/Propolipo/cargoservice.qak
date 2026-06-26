@@ -1,0 +1,146 @@
+System cargosystem
+
+// ---------------------------------------------------------
+// Messaggi e Interazioni
+// ---------------------------------------------------------
+Request load_request   : loadRequest(none)
+Reply   load_accepted  : loadAccepted(SLOTID) for load_request
+Reply   load_retrylater: loadRetryLater(none) for load_request
+Reply   load_refused   : loadRefused(none) for load_request
+
+Dispatch set_ioport_status : setIOPortStatus(STATUS) 
+Dispatch set_service_status : setServiceStatus(STATUS) 
+Dispatch led_ctrl : ledCmd(CMD)
+
+Context ctxcargoservice ip [host="localhost" port=8050]
+
+// ---------------------------------------------------------
+// QActor cargoservice
+// ---------------------------------------------------------
+QActor cargoservice context ctxcargoservice {
+    [#
+        var Slots = intArrayOf(0, 0, 0, 0)
+        var IOPortStatus = "free"
+        var ServiceStatus = "working"
+        
+        fun getFreeSlot(): Int {
+            for (i in 0..3) {
+                if (Slots[i] == 0) return i + 1
+            }
+            return -1
+        }
+        
+        fun isHoldFull(): Boolean {
+            return getFreeSlot() == -1
+        }
+    #]
+
+    State s0 initial {
+        println("cargoservice | STARTED") color magenta
+    }
+    Goto disengaged
+
+    State disengaged {
+        println("cargoservice | DISENGAGED: waiting for load_request...") color blue
+    }
+    Transition t0
+        whenRequest load_request -> handle_load_request
+        whenMsg set_ioport_status -> update_ioport_disengaged
+        whenMsg set_service_status -> update_service_disengaged
+
+    State update_ioport_disengaged {
+        onMsg(set_ioport_status : setIOPortStatus(S)) {
+            [# IOPortStatus = payloadArg(0) #]
+            println("cargoservice | IOPort status updated to $IOPortStatus") color cyan
+        }
+    }
+    Goto disengaged
+
+    State update_service_disengaged {
+        onMsg(set_service_status : setServiceStatus(S)) {
+            [# ServiceStatus = payloadArg(0) #]
+            println("cargoservice | Service status updated to $ServiceStatus") color cyan
+        }
+    }
+    Goto disengaged
+
+    State handle_load_request {
+        printCurrentMessage color yellow
+        if [# ServiceStatus == "outofservice" || IOPortStatus == "occupied" #] {
+            println("cargoservice | System out of service or IOPort occupied. Reply: retrylater") color red
+            replyTo load_request with load_retrylater : loadRetryLater(none)
+        } else {
+            if [# isHoldFull() #] {
+                println("cargoservice | Hold is full. Reply: refused") color red
+                replyTo load_request with load_refused : loadRefused(none)
+            } else {
+                [# val slotId = getFreeSlot() #]
+                [# Slots[slotId - 1] = 1 #]
+                println("cargoservice | Request accepted. Slot reserved: slot$slotId") color green
+                
+                forward ledmock -m led_ctrl : ledCmd(blink)
+                replyTo load_request with load_accepted : loadAccepted(slot$slotId)
+            }
+        }
+    }
+    Goto engaged if [# !(ServiceStatus == "outofservice" || IOPortStatus == "occupied" || isHoldFull()) #] else disengaged
+
+    State engaged {
+        println("cargoservice | ENGAGED: waiting for deposit (timeout 30s)...") color blue
+    }
+    Transition t0
+        whenTime 30000 -> handle_deposit_timeout
+        whenMsg set_ioport_status -> update_ioport_engaged
+        whenMsg set_service_status -> update_service_engaged
+        whenRequest load_request -> handle_engaged_request
+
+    State update_ioport_engaged {
+        onMsg(set_ioport_status : setIOPortStatus(S)) {
+            [# IOPortStatus = payloadArg(0) #]
+            println("cargoservice | IOPort status updated to $IOPortStatus") color cyan
+        }
+    }
+    Goto engaged
+
+    State update_service_engaged {
+        onMsg(set_service_status : setServiceStatus(S)) {
+            [# ServiceStatus = payloadArg(0) #]
+            println("cargoservice | Service status updated to $ServiceStatus") color cyan
+        }
+    }
+    Goto engaged
+
+    State handle_engaged_request {
+        println("cargoservice | Received request while engaged. Reply: retrylater") color red
+        replyTo load_request with load_retrylater : loadRetryLater(none)
+    }
+    Goto engaged
+
+    State handle_deposit_timeout {
+        println("cargoservice | Deposit timeout expired, returning DISENGAGED") color red
+        forward ledmock -m led_ctrl : ledCmd(off)
+    }
+    Goto disengaged
+}
+
+// ---------------------------------------------------------
+// MOCKS per Sprint 1
+// ---------------------------------------------------------
+
+QActor ledmock context ctxcargoservice {
+    State s0 initial {
+        println("ledmock | STARTED, LED is OFF")
+    }
+    Goto work
+
+    State work {}
+    Transition t0
+        whenMsg led_ctrl -> handle_cmd
+        
+    State handle_cmd {
+        onMsg(led_ctrl : ledCmd(CMD)) {
+            println("ledmock | LED CMD received: ${payloadArg(0)}") color green
+        }
+    }
+    Goto work
+}
