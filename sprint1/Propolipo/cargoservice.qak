@@ -1,28 +1,62 @@
 System cargosystem
 
-// ---------------------------------------------------------
-// Messaggi e Interazioni
-// ---------------------------------------------------------
+// =========================================================
+// DEFINIZIONE MESSAGGI E INTERAZIONI
+// =========================================================
+
+// --- Interazione Customer <-> CargoService ---
+
+// Il customer inoltra la richiesta di carico (tramite il pulsante della IOPort)
 Request load_request   : loadRequest(none)
-Reply   load_accepted  : loadAccepted(SLOTID) for load_request
-Reply   load_retrylater: loadRetryLater(none) for load_request
-Reply   load_refused   : loadRefused(none) for load_request
 
-Dispatch set_ioport_status : setIOPortStatus(STATUS) 
-Dispatch set_service_status : setServiceStatus(STATUS) 
-Dispatch led_ctrl : ledCmd(CMD)
+// Risposte possibili dal cargoservice
+Reply   load_accepted  : loadAccepted(SLOTID) for load_request // La richiesta è accettata, restituisce lo slot riservato
+Reply   load_retrylater: loadRetryLater(none) for load_request // Sistema occupato o fuori servizio
+Reply   load_refused   : loadRefused(none) for load_request    // Stiva piena (tutti i 4 slot occupati)
 
+// Segnala se l'IOPort è occupata da un container o libera
+Dispatch set_ioport_status : setIOPortStatus(STATUS)  // STATUS: "free", "occupied"
+
+// Segnala se il sistema è andato fuori servizio (es. sonar rotto) o è ripartito
+Dispatch set_service_status : setServiceStatus(STATUS) // STATUS: "working", "outofservice"
+
+
+// Invia un comando al LED per accenderlo, spegnerlo o farlo lampeggiare
+Dispatch led_ctrl : ledCmd(CMD) // CMD: "on", "off", "blink"
+
+
+// Richiede al robot di muoversi verso un target
+Request robot_move : robotMove(TARGET) // TARGET: "slot5", "slot1", ecc.
+
+// Risposta del robot quando ha completato il movimento
+Reply   robot_done : robotDone(none) for robot_move
+
+// =========================================================
+// CONTESTI
+// =========================================================
 Context ctxcargoservice ip [host="localhost" port=8050]
 
-// ---------------------------------------------------------
-// QActor cargoservice
-// ---------------------------------------------------------
+// =========================================================
+// QACTOR PRINCIPALE: cargoservice
+// =========================================================
 QActor cargoservice context ctxcargoservice {
     [#
-        var Slots = intArrayOf(0, 0, 0, 0)
-        var IOPortStatus = "free"
-        var ServiceStatus = "working"
+        var Slots = intArrayOf(0, 0, 0, 0) 
         
+        // Stato fisico dei dispositivi
+        var IOPortStatus = "free"       // Può essere "free" o "occupied"
+        var ServiceStatus = "working"   // Può essere "working" o "outofservice"
+        
+        // Stato logico del sistema
+        var CargoState = "disengaged"   // Può essere "disengaged" (libero) o "engaged" (in gestione)
+        
+        // Variabile per ricordare lo slot riservato per la richiesta attuale
+        var ReservedSlotId = -1
+        
+        // Costante esplicativa per il timeout di deposito del container (30 secondi in ms)
+        val MAX_DEPOSIT_TIME = 30000L   
+        
+        // Funzione helper per trovare il primo slot libero (restituisce 1-4, oppure -1 se pieno)
         fun getFreeSlot(): Int {
             for (i in 0..3) {
                 if (Slots[i] == 0) return i + 1
@@ -30,103 +64,164 @@ QActor cargoservice context ctxcargoservice {
             return -1
         }
         
+        // Funzione helper per controllare se la stiva è piena
         fun isHoldFull(): Boolean {
             return getFreeSlot() == -1
         }
     #]
 
+    // -----------------------------------------------------
+    // STATO INIZIALE
+    // -----------------------------------------------------
     State s0 initial {
         println("cargoservice | STARTED") color magenta
     }
     Goto disengaged
 
+    // -----------------------------------------------------
+    // STATO DISENGAGED (In attesa di richieste)
+    // -----------------------------------------------------
     State disengaged {
         println("cargoservice | DISENGAGED: waiting for load_request...") color blue
     }
     Transition t0
         whenRequest load_request -> handle_load_request
-        whenMsg set_ioport_status -> update_ioport_disengaged
-        whenMsg set_service_status -> update_service_disengaged
+        whenMsg set_ioport_status -> update_ioport
+        whenMsg set_service_status -> update_service
 
-    State update_ioport_disengaged {
-        onMsg(set_ioport_status : setIOPortStatus(S)) {
-            [# IOPortStatus = payloadArg(0) #]
-            println("cargoservice | IOPort status updated to $IOPortStatus") color cyan
-        }
-    }
-    Goto disengaged
-
-    State update_service_disengaged {
-        onMsg(set_service_status : setServiceStatus(S)) {
-            [# ServiceStatus = payloadArg(0) #]
-            println("cargoservice | Service status updated to $ServiceStatus") color cyan
-        }
-    }
-    Goto disengaged
-
-    State handle_load_request {
-        printCurrentMessage color yellow
-        if [# ServiceStatus == "outofservice" || IOPortStatus == "occupied" #] {
-            println("cargoservice | System out of service or IOPort occupied. Reply: retrylater") color red
-            replyTo load_request with load_retrylater : loadRetryLater(none)
-        } else {
-            if [# isHoldFull() #] {
-                println("cargoservice | Hold is full. Reply: refused") color red
-                replyTo load_request with load_refused : loadRefused(none)
-            } else {
-                [# val slotId = getFreeSlot() #]
-                [# Slots[slotId - 1] = 1 #]
-                println("cargoservice | Request accepted. Slot reserved: slot$slotId") color green
-                
-                forward ledmock -m led_ctrl : ledCmd(blink)
-                replyTo load_request with load_accepted : loadAccepted(slot$slotId)
-            }
-        }
-    }
-    Goto engaged if [# !(ServiceStatus == "outofservice" || IOPortStatus == "occupied" || isHoldFull()) #] else disengaged
-
+    // -----------------------------------------------------
+    // STATO ENGAGED (Slot riservato, attesa deposito)
+    // -----------------------------------------------------
     State engaged {
         println("cargoservice | ENGAGED: waiting for deposit (timeout 30s)...") color blue
     }
     Transition t0
+        // Se passano 30 secondi e il container non arriva, scatta il timeout
         whenTime 30000 -> handle_deposit_timeout
-        whenMsg set_ioport_status -> update_ioport_engaged
-        whenMsg set_service_status -> update_service_engaged
-        whenRequest load_request -> handle_engaged_request
+        // Se arriva una nuova richiesta mentre siamo occupati, andiamo a gestirla
+        whenRequest load_request -> handle_load_request
+        // Se il sensore rileva qualcosa sulla IOPort, verifichiamo il deposito
+        whenMsg set_ioport_status -> check_deposit
+        whenMsg set_service_status -> update_service
 
-    State update_ioport_engaged {
+    // -----------------------------------------------------
+    // GESTIONE DELLA RICHIESTA DI CARICO
+    // -----------------------------------------------------
+    State handle_load_request {
+        printCurrentMessage color yellow
+        
+        // 1. Controlliamo se il sistema non può accettare la richiesta
+        if [# CargoState == "engaged" || ServiceStatus == "outofservice" || IOPortStatus == "occupied" #] {
+            println("cargoservice | System engaged, out of service or IOPort occupied. Reply: retrylater") color red
+            replyTo load_request with load_retrylater : loadRetryLater(none)
+        } else {
+
+            // 2. Controlliamo se la stiva è piena
+            if [# isHoldFull() #] {
+                println("cargoservice | Hold is full. Reply: refused") color red
+                replyTo load_request with load_refused : loadRefused(none)
+            } else {
+                
+                // 3. Ci sono slot liberi: accettiamo la richiesta
+                [# 
+                    val slotId = getFreeSlot() 
+                    Slots[slotId - 1] = 1 
+                    CargoState = "engaged" 
+                    ReservedSlotId = slotId
+                #]
+                println("cargoservice | Request accepted. Slot reserved: slot$slotId") color green
+                
+                // Facciamo lampeggiare il LED
+                forward ledmock -m led_ctrl : ledCmd(blink)
+                // Rispondiamo al customer comunicando lo slot riservato
+                replyTo load_request with load_accepted : loadAccepted(slot$slotId)
+            }
+        }
+    }
+    // Ritorniamo allo stato corretto (se abbiamo accettato saremo in engaged, altrimenti torneremo a disengaged se lo eravamo prima)
+    Goto engaged if [# CargoState == "engaged" #] else disengaged
+
+    // -----------------------------------------------------
+    // VERIFICA DEL DEPOSITO DEL CONTAINER SULLA IOPORT
+    // -----------------------------------------------------
+    State check_deposit {
         onMsg(set_ioport_status : setIOPortStatus(S)) {
             [# IOPortStatus = payloadArg(0) #]
             println("cargoservice | IOPort status updated to $IOPortStatus") color cyan
         }
     }
-    Goto engaged
+    // Se l'IOPort diventa occupied durante lo stato engaged, il customer ha depositato il container! Iniziamo il lavoro.
+    Goto do_robot_job if [# IOPortStatus == "occupied" && CargoState == "engaged" #] else engaged
 
-    State update_service_engaged {
+    // -----------------------------------------------------
+    // FASI DI LAVORO CON IL ROBOT (Mock Sprint 1)
+    // -----------------------------------------------------
+    State do_robot_job {
+        println("cargoservice | Container deposited! Asking robot to move to slot5 (marker)...") color magenta
+        // Invio la richiesta al robot mock
+        request cargorobotmock -m robot_move : robotMove(slot5)
+    }
+    Transition t0
+        // Aspetto che il robot finisca di portare il container allo slot5
+        whenReply robot_done -> move_to_reserved_slot
+        
+    State move_to_reserved_slot {
+        println("cargoservice | Container marked at slot5! Asking robot to move to reserved slot$ReservedSlotId...") color magenta
+        // Invio la richiesta al robot mock per portarlo nello slot finale
+        request cargorobotmock -m robot_move : robotMove(slot$ReservedSlotId)
+    }
+    Transition t0
+        // Aspetto che il robot termini l'operazione
+        whenReply robot_done -> finish_job
+        
+    State finish_job {
+        println("cargoservice | Job completed successfully! Returning to disengaged...") color green
+        // L'operazione è conclusa, torniamo disponibili
+        [# CargoState = "disengaged" #]
+        // L'IOPort è ormai libera perché il robot ha spostato il container
+        [# IOPortStatus = "free" #] 
+        // Spegniamo il LED
+        forward ledmock -m led_ctrl : ledCmd(off)
+    }
+    Goto disengaged
+
+    // -----------------------------------------------------
+    // GESTIONE TIMEOUT E AGGIORNAMENTI STATO
+    // -----------------------------------------------------
+    State handle_deposit_timeout {
+        println("cargoservice | Deposit timeout expired (30s), returning DISENGAGED") color red
+        [# 
+            CargoState = "disengaged"
+            // Libero lo slot precedentemente riservato dato che il customer non si è presentato
+            Slots[ReservedSlotId - 1] = 0 
+        #]
+        // Spegniamo il LED
+        forward ledmock -m led_ctrl : ledCmd(off)
+    }
+    Goto disengaged
+
+    State update_ioport {
+        onMsg(set_ioport_status : setIOPortStatus(S)) {
+            [# IOPortStatus = payloadArg(0) #]
+            println("cargoservice | IOPort status updated to $IOPortStatus") color cyan
+        }
+    }
+    Goto engaged if [# CargoState == "engaged" #] else disengaged
+
+    State update_service {
         onMsg(set_service_status : setServiceStatus(S)) {
             [# ServiceStatus = payloadArg(0) #]
             println("cargoservice | Service status updated to $ServiceStatus") color cyan
         }
     }
-    Goto engaged
-
-    State handle_engaged_request {
-        println("cargoservice | Received request while engaged. Reply: retrylater") color red
-        replyTo load_request with load_retrylater : loadRetryLater(none)
-    }
-    Goto engaged
-
-    State handle_deposit_timeout {
-        println("cargoservice | Deposit timeout expired, returning DISENGAGED") color red
-        forward ledmock -m led_ctrl : ledCmd(off)
-    }
-    Goto disengaged
+    Goto engaged if [# CargoState == "engaged" #] else disengaged
 }
 
-// ---------------------------------------------------------
-// MOCKS per Sprint 1
-// ---------------------------------------------------------
+// =========================================================
+// MOCKS PER LO SPRINT 1
+// =========================================================
 
+// Mock del LED: riceve i comandi e stampa il proprio stato
 QActor ledmock context ctxcargoservice {
     State s0 initial {
         println("ledmock | STARTED, LED is OFF")
@@ -143,4 +238,66 @@ QActor ledmock context ctxcargoservice {
         }
     }
     Goto work
+}
+
+// Mock del CargoRobot: riceve i comandi di spostamento, attende e risponde
+QActor cargorobotmock context ctxcargoservice {
+    State s0 initial {
+        println("cargorobotmock | STARTED")
+    }
+    Goto work
+    
+    State work {}
+    Transition t0
+        whenRequest robot_move -> handle_move
+        
+    State handle_move {
+        onMsg(robot_move : robotMove(TARGET)) {
+            println("cargorobotmock | Moving to ${payloadArg(0)}...") color yellow
+            // Simuliamo il tempo di spostamento
+        }
+        delay 2000
+        println("cargorobotmock | Movement completed!") color yellow
+        replyTo robot_move with robot_done : robotDone(none)
+    }
+    Goto work
+}
+
+// Mock del Sonar: simula un utente che appoggia il container sull'IOPort
+QActor sonarmock context ctxcargoservice {
+    State s0 initial {
+        println("sonarmock | STARTED")
+        // Attende che la richiesta venga accettata (tempo simulato) per appoggiare il container
+        delay 4000
+        println("sonarmock | Simulating container placement on IOPort...") color cyan
+        forward cargoservice -m set_ioport_status : setIOPortStatus(occupied)
+    }
+}
+
+// Mock dell'IOPort (Customer): simula l'invio della load_request 
+QActor ioportmock context ctxcargoservice {
+    State s0 initial {
+        println("ioportmock | STARTED")
+        // Aspetta un istante affinché il sistema si avvii
+        delay 1000
+        println("ioportmock | Sending load_request (T1 test)...") color cyan
+        request cargoservice -m load_request : loadRequest(none)
+    }
+    Transition t0
+        whenReply load_accepted -> handle_accept
+        whenReply load_retrylater -> handle_retry
+        whenReply load_refused -> handle_refuse
+
+    State handle_accept {
+        printCurrentMessage color green
+        // La richiesta è stata accettata. Ora il sonarmock (vedi sopra) interverrà per piazzare il container.
+    }
+    
+    State handle_retry {
+        printCurrentMessage color yellow
+    }
+    
+    State handle_refuse {
+        printCurrentMessage color red
+    }
 }
