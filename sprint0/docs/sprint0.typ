@@ -151,10 +151,11 @@ sua realizzazione concreta è rinviata all'analisi del problema.
 === IOPort
 
 L'IOPort rappresenta l'interfaccia tra customer e sistema. 
-Dopo una discussione con la committente, si comprende che esso viene interpretato come una Web GUI composta almeno da un pushbutton e 
+Dopo una discussione con la committente, si comprende che esso viene interpretato come una Web GUI composta da un pushbutton e 
 da un display. Dai requisiti si deduce che è IOPort ad emettere la richiesta *load_request* verso *cargoservice* e mostrare informazioni 
 di stato.
-Viene demandata all'analisi del problea la scelta se il server dell'IOPort coincida con quello del cargoservice oppure se sia modellato 
+
+Viene demandata all'analisi del problema la scelta se il server dell'IOPort coincida con quello del cargoservice oppure se sia modellato 
 come servizio separato per ottenere maggiore disaccoppiamento.
 
 Nel modello QAK può essere rappresentato come attore per modellarne il comportamento comunicativo,
@@ -192,8 +193,6 @@ QActor markerdevice context ctxDevices {
 
 === LED
 
-=== LED
-
 Il LED è un dispositivo fisico usato per rendere osservabile lo stato *engaged* del sistema.
 
 La frase dei requisiti _"while engaged, the system blink a Led"_ viene formalizzata
@@ -211,11 +210,11 @@ La hold è l'entità che rappresenta logicamente la stiva della nave e lo stato 
 Il componente è da sviluppare.
 
 Dal punto di vista della natura software, può essere rappresentata come una struttura dati passiva composta
-composta da Celle. Ogni Cella può indicare uno spazio libero, un ostacolo, una posizione speciale o uno slot
+composta da Celle. Ogni Cella può indicare uno spazio libero, un ostacolo, una posizione speciale o uno slot.
 Una possibile implementazione consiste in una matrice bidimensionale di celle, In particolare, la hold contiene gli slot
 di destinazione *slot1*--*slot4* e lo *slot5* usato per la marcatura.
 
-La seguebnte rappresentazione non vincola l'implementazione finale, ma permette di formalizzare il concetto di hold piena e di slot libero.
+La seguente rappresentazione non vincola l'implementazione finale, ma permette di formalizzare il concetto di hold piena e di slot libero.
 
 ```java
 num CellType {
@@ -226,22 +225,7 @@ num CellType {
 class Hold {
     private final CellType[][] cells;
     private final boolean[] occupiedSlots = new boolean[4];
-
-    boolean isFull() {
-        return occupiedSlots[0]
-            && occupiedSlots[1]
-            && occupiedSlots[2]
-            && occupiedSlots[3];
-    }
-
-    Optional<String> firstFreeSlot() {
-        for (int i = 0; i < occupiedSlots.length; i++) {
-            if (!occupiedSlots[i]) {
-                return Optional.of("slot" + (i + 1));
-            }
-        }
-        return Optional.empty();
-    }
+  // TODO
 }
 ```
 
@@ -271,7 +255,7 @@ columns: (auto, 1fr),
 
 [*Applicazione cargoservice*], [Gestione della logica applicativa e delle richieste di carico.],
 
-[*PicoW*], [Gestione dei dispositivi fisici locali, in particolare sonar e LED.],
+[*PicoW*], [Gestione dei dispositivi fisici locali, da requisiti: sonar e LED.],
 
 [*Robot*], [Esecuzione del software di controllo del DDR o di un servizio robotico riusato.],
 
@@ -405,18 +389,6 @@ Al termine dello Sprint1 il sistema dovrà essere in grado di:
 
 In questa fase il cargorobot, il sonar, il markerdevice e l'IOPort saranno rappresentati
 tramite collaboratori simulati.
-
-== Sprint 2: IOPort, display e sonar
-
-*Goal:* rendere esplicita l'interazione con IOPort, display e sonar a livello software.
-
-Funzionalità: IOPort come interfaccia web, sonar simulato (rilevazione container e malfunzionamento), aggiornamento display con stato e messaggi.
-
-== Sprint 3: Dispositivi fisici
-
-*Goal:* integrare, dove disponibili, i dispositivi fisici o i servizi forniti e verificare il comportamento end-to-end.
-
-Funzionalità: cargorobot e servizio DDR disponibile, sonar fisico, marker device fisico, LED fisico.
 
 // -----------------------------------------------------------------------------
 // Allegati - Team di lavoro
