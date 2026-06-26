@@ -1,0 +1,287 @@
+System cargoservice
+//mqttBroker "localhost" : 1883 eventTopic "vrevents"  
+/*   
+========================================
+cargoservice.qak
+========================================
+*/     
+/*
+ *
+ */   
+
+// DEFINIZIONE MESSAGGI
+
+Context ctxrobotservice26  ip [host="localhost" port=8125]
+
+QActor robotactor context ctxrobotservice26 
+		withobj robot using "robots.RobotObjForQak(\"localhost\",myself,\"logs/robotactor.log\")"{ 
+ 	[# var doingAsynchStep = false   
+ 	   val stepTime        = 345L     
+ 	   var CurTime         = 0L
+ 	#] 
+	State s0 initial{
+		println("$name STARTS") color blue
+		[# clearlog("./logs/robotactor.log") 	//vedi src/main/resources/logback.xml #]
+ 		//[# robot.setTrace(true) #] 
+ 		subscribeTo robotactor for sonardata
+  		subscribeTo robotactor for vrinfo
+		println("$name subscribe to myself done") color blue
+	} 
+	Goto work
+	
+	State work{
+		println("$name | work") color yellow 
+	}
+	Transition t0
+	   whenMsg     move -> domove
+	   whenRequest cmd  -> docmdreq
+	   whenRequest step -> handleAsynchStep
+	   
+
+	State domove{
+		//printCurrentMessage color blue
+		onMsg( move : move(M) ){
+			[# val Move = payloadArg(0);  #]
+			if [# Move == "h" #] { [# robot.halt()         #]  }
+ 			//if [# Move == "p" #] { [# robot.step(stepTime) #]  }  //synch
+			if [# Move == "a" || Move == "l" #]{ [# robot.turnLeft() #]  }
+			if [# Move == "d" || Move == "r" #]{ [# robot.turnRight() #] }
+		}
+	} 
+	Goto work
+
+      
+	/*
+	 * Durante un movimento è stato rilveato un segnale dal sonar
+	 */
+	State handleSonarData{ 
+		//printCurrentMessage color green  		 
+		onMsg( sonardata : sonar(D) ){
+			//memoCurrentTime SonardataDT
+			println("$name | handleSonarData ") color green 
+			[# var D = payloadArg(0) #]
+			println("$name |  sonarval:distance($D) --- ") color black 
+	//			[#  mqtt.publish("vrevents", "msg(sonarval,event,robotactor,ANY,distance(4),0)" ) #]
+	    	
+	    	//forward robotactor -m move : move(w)
+	    	delay 2000
+	    	
+	    	emit sonaralarm :  distance($D)  
+				//questo contesto NON SA che esiste altro => evento non propagato in assenza di MQTT			
+		} 
+		returnFromInterrupt
+	} 
+  
+ 
+	State docmdreq{
+		//printCurrentMessage color blue
+		onMsg( cmd : cmd(M,T) ){
+			[# val Move = payloadArg(0)
+			   val T    = payloadArg(1).toInt() 
+			#]
+			println("$name | cmd $Move $T") color yellow
+			//if [# Move == "h" #] { [# robot.halt()           #]    }
+			//if [# Move == "p" #] { [# robot.forward(T)       #]    }   
+			if [# Move == "w" #] { [# robot.forward(T)       #]    }
+			if [# Move == "s" #] { [# robot.backward(T)      #]    }
+			//if [# Move == "a" || Move == "l" #]{ [# robot.turnLeft() #]  }
+			//if [# Move == "d" || Move == "r" #]{ [# robot.turnRight() #] }
+		}
+	}
+	Transition t0 
+		//whenInterruptEvent sonardata -> handleSonarData  
+		whenEvent vrinfo             -> handleVrinfoMsgReply
+	    whenMsg     move             -> domovewhilerunning
+  
+  	State domovewhilerunning{  
+  		onMsg( move : move(M) ){
+ 			[# val Move = payloadArg(0);  #]
+			//println("$name | domovewhilerunning $Move") color red
+			if [# Move == "h" #] { [# robot.halt()         #]  }
+ 			if [# Move == "p" #] { [# robot.step(stepTime) #]  }  //synch
+			if [# Move == "a" || Move == "l" #]{ [# robot.turnLeft() #]  }
+			if [# Move == "d" || Move == "r" #]{ [# robot.turnRight() #] }
+		}
+  	}
+ 	Transition t0 
+		whenEvent vrinfo  -> handleVrinfoMsgReply
+	    whenMsg     move  -> domove
+  	
+  	
+	/*
+        --------------------------------------------
+        GESTIONE DELLE INFO DEL SUPPORTO
+        --------------------------------------------
+	*/
+    
+	State handleVrinfoMsgReply{
+		//printCurrentMessage
+		[# var NOW = 0L; var TDONE = 0L #]
+		memoCurrentTime NOW
+		println("$name | handleVrinfoMsgReply $currentMsg doingAsynchStep=$doingAsynchStep") color red
+		onMsg( vrinfo : vrinfo(S,R)){
+				[# var S = payloadArg(0) #]
+				[# val R = payloadArg(1) #]
+ 				
+				if [# doingAsynchStep #]{  
+ 					if [# S.contains("ko") #] { 
+						println("$name | reply asynchstep failed $R") color cyan
+						[# TDONE = NOW - CurTime #]
+						replyTo step with stepfailed : stepfailed($TDONE,ok)
+					}else{
+						println("$name | reply asynchstep done") color cyan
+						replyTo step with stepdone : stepdone(ok)
+					} 			
+					[# doingAsynchStep = false #]
+				}else{ //non step
+				 if [# S.contains("ko") #] {
+					replyTo cmd with cmdfailed : cmdfailed($S,$R)
+				 }else{
+				 	replyTo cmd with cmddone : cmddone($S)
+				 }				 
+				 }
+		}
+	}	
+	Goto work
+
+	State handleAsynchStep{
+		println("$name | handleAsynchStep $currentMsg") color blue
+		memoCurrentTime CurTime
+		[# doingAsynchStep = true  #]
+		onMsg( step:step(T)){
+			[# robot.forward(payloadArg(0).toInt() ) #]
+		}
+	}	
+	Transition t0
+	    //whenInterruptEvent sonardata  -> handleSonarData  
+	    whenEvent vrinfo     -> handleVrinfoMsgReply
+ 
+ }
+ 
+ /* 
+ QActor callermock context ctxrobotservice26{
+ 	State s0 initial{
+ 		delay 1000
+ 		println("$name | starts ")
+ 		request robotactor -m cmd : cmd(w,500)
+ 		 
+ 	}
+ 	Transition t0
+ 		whenReply cmddone   -> goon
+ 		whenReply cmdfailed -> goon
+ 		
+ 	State goon{
+ 		printCurrentMessage color magenta
+ 		[# System.exit(0) #]
+ 	}
+ }
+*/
+/*
+ * -------------------------------------------
+ * Callermock 
+ * Ferma un poco quando rileva il sonar
+ * -------------------------------------------
+ */
+ /* 
+QActor callermock context ctxrobotservice26{
+	[# var n = 0 
+	   val stepTime = "345"
+	#] 
+	State s0 initial{
+		//observeResource robotactor msgid vrinfo
+		[# CommUtils.aboutThreads("callermock"); #]
+		println("$name | starts")
+		[# CommUtils.waitTheUser("PUT ROBOT in HOME and hit"); #]
+		forward robotactor -m move : move(h)
+	}
+	Goto work 
+  
+	State work{ 
+		request robotactor -m step : step(345) 
+	}
+	Transition t0 
+		//whenEvent sonaralarm -> handleSonar
+		whenReply stepdone   -> work
+		whenReply stepfailed -> turn
+	
+	//La rotazione non provoca attivazione del sonar
+	State turn{
+		println("$name | turning ... ") color green
+		forward robotactor -m move : move(l)
+		delay 500
+		//request robotactor -m cmd : cmd(l)
+		[# n++ #] 
+	}
+	Goto work if [# n < 4 #] else end
+
+    State handleSonar{
+    	println("$name | handleSonar ... n=$n") color magenta
+    	forward robotactor -m move : move(h) //fermo il robot => movimento attuale fallisce
+     } 
+	Transition t0 
+ 		whenReply cmdfailed  -> continue
+		
+	State continue{
+		println("$name | continue ... ") color magenta
+    	forward robotactor -m move : move(p) //tolgo il robot da sonar		
+    	delay 1500
+		println("$name | continue ... ") color magenta
+	}
+	Goto work
+ 
+	State end{
+		printCurrentMessage color magenta
+		//delay 1000  //per rescheduling
+		[# System.exit(0) #]
+	}
+} 
+*/
+
+/*
+QActor callermocknostep context ctxrobotservice26{
+	[# var n = 0 #] 
+	State s0 initial{
+		//observeResource robotactor msgid vrinfo
+		forward robotactor -m move : move(h)
+	}
+	Goto work 
+  
+	State work{ 
+		request robotactor -m cmd : cmd(w,3500) 
+	}
+	Transition t0 
+		whenEvent sonaralarm -> handleSonar
+		whenReply cmddone    -> end
+		whenReply cmdfailed  -> turn
+	
+	//La rotazione non provoca attivazione del sonar
+	State turn{
+		println("$name | turning ... ") color green
+		forward robotactor -m move : move(l)
+		[# n++ #]
+	}
+	Goto work if [# n < 4 #] else end
+
+    State handleSonar{
+    	println("$name | handleSonar ... n=$n") color magenta
+    	forward robotactor -m move : move(h) //fermo il robot => movimento attuale fallisce
+     } 
+	Transition t0 
+ 		whenReply cmdfailed  -> continue
+		
+	State continue{
+		println("$name | continue ... ") color magenta
+    	forward robotactor -m move : move(p) //tolgo il robot da sonar		
+    	delay 1500
+		println("$name | continue ... ") color magenta
+	}
+	Goto work
+ 
+	State end{
+		printCurrentMessage color magenta
+		delay 1000  //per rescheduling
+		[# System.exit(0) #]
+	}
+} 
+ */ 
+ 
