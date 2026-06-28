@@ -1,0 +1,123 @@
+System cargosystem 
+
+// Customer <-> CargoService 
+Request load_request    : loadRequest(none)
+Reply   load_accepted   : loadAccepted(SLOTID) for load_request 
+Reply   load_retrylater : loadRetryLater(none) for load_request 
+Reply   load_refused    : loadRefused(none) for load_request    
+
+//  CargoService <-> Hold 
+Request get_slot        : getSlot(none)
+Reply   slot_reserved   : slotReserved(SLOTID) for get_slot
+Reply   hold_full       : holdFull(none) for get_slot
+Dispatch free_slot      : freeSlot(SLOTID)
+
+//  Aggiornamenti Sensori e Stato 
+Event    sonardata          : distance(D)  // Emesso dal sonar
+Dispatch set_service_status : setServiceStatus(STATUS) 
+Dispatch led_ctrl           : ledCmd(CMD)         
+
+//  CargoService <-> Robot 
+Request robot_move : robotMove(TARGET)
+Reply   robot_done : robotDone(none) for robot_move
+
+//  CargoService <-> MarkerDevice 
+Request mark_container : markContainer(none)
+Reply   marking_done   : markingDone(none) for mark_container
+
+
+//CONTESTI
+Context ctxcargoservice ip [host="127.0.0.1" port=8050] //Cargoservice
+Context ctxcustomer     ip [host="127.0.0.1" port=8051] //Ioport e led 
+Context ctxdevices      ip [host="localhost" port=8052] //Sonar hold markerdevice
+Context ctxrobot        ip [host="127.0.0.1" port=8053] //Cargorobot
+
+
+
+//HOLD MOCK
+
+QActor hold context ctxdevices {
+    [#
+        var Slots = intArrayOf(0, 0, 0, 0)
+        
+        fun getFreeSlot(): Int {
+            for (i in 0..3) {
+                if (Slots[i] == 0) return i + 1
+            }
+            return -1
+        }
+    #]
+
+    State s0 initial {
+        println("hold | STARTED") color green
+    }
+    Goto work
+
+    State work {}
+    Transition t0
+        whenRequest get_slot  -> handle_get_slot
+        whenMsg     free_slot -> handle_free_slot
+
+    State handle_get_slot {
+        [# val SlotId = getFreeSlot() #]
+        
+        if [# SlotId != -1 #] {
+            [# Slots[SlotId - 1] = 1 #]
+            replyTo get_slot with slot_reserved : slotReserved($SlotId)
+        } else {
+            replyTo get_slot with hold_full : holdFull(none)
+        }
+    }
+    Goto work
+
+    State handle_free_slot {
+        onMsg(free_slot : freeSlot(ID)) {
+            [# val id = payloadArg(0).toInt() #]
+            [# Slots[id - 1] = 0 #]
+            println("hold | Freed slot$id") color green
+        }
+    }
+    Goto work
+}
+
+//SONAR MOCK
+
+QActor sonarmock context ctxdevices {
+    State s0 initial {
+        delay 4000
+        println("sonarmock | Container placed -> Emitting sonardata(30)") color cyan
+        emit sonardata : distance(30)
+        
+        // Simulazione di un guasto al sonar dopo il primo ciclo (D > DFREE per 3s)
+        delay 8000
+        println("sonarmock | Sonar measures D > DFREE for > 3s. System OUT OF SERVICE!") color red
+        forward cargoservice -m set_service_status : setServiceStatus(outofservice)
+        
+        // Simulazione del ripristino (D <= DFREE)
+        delay 5000
+        println("sonarmock | Sonar measures D <= DFREE. System WORKING again!") color green
+        forward cargoservice -m set_service_status : setServiceStatus(working)
+    }
+}
+
+//MARKER MOCK
+
+QActor markerdevice context ctxdevices {
+    State s0 initial {
+        println("markerdevice | STARTED") color green
+    }
+    Goto work
+    
+    State work {}
+    Transition t0
+        whenRequest mark_container -> handle_mark
+        
+    State handle_mark {
+        println("markerdevice | Marking container...") color cyan
+        delay 1500
+        println("markerdevice | Container marked!") color cyan
+        replyTo mark_container with marking_done : markingDone(none)
+    }
+    Goto work
+}
+ExternalQActor cargoservice context ctxcargoservice

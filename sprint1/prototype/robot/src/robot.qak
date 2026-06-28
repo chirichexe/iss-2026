@@ -1,0 +1,50 @@
+System cargosystem 
+
+// Customer <-> CargoService 
+Request load_request    : loadRequest(none)
+Reply   load_accepted   : loadAccepted(SLOTID) for load_request 
+Reply   load_retrylater : loadRetryLater(none) for load_request 
+Reply   load_refused    : loadRefused(none) for load_request    
+
+//  CargoService <-> Hold 
+Request get_slot        : getSlot(none)
+Reply   slot_reserved   : slotReserved(SLOTID) for get_slot
+Reply   hold_full       : holdFull(none) for get_slot
+Dispatch free_slot      : freeSlot(SLOTID)
+
+//  Aggiornamenti Sensori e Stato 
+Event    sonardata          : distance(D)  // Emesso dal sonar
+Dispatch set_service_status : setServiceStatus(STATUS) 
+Dispatch led_ctrl           : ledCmd(CMD)         
+
+//  CargoService <-> Robot 
+Request robot_move : robotMove(TARGET)
+Reply   robot_done : robotDone(none) for robot_move
+
+//  CargoService <-> MarkerDevice 
+Request mark_container : markContainer(none)
+Reply   marking_done   : markingDone(none) for mark_container
+
+
+//CONTESTI
+Context ctxcargoservice ip [host="127.0.0.1" port=8050] //Cargoservice
+Context ctxcustomer     ip [host="127.0.0.1" port=8051] //Ioport e led 
+Context ctxdevices      ip [host="127.0.0.1" port=8052] //Sonar hold markerdevice
+Context ctxrobot        ip [host="localhost" port=8053] //Cargorobot
+
+//CARGOROBOT MOCK
+
+QActor cargorobotmock context ctxrobot {
+    State s0 initial { }
+    Goto work
+    
+    State work {}
+    Transition t0 
+        whenRequest robot_move -> handle_move
+        
+    State handle_move {
+        delay 1500
+        replyTo robot_move with robot_done : robotDone(none)
+    }
+    Goto work
+}

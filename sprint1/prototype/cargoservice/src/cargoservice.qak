@@ -1,6 +1,6 @@
 System cargosystem
 
-//INTERAZIONI
+//INTERAZIONI TRA COMPONENTI
 
 // Customer <-> CargoService 
 Request load_request    : loadRequest(none)
@@ -27,14 +27,11 @@ Reply   robot_done : robotDone(none) for robot_move
 Request mark_container : markContainer(none)
 Reply   marking_done   : markingDone(none) for mark_container
 
-
-
 //CONTESTI
-Context ctxcargoservice ip [host="localhost" port=8050]
-Context ctxcustomer     ip [host="127.0.0.1" port=8051]
-Context ctxdevices      ip [host="127.0.0.1" port=8052]
-Context ctxrobot        ip [host="127.0.0.1" port=8053]
-
+Context ctxcargoservice ip [host="localhost" port=8050] //Cargoservice
+Context ctxcustomer     ip [host="127.0.0.1" port=8051] //Ioport e led 
+Context ctxdevices      ip [host="127.0.0.1" port=8052] //Sonar hold markerdevice
+Context ctxrobot        ip [host="127.0.0.1" port=8053] //Cargorobot
 
 
 
@@ -84,6 +81,9 @@ QActor cargoservice context ctxcargoservice {
             request hold -m get_slot : getSlot(none)
         }
     }
+    Goto returnToState if [# CargoState == "engaged" || !ServiceWorking || IOPortOccupied #] else wait_for_slot
+    
+    State wait_for_slot {}
     Transition t0
         whenReply slot_reserved -> accept_request
         whenReply hold_full     -> refuse_request
@@ -95,7 +95,8 @@ QActor cargoservice context ctxcargoservice {
                 CargoState     = "engaged" 
             #]
             forward ledmock -m led_ctrl : ledCmd(blink)
-            replyTo load_request with load_accepted : loadAccepted(slot$ReservedSlotId)
+            [# val SlotName = "slot$ReservedSlotId" #]
+    		replyTo load_request with load_accepted : loadAccepted($SlotName)
         }
     }
     Goto engaged
@@ -152,7 +153,8 @@ QActor cargoservice context ctxcargoservice {
         
     State move_to_reserved_slot {
         println("cargoservice | Marked! Moving to slot$ReservedSlotId...") color magenta
-        request cargorobotmock -m robot_move : robotMove(slot$ReservedSlotId)
+        [# val TargetSlot = "slot$ReservedSlotId" #]
+    	request cargorobotmock -m robot_move : robotMove($TargetSlot)
     }
     Transition t0
         whenReply robot_done -> finish_job
@@ -173,136 +175,9 @@ QActor cargoservice context ctxcargoservice {
     }
     Goto disengaged
 }
-
-
-//HOLD MOCK
-
-QActor hold context ctxdevices {
-    [#
-        var Slots = intArrayOf(0, 0, 0, 0)
-        
-        fun getFreeSlot(): Int {
-            for (i in 0..3) {
-                if (Slots[i] == 0) return i + 1
-            }
-            return -1
-        }
-    #]
-
-    State s0 initial {
-        println("hold | STARTED") color green
-    }
-    Goto work
-
-    State work {}
-    Transition t0
-        whenRequest get_slot  -> handle_get_slot
-        whenMsg     free_slot -> handle_free_slot
-
-    State handle_get_slot {
-        [# val slotId = getFreeSlot() #]
-        
-        if [# slotId != -1 #] {
-            [# Slots[slotId - 1] = 1 #]
-            replyTo get_slot with slot_reserved : slotReserved($slotId)
-        } else {
-            replyTo get_slot with hold_full : holdFull(none)
-        }
-    }
-    Goto work
-
-    State handle_free_slot {
-        onMsg(free_slot : freeSlot(ID)) {
-            [# val id = payloadArg(0).toInt() #]
-            [# Slots[id - 1] = 0 #]
-            println("hold | Freed slot$id") color green
-        }
-    }
-    Goto work
-}
-
-//SONAR MOCK
-
-QActor sonarmock context ctxdevices {
-    State s0 initial {
-        delay 4000
-        println("sonarmock | Container placed -> Emitting sonardata(30)") color cyan
-        emit sonardata : distance(30)
-    }
-}
-
-//MARKER MOCK
-
-QActor markerdevice context ctxdevices {
-    State s0 initial {
-        println("markerdevice | STARTED") color green
-    }
-    Goto work
-    
-    State work {}
-    Transition t0
-        whenRequest mark_container -> handle_mark
-        
-    State handle_mark {
-        println("markerdevice | Marking container...") color cyan
-        delay 1500
-        println("markerdevice | Container marked!") color cyan
-        replyTo mark_container with marking_done : markingDone(none)
-    }
-    Goto work
-}
-
-
-//LED MOCK
-
-QActor ledmock context ctxcustomer {
-    State s0 initial { }
-    Goto work
-    
-    State work {}
-    Transition t0 
-        whenMsg led_ctrl -> handle_cmd
-        
-    State handle_cmd {
-        onMsg(led_ctrl : ledCmd(CMD)) {
-            println("ledmock | LED is now ${payloadArg(0)}") color green
-        }
-    }
-    Goto work
-}
-
-//IOPORT MOCK
-
-
-QActor ioportmock context ctxcustomer {
-    State s0 initial {
-        delay 1000
-        request cargoservice -m load_request : loadRequest(none)
-    }
-    Transition t0
-        whenReply load_accepted   -> handle_accept
-        whenReply load_retrylater -> handle_retry
-        whenReply load_refused    -> handle_refuse
-
-    State handle_accept { printCurrentMessage color green }
-    State handle_retry  { printCurrentMessage color yellow }
-    State handle_refuse { printCurrentMessage color red }
-}
-
-
-//CARGOROBOT MOCK
-
-QActor cargorobotmock context ctxrobot {
-    State s0 initial { }
-    Goto work
-    
-    State work {}
-    Transition t0 
-        whenRequest robot_move -> handle_move
-        
-    State handle_move {
-        delay 1500
-        replyTo robot_move with robot_done : robotDone(none)
-    }
-    Goto work
-}
+ExternalQActor ledmock context ctxcustomer
+ExternalQActor ioportmock context ctxcustomer
+ExternalQActor hold context ctxdevices
+ExternalQActor sonarmock context ctxdevices
+ExternalQActor markerdevice context ctxdevices
+ExternalQActor cargorobotmock context ctxrobot
