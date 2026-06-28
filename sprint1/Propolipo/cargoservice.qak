@@ -1,39 +1,45 @@
 System cargosystem
 
-// =========================================================
-// MESSAGGI E INTERAZIONI
-// =========================================================
+//INTERAZIONI
 
-// --- Customer <-> CargoService ---
+// Customer <-> CargoService 
 Request load_request    : loadRequest(none)
 Reply   load_accepted   : loadAccepted(SLOTID) for load_request 
 Reply   load_retrylater : loadRetryLater(none) for load_request 
 Reply   load_refused    : loadRefused(none) for load_request    
 
-// --- CargoService <-> Hold ---
+//  CargoService <-> Hold 
 Request get_slot        : getSlot(none)
 Reply   slot_reserved   : slotReserved(SLOTID) for get_slot
 Reply   hold_full       : holdFull(none) for get_slot
 Dispatch free_slot      : freeSlot(SLOTID)
 
-// --- Aggiornamenti Sensori e Stato ---
+//  Aggiornamenti Sensori e Stato 
 Event    sonardata          : distance(D)  // Emesso dal sonar
 Dispatch set_service_status : setServiceStatus(STATUS) 
 Dispatch led_ctrl           : ledCmd(CMD)         
 
-// --- CargoService <-> Robot ---
+//  CargoService <-> Robot 
 Request robot_move : robotMove(TARGET)
 Reply   robot_done : robotDone(none) for robot_move
 
-// =========================================================
-// CONTESTI
-// =========================================================
+//  CargoService <-> MarkerDevice 
+Request mark_container : markContainer(none)
+Reply   marking_done   : markingDone(none) for mark_container
+
+
+
+//CONTESTI
 Context ctxcargoservice ip [host="localhost" port=8050]
+Context ctxcustomer     ip [host="127.0.0.1" port=8051]
+Context ctxdevices      ip [host="127.0.0.1" port=8052]
+Context ctxrobot        ip [host="127.0.0.1" port=8053]
 
 
-// =========================================================
-// CARGOSERVICE (Core Business)
-// =========================================================
+
+
+//CARGOSERVICE 
+
 QActor cargoservice context ctxcargoservice {
     [#
         var IOPortOccupied = false
@@ -46,9 +52,6 @@ QActor cargoservice context ctxcargoservice {
         println("cargoservice | STARTED") color magenta
     }
     Goto disengaged
-
-    
-    // --- STATI PRINCIPALI ---
     
     State disengaged {
         println("cargoservice | DISENGAGED: waiting for requests...") color blue
@@ -68,7 +71,7 @@ QActor cargoservice context ctxcargoservice {
         whenMsg     set_service_status -> update_service
 
 
-    // --- GESTIONE RICHIESTE DI CARICO ---
+    //GESTIONE RICHIESTE
     
     State handle_load_request {
         printCurrentMessage color yellow
@@ -103,7 +106,7 @@ QActor cargoservice context ctxcargoservice {
     Goto disengaged
 
 
-    // --- GESTIONE EVENTI (Sonar e Stato) ---
+    //GESTIONE SONAR
     
     State handle_sonar {
         onMsg(sonardata : distance(D)) {
@@ -131,14 +134,21 @@ QActor cargoservice context ctxcargoservice {
     Goto engaged if [# CargoState == "engaged" #] else disengaged
 
 
-    // --- GESTIONE ROBOT E TIMEOUT ---
+    // GESTIONE ROBOT E MARKER
 
     State do_robot_job {
         println("cargoservice | Container deposited! Moving to slot5...") color magenta
         request cargorobotmock -m robot_move : robotMove(slot5)
     }
     Transition t0
-        whenReply robot_done -> move_to_reserved_slot
+        whenReply robot_done -> mark_container
+        
+    State mark_container {
+        println("cargoservice | At slot5. Asking markerdevice to mark...") color magenta
+        request markerdevice -m mark_container : markContainer(none)
+    }
+    Transition t0
+        whenReply marking_done -> move_to_reserved_slot
         
     State move_to_reserved_slot {
         println("cargoservice | Marked! Moving to slot$ReservedSlotId...") color magenta
@@ -165,10 +175,9 @@ QActor cargoservice context ctxcargoservice {
 }
 
 
-// =========================================================
-// HOLD (Gestione Celle/Slot)
-// =========================================================
-QActor hold context ctxcargoservice {
+//HOLD MOCK
+
+QActor hold context ctxdevices {
     [#
         var Slots = intArrayOf(0, 0, 0, 0)
         
@@ -212,12 +221,41 @@ QActor hold context ctxcargoservice {
     Goto work
 }
 
+//SONAR MOCK
 
-// =========================================================
-// MOCKS
-// =========================================================
+QActor sonarmock context ctxdevices {
+    State s0 initial {
+        delay 4000
+        println("sonarmock | Container placed -> Emitting sonardata(30)") color cyan
+        emit sonardata : distance(30)
+    }
+}
 
-QActor ledmock context ctxcargoservice {
+//MARKER MOCK
+
+QActor markerdevice context ctxdevices {
+    State s0 initial {
+        println("markerdevice | STARTED") color green
+    }
+    Goto work
+    
+    State work {}
+    Transition t0
+        whenRequest mark_container -> handle_mark
+        
+    State handle_mark {
+        println("markerdevice | Marking container...") color cyan
+        delay 1500
+        println("markerdevice | Container marked!") color cyan
+        replyTo mark_container with marking_done : markingDone(none)
+    }
+    Goto work
+}
+
+
+//LED MOCK
+
+QActor ledmock context ctxcustomer {
     State s0 initial { }
     Goto work
     
@@ -233,30 +271,10 @@ QActor ledmock context ctxcargoservice {
     Goto work
 }
 
-QActor cargorobotmock context ctxcargoservice {
-    State s0 initial { }
-    Goto work
-    
-    State work {}
-    Transition t0 
-        whenRequest robot_move -> handle_move
-        
-    State handle_move {
-        delay 1500
-        replyTo robot_move with robot_done : robotDone(none)
-    }
-    Goto work
-}
+//IOPORT MOCK
 
-QActor sonarmock context ctxcargoservice {
-    State s0 initial {
-        delay 4000
-        println("sonarmock | Container placed -> Emitting sonardata(30)") color cyan
-        emit sonardata : distance(30)
-    }
-}
 
-QActor ioportmock context ctxcargoservice {
+QActor ioportmock context ctxcustomer {
     State s0 initial {
         delay 1000
         request cargoservice -m load_request : loadRequest(none)
@@ -269,4 +287,22 @@ QActor ioportmock context ctxcargoservice {
     State handle_accept { printCurrentMessage color green }
     State handle_retry  { printCurrentMessage color yellow }
     State handle_refuse { printCurrentMessage color red }
+}
+
+
+//CARGOROBOT MOCK
+
+QActor cargorobotmock context ctxrobot {
+    State s0 initial { }
+    Goto work
+    
+    State work {}
+    Transition t0 
+        whenRequest robot_move -> handle_move
+        
+    State handle_move {
+        delay 1500
+        replyTo robot_move with robot_done : robotDone(none)
+    }
+    Goto work
 }
