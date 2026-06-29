@@ -65,11 +65,11 @@ L'uso del linguaggio qak ci permetterà di modellare il *cargoservice* come un *
 
   - *ioportmock*: simulerà il Customer. Avrà il compito di generare la load_request e di attendere le risposte formali del sistema (load_accepted, load_refused, load_retrylater).
   
-  - *sonarmock*: simulerà il rilevamento fisico del container, inviando al sistema un dispatch set_ioport_status per notificare che l'area dell'IOPort è occupata. Simulerà inoltre eventuali eventi di guasto per forzare il sistema nello stato di Out of service.
+  - *sonarmock*: simulerà il rilevamento fisico del container, inviando al sistema un messaggio per notificare che l'area dell'IOPort è occupata. Simulerà inoltre eventuali eventi di guasto per forzare il sistema nello stato di Out of service.
   
-  - *ledmock*: simulerà il dispositivo fisico di segnalazione, limitandosi a ricevere e stampare a video i comandi operativi (led_ctrl con payload "on", "off", "blink").
+  - *ledmock*: simulerà il dispositivo fisico di segnalazione, limitandosi a ricevere e stampare a video i comandi operativi.
   
-  - *cargorobotmock*: fungerà da stub per il sistema di movimentazione, ricevendo la richiesta di movimento (robot_move) verso un target (es. "slot5") ed emettendo una fittizia risposta di completamento (robot_done).
+  - *cargorobotmock*: fungerà da "simulatore" per il sistema di movimentazione, ricevendo la richiesta di movimento verso un target ed emettendo una fittizia risposta di completamento.
 
 = Problem analysis
 
@@ -98,13 +98,13 @@ Questa scelta permette al *cargoservice* di verificare autonomamente se la stiva
 Per quanto riguarda l'interazione tra *Customer* (simulato da ioportmock) e *CargoService* si utilizzano i messaggi già definiti in fase di Sprint 0:
 
 ```
-Request load_request   : loadRequest(none)
-Reply   load_accepted  : loadAccepted(SLOTID) for load_request 
-Reply   load_retrylater: loadRetryLater(none) for load_request 
-Reply   load_refused   : loadRefused(none) for load_request    
+Request load_request      : loadRequest(none)
+Reply load_accepted       : loadAccepted(slotID) for load_request
+Reply load_retrylater     : loadRetryLater(none) for load_request
+Reply load_refused        : loadRefused(none) for load_request
 ```
 
-Per quanto riguarda l'interazione con i Sensori simulati (Sonar e IOPort): Il *sonarmock* notificherà al sistema i cambiamenti fisici dell'ambiente (es. deposito del container o guasti).
+Per quanto riguarda l'interazione con i Sensori simulati (Sonar e IOPort): Il *sonarmock* notificherà al sistema i cambiamenti fisici dell'ambiente (es. deposito del container o guasti). L'utilizzo di una Dispatch consente di modellarne la ricezione asincrona.
 
 ```
 Dispatch set_ioport_status  : setIOPortStatus(STATUS)  // STATUS: "free" o "occupied"
@@ -114,7 +114,7 @@ Dispatch set_service_status : setServiceStatus(STATUS) // STATUS: "working" o "o
 Interazione con gli Attuatori simulati (LED e Robot): Il cargoservice comanda il lampeggio del LED e attende in modo sincrono o asincrono il termine dei movimenti del cargorobotmock.
 
 ```
-Dispatch led_ctrl : ledCmd(CMD) // CMD: "on", "off", "blink"
+Dispatch led_ctrl : ledCmd(CMD)        // CMD: "on", "off", "blink"
 
 Request robot_move : robotMove(TARGET) // TARGET: "slot5", "slot1", ecc.
 Reply   robot_done : robotDone(none) for robot_move
@@ -132,7 +132,7 @@ L'attore cargoservice è, già da Sprint 0, inteso come una Macchina a Stati Fin
 #]
 ```
 
-Si gestisce quindi il ciclo di vita della richiesta seguendo queste transizioni principali:
+Si gestisce quindi il ciclo di vita della richiesta seguendo Le transizioni principali:
 
 /*
 - handle_load_request: Se il sistema è operativo, l'attore valuta l'array Slots. Se tutti i valori sono != 0, risponde con load_refused. Se c'è posto, aggiorna la variabile locale ReservedSlotId, risponde con load_accepted(ReservedSlotId) e invia un Dispatch led_ctrl : ledCmd(blink) al ledmock per segnalare visivamente l'accettazione.
