@@ -1,0 +1,183 @@
+System cargosystem
+
+//INTERAZIONI TRA COMPONENTI
+
+// Customer <-> CargoService 
+Request load_request    : loadRequest(none)
+Reply   load_accepted   : loadAccepted(SLOTID) for load_request 
+Reply   load_retrylater : loadRetryLater(none) for load_request 
+Reply   load_refused    : loadRefused(none) for load_request    
+
+//  CargoService <-> Hold 
+Request get_slot        : getSlot(none)
+Reply   slot_reserved   : slotReserved(SLOTID) for get_slot
+Reply   hold_full       : holdFull(none) for get_slot
+Dispatch free_slot      : freeSlot(SLOTID)
+
+//  Aggiornamenti Sensori e Stato 
+Event    sonardata          : distance(D)  // Emesso dal sonar
+Dispatch set_service_status : setServiceStatus(STATUS) 
+Dispatch led_ctrl           : ledCmd(CMD)         
+
+//  CargoService <-> Robot 
+Request robot_move : robotMove(TARGET)
+Reply   robot_done : robotDone(none) for robot_move
+
+//  CargoService <-> MarkerDevice 
+Request mark_container : markContainer(none)
+Reply   marking_done   : markingDone(none) for mark_container
+
+//CONTESTI
+Context ctxcargoservice ip [host="localhost" port=8050] //Cargoservice
+Context ctxcustomer     ip [host="127.0.0.1" port=8051] //Ioport e led 
+Context ctxdevices      ip [host="127.0.0.1" port=8052] //Sonar hold markerdevice
+Context ctxrobot        ip [host="127.0.0.1" port=8053] //Cargorobot
+
+
+
+//CARGOSERVICE 
+
+QActor cargoservice context ctxcargoservice {
+    [#
+        var IOPortOccupied = false
+        var ServiceWorking = true
+        var CargoState     = "disengaged"
+        var ReservedSlotId = -1
+    #]
+
+    State s0 initial {
+        println("cargoservice | STARTED") color magenta
+    }
+    Goto disengaged
+    
+    State disengaged {
+        println("cargoservice | DISENGAGED: waiting for requests...") color blue
+    }
+    Transition t0
+        whenRequest load_request       -> handle_load_request
+        whenEvent   sonardata          -> handle_sonar
+        whenMsg     set_service_status -> update_service
+
+    State engaged {
+        println("cargoservice | ENGAGED: waiting for container deposit...") color blue
+    }
+    Transition t0
+        whenTime    30000              -> handle_deposit_timeout
+        whenRequest load_request       -> handle_load_request
+        whenEvent   sonardata          -> handle_sonar
+        whenMsg     set_service_status -> update_service
+
+
+    //GESTIONE RICHIESTE
+    
+    State handle_load_request {
+        printCurrentMessage color yellow
+        
+        // Verifica precondizioni per accettare la richiesta
+        if [# CargoState == "engaged" || !ServiceWorking || IOPortOccupied #] {
+            replyTo load_request with load_retrylater : loadRetryLater(none)
+        } else {
+            // Interroga la Hold per uno slot libero
+            request hold -m get_slot : getSlot(none)
+        }
+    }
+    Goto returnToState if [# CargoState == "engaged" || !ServiceWorking || IOPortOccupied #] else wait_for_slot
+    
+    State wait_for_slot {}
+    Transition t0
+        whenReply slot_reserved -> accept_request
+        whenReply hold_full     -> refuse_request
+
+    State accept_request {
+        onMsg(slot_reserved : slotReserved(ID)) {
+            [# 
+                ReservedSlotId = payloadArg(0).toInt()
+                CargoState     = "engaged" 
+            #]
+            forward ledmock -m led_ctrl : ledCmd(blink)
+            [# val SlotName = "slot$ReservedSlotId" #]
+    		replyTo load_request with load_accepted : loadAccepted($SlotName)
+        }
+    }
+    Goto engaged
+
+    State refuse_request {
+        replyTo load_request with load_refused : loadRefused(none)
+    }
+    Goto disengaged
+
+
+    //GESTIONE SONAR
+    
+    State handle_sonar {
+        onMsg(sonardata : distance(D)) {
+            [# val Dist = payloadArg(0).toInt() #]
+            
+            // D < 50 indica presenza del container (IOPort occupata)
+            if [# Dist < 50 #] { 
+                [# IOPortOccupied = true #]
+            } else {
+                [# IOPortOccupied = false #]
+            }
+        }
+    }
+    // Se il container viene posato durante lo stato engaged, il robot può iniziare
+    Goto do_robot_job if [# IOPortOccupied && CargoState == "engaged" #] else returnToState
+    
+    State update_service {
+        onMsg(set_service_status : setServiceStatus(S)) {
+            [# ServiceWorking = (payloadArg(0) == "working") #]
+        }
+    }
+    Goto returnToState
+
+    State returnToState {}
+    Goto engaged if [# CargoState == "engaged" #] else disengaged
+
+
+    // GESTIONE ROBOT E MARKER
+
+    State do_robot_job {
+        println("cargoservice | Container deposited! Moving to slot5...") color magenta
+        request cargorobotmock -m robot_move : robotMove(slot5)
+    }
+    Transition t0
+        whenReply robot_done -> mark_container
+        
+    State mark_container {
+        println("cargoservice | At slot5. Asking markerdevice to mark...") color magenta
+        request markerdevice -m mark_container : markContainer(none)
+    }
+    Transition t0
+        whenReply marking_done -> move_to_reserved_slot
+        
+    State move_to_reserved_slot {
+        println("cargoservice | Marked! Moving to slot$ReservedSlotId...") color magenta
+        [# val TargetSlot = "slot$ReservedSlotId" #]
+    	request cargorobotmock -m robot_move : robotMove($TargetSlot)
+    }
+    Transition t0
+        whenReply robot_done -> finish_job
+        
+    State finish_job {
+        println("cargoservice | Job completed!") color green
+        [# CargoState = "disengaged" #]
+        forward ledmock -m led_ctrl : ledCmd(off)
+    }
+    Goto disengaged
+
+    State handle_deposit_timeout {
+        println("cargoservice | Deposit timeout! Freeing slot.") color red
+        
+        [# CargoState = "disengaged" #]
+        forward hold -m free_slot : freeSlot($ReservedSlotId)
+        forward ledmock -m led_ctrl : ledCmd(off)
+    }
+    Goto disengaged
+}
+ExternalQActor ledmock context ctxcustomer
+ExternalQActor ioportmock context ctxcustomer
+ExternalQActor hold context ctxdevices
+ExternalQActor sonarmock context ctxdevices
+ExternalQActor markerdevice context ctxdevices
+ExternalQActor cargorobotmock context ctxrobot
