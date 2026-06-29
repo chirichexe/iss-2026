@@ -137,11 +137,7 @@ Reply load_retrylater     : loadRetryLater(none) for load_request
 Reply load_refused        : loadRefused(none) for load_request
 ```
 
-<<<<<<< HEAD
-Per quanto riguarda l'interazione con i Sensori simulati (Sonar e IOPort): Il *sonarmock* notificherà al sistema i cambiamenti fisici dell'ambiente (es. deposito del container o guasti). L'utilizzo di una Dispatch consente di modellarne la ricezione asincrona.
-=======
 Per quanto riguarda l'interazione con i Sensori simulati (Sonar e IOPort): Il *sonarmock* notificherà al sistema i cambiamenti dell'ambiente (es. deposito del container o guasti).
->>>>>>> 23cb65c4a9778062ff1b7a31c8b80db6266cb174
 
 ```qak
 Event    sonardata          : distance(D)  // Emesso dal sonar
