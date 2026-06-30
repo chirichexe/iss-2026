@@ -54,55 +54,44 @@ L'azienda richiede di realizzare un servizio denominato *cargoservice* con il se
 
 = Requirement analysis
 
-L'analisi dettagliata del dominio e dei requisiti è già stata affrontata nello Sprint 0, in questa fase ci concentriamo esclusivamente sul ciclo di gestione delle richieste di carico (*core business*) del sistema.
+L'analisi dettagliata del dominio e dei requisiti è già stata affrontata nello Sprint 0, in questa fase ci concentriamo esclusivamente 
+sul ciclo di gestione delle richieste di carico (*core business*) del sistema.
 
-Come emerso in precedenza, il fulcro del sistema è l'attore *cargoservice*, la cui responsabilità principale è fungere da orchestratore per coordinare le operazioni.
+Come emerso in precedenza, il fulcro del sistema è l'attore *cargoservice*, con lo scopo di coordinare le operazioni.
 
-Tuttavia, i requisiti affrontati in questo sprint presupporrebbero già l'implementazione e la presenza di altri componenti del sistema, come la stiva (hold), i sensori (sonar), i dispositivi di I/O (IOPort, LED, markerdevice) e l'interazione con l'hardware del robot (cargorobot).
-Per focalizzarci unicamente sulla logica di business e rispettare un processo di costruzione incrementale, in questo Sprint 1 verranno utilizzati dei componenti *simulati* rappresentati come attori all'interno dei propri context.
+Tuttavia, i requisiti affrontati in questo sprint presupporrebbero già l'implementazione e la presenza di altri componenti del sistema, 
+come la stiva (hold), i sensori (sonar), i dispositivi di I/O (IOPort, LED, markerdevice) e l'interazione con il robot 
+(cargorobot).
+Per focalizzarci unicamente sulla logica di business e rispettare un processo di costruzione incrementale, 
+in questo Sprint 1 verranno utilizzati dei componenti *simulati* rappresentati come attori all'interno dei propri context.
 
-L'uso del linguaggio qak ci permetterà di modellare il *cargoservice* come un *attore autonomo*. Il sistema si avvarrà dei seguenti collaboratori simulati:
+L'uso del linguaggio qak ci permetterà di modellare il *cargoservice* come un *attore autonomo*. 
+Il sistema si avvarrà dei seguenti collaboratori simulati:
 
-  - *ioportmock*: simulerà il Customer. Avrà il compito di generare la load_request e di attendere le risposte formali del sistema (load_accepted, load_refused, load_retrylater).
+  - *ioportmock*: simulerà il Customer. Avrà il compito di generare la load_request e di attendere le risposte formali del sistema 
+  (load_accepted, load_refused, load_retrylater).
   
-  - *sonarmock*: simulerà il rilevamento fisico del container, inviando al sistema un messaggio per notificare che l'area dell'IOPort è occupata. Simulerà inoltre eventuali eventi di guasto per forzare il sistema nello stato di Out of service.
+  - *sonarmock*: simulerà il rilevamento fisico del container, inviando al sistema un messaggio per notificare che l'area dell'IOPort
+  è occupata. Simulerà inoltre eventuali eventi di guasto per forzare il sistema nello stato di Out of service.
   
   - *ledmock*: simulerà il dispositivo fisico di segnalazione, limitandosi a ricevere e stampare a video i comandi operativi.
   
-  - *cargorobotmock*: fungerà da "simulatore" per il sistema di movimentazione, ricevendo la richiesta di movimento verso un target ed emettendo una fittizia risposta di completamento.
+  - *cargorobotmock*: fungerà da "simulatore" per il sistema di movimentazione, ricevendo la richiesta di movimento verso un target 
+  ed emettendo una fittizia risposta di completamento.
 
 = Problem analysis <model>
 
-Come emerso dai requisiti, questo componente funge da *orchestratore*: coordina le operazioni degli altri componenti del sistema al fine di eseguire le procedure di carico. 
-Al fine di realizzare fin da questo prototipo un sistema scalabile e distribuito e ridurre l'“Abstraction Gap”, tutti i componenti mock verranno implementati nei loro context di appartenenza e comunicheranno tra loro tramite TCP.
-Se avessimo inserito tutti i componenti nello stesso context, questi avrebbero comunicato in locale, non rispecchiando a sufficienza il dominio reale del problema.
-Si è ritenuto opportuno mantenere per lo scambio di messaggi il protocollo TCP, di default per la comunicazione tra context in *QAK*, per garantire un basso overhead (non rispecchiando
-così di "appesantire" la comunicazione tra i nodi del sistema) pur mantenendo efficienza e una buona affidabilità, garantità dal three-way handshake del protocollo TCP. 
-
-== Architettura a context
-
-Riprendendo l'analisi condotta nello Sprint 0, il sistema è strutturato come un'architettura distribuita. I componenti operano in 4 context comunicanti:
-
-#iss-table(
-columns: (auto, 1fr),
-[*context*], [*Componenti e responsabilità*],
-[*ctxCargoService*],
-[Contiene l'attore cargoservice. Nucleo del comportamento richiesto e punto di orchestrazione del ciclo di carico.],
-[*ctxCustomer*],
-[Raggruppa le entità dedicate all'interazione con l'utente: IOPort (con display e pushbutton) e LED.],
-[*ctxDevices*],
-[Raggruppa i dispositivi presenti nella hold: sonar, hold e markerdevice.],
-[*ctxRobot*],
-[Raggruppa le entità legate al cargorobot e alla movimentazione richiesta.],
-)
-
+Come emerso dai requisiti, questo componente funge da *orchestratore*: coordina le operazioni degli altri componenti del sistema al fine di 
+eseguire le procedure di carico. Per realizzare ciò, tutti i componenti mock verranno implementati nei loro context di appartenenza e 
+comunicheranno tra loro tramite TCP. Se avessimo inserito tutti i componenti nello stesso context, questi avrebbero comunicato in locale, 
+non rispecchiando a sufficienza la natura distribuita del problema.
+Si è ritenuto opportuno mantenere per la comunicazione il protocollo TCP, di default per la comunicazione tra context in *QAK*, 
+non rischiando così di "appesantire" la comunicazione tra i nodi del sistema ma mantenendo comunque efficienza e una buona affidabilità. 
 
 == Rappresentazione dello stato interno della stiva
 
-In questo sprint la gestione della stiva non viene ancora delegata a un componente esterno reale.
-Il *cargoservice* mantiene quindi una propria rappresentazione locale dello stato degli slot.
-
-La hold viene rappresentata come un mock autonomo presente nel context ctxdevices. Durante il normale funzionamento cargoservice interrogherà la stiva per ottenere le informazioni richieste.
+In questa fase la gestione della stiva non viene ancora implementata completamente. Tuttavia, per rispettare il principio di singola 
+responsabilità, la logica non viene inclusa nel cargoservice, ma viene delegata a un *attore mock autonomo* posizionato nel context ctxdevices
 
 ```qak
 QActor hold context ctxdevices {
@@ -120,15 +109,16 @@ QActor hold context ctxdevices {
 }
 ```
 
-Ogni posizione dell'array rappresenta uno slot della stiva. Il valore `0` indica uno slot libero, mentre un valore diverso da `0` indica uno slot occupato o riservato.
+Ogni posizione dell'array rappresenta uno slot della stiva. Il valore `0` indica uno slot libero, mentre un valore diverso da `0` 
+indica uno slot occupato o riservato.
 
-Questa scelta permette al *cargoservice* di verificare autonomamente se la stiva è piena, senza introdurre in questa fase un componente dedicato alla gestione della *hold*.
-
-
+Questa scelta permette al *cargoservice* di verificare dinamicamente se la stiva è piena interrogando l'attore hold tramite Request / Reply, 
+senza conoscerne i dettagli interni
 
 === Vocabolario delle Interazioni 
 
-Per quanto riguarda l'interazione tra *Customer* (simulato da ioportmock) e *CargoService* si utilizzano i messaggi già definiti in fase di Sprint 0:
+Per quanto riguarda l'interazione tra *Customer* (simulato da ioportmock) e *CargoService* si utilizzano i messaggi già
+definiti in fase di Sprint 0:
 
 ```
 Request load_request      : loadRequest(none)
@@ -137,14 +127,16 @@ Reply load_retrylater     : loadRetryLater(none) for load_request
 Reply load_refused        : loadRefused(none) for load_request
 ```
 
-Per quanto riguarda l'interazione con i Sensori simulati (Sonar e IOPort): Il *sonarmock* notificherà al sistema i cambiamenti dell'ambiente (es. deposito del container o guasti).
+Per quanto riguarda l'interazione con i Sensori simulati (Sonar e IOPort): Il *sonarmock* notificherà al sistema i 
+cambiamenti dell'ambiente.
 
 ```qak
 Event    sonardata          : distance(D)  // Emesso dal sonar
 Dispatch set_service_status : setServiceStatus(STATUS) // STATUS: "working" o "outofservice"
 ```
 
-Interazione con i componenti di Sistema (Hold, Marker, LED e Robot): Il cargoservice interroga il magazzino e attende in modo asincrono il termine delle operazioni simulate.
+Interazione con i componenti di Sistema (Hold, Marker, LED e Robot): 
+Il cargoservice interroga il magazzino e attende in modo asincrono il termine delle operazioni simulate.
 
 ```
 Dispatch led_ctrl : ledCmd(CMD)        // CMD: "on", "off", "blink"
@@ -160,7 +152,8 @@ Reply   robot_done    : robotDone(none) for robot_move
 Dispatch led_ctrl     : ledCmd(CMD) // CMD: "on", "off", "blink"
 ```
 
-L'attore cargoservice è, già da Sprint 0, inteso come una Macchina a Stati Finiti che utilizza variabili interne per mantenere la conoscenza dello stato applicativo:
+L'attore cargoservice è, già da Sprint 0, inteso come una Macchina a Stati Finiti che utilizza variabili interne per mantenere 
+la conoscenza dello stato applicativo:
 
 ```qak
 [# 
@@ -175,7 +168,9 @@ Si gestisce quindi il ciclo di vita della richiesta seguendo le transizioni prin
 
 
 /*
-- handle_load_request: Se il sistema è occupato o guasto, risponde immediatamente con load_retrylater. Altrimenti, l'attore interroga la hold tramite Request get_slot. Attende la risposta: se riceve hold_full risponde load_refused, mentre se riceve slot_reserved salva l'ID, risponde load_accepted(ID) e comanda al ledmock di lampeggiare e si mette in stato "engaged".
+- handle_load_request: Se il sistema è occupato o guasto, risponde immediatamente con load_retrylater. 
+Altrimenti, l'attore interroga la hold tramite Request get_slot. Attende la risposta: se riceve hold_full risponde load_refused, 
+mentre se riceve slot_reserved salva l'ID, risponde load_accepted(ID) e comanda al ledmock di lampeggiare e si mette in stato "engaged".
 
 - engaged: Il sistema non accetta altre richieste e attende che venga depositato il container.
 

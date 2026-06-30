@@ -1,3 +1,9 @@
+Da dire per giustificare la hold come attore: 
+
+"Non comunicare condividendo la memoria. Piuttosto, condividi memoria comunicando"
+
+
+
 Si richiede che ogni sprint effettui uno "zooming" su un macro-componente specifico senza perdersi in dettagli prematuri. Noi dichiariamo subito che il core business è il ciclo di gestione delle richieste di carico orchestrato dal cargoservice, ignorando per ora i dettagli implementativi di rete, database o hardware fisico.
 
 2. L'uso dei Mock in questa fase è per avere un modello che sia eseguibile e testabile fin da subito, l'utilizzo di collaboratori simulati (ioportmock, sonarmock, ledmock, cargorobotmock) è la strada perfetta. Questo ti permette di testare la logica del tuo orchestratore in totale isolamento.
