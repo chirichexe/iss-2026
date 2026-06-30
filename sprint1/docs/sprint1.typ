@@ -313,9 +313,27 @@ class TestCargoServiceCore {
 
 = Project <model>
 
-= Testing
+// = Testing
 
-= Deployment
+= Deployment <deployment>
+
+Il deployment del prototipo di Sprint 1 consiste nell'avvio dei singoli progetti che compongono l'architettura distribuita del sistema.
+
+La directory `prototype` contiene i seguenti progetti:
+
+- #link("https://github.com/chirichexe/iss-2026/tree/main/sprint1/prototype/cargoservice")[`cargoservice`]
+- #link("https://github.com/chirichexe/iss-2026/tree/main/sprint1/prototype/customer")[`customer`]
+- #link("https://github.com/chirichexe/iss-2026/tree/main/sprint1/prototype/devices")[`devices`]
+- #link("https://github.com/chirichexe/iss-2026/tree/main/sprint1/prototype/robot")[`robot`]
+
+Ogni progetto deve essere compilato e avviato separatamente tramite Gradle.
+
+Per ciascuna directory è sufficiente eseguire:
+
+```bash
+./gradlew build
+./gradlew run
+```
 
 // = Maintenance
 
