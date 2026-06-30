@@ -146,8 +146,11 @@ Dispatch set_service_status : setServiceStatus(STATUS) // STATUS: "working" o "o
 
 Interazione con i componenti di Sistema (Hold, Marker, LED e Robot): Il cargoservice interroga il magazzino e attende in modo asincrono il termine delle operazioni simulate.
 
-```
-Dispatch led_ctrl : ledCmd(CMD)        // CMD: "on", "off", "blink"
+```qak
+// Gestione Hold
+Request get_slot      : getSlot(none)
+Reply   slot_reserved : slotReserved(ID) for get_slot
+Reply   hold_full     : holdFull(none)   for get_slot
 
 // Gestione Marker e Robot
 Request mark_container: markContainer(none)
