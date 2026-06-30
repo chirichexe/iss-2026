@@ -183,51 +183,6 @@ Si gestisce quindi il ciclo di vita della richiesta seguendo Le transizioni prin
 */
 
 
-```qak
-QActor cargoservice context ctxcargoservice {
-  // ... inizializzazione variabili ...
-
-  State disengaged { }
-  Transition t0
-    whenRequest load_request       -> handle_load_request
-    whenEvent   sonardata          -> handle_sonar
-    whenMsg     set_service_status -> update_service
-
-  State handle_load_request {
-    if [# CargoState == "engaged" || !ServiceWorking || IOPortOccupied #] {
-        replyTo load_request with load_retrylater : loadRetryLater(none)
-    } else {
-        request hold -m get_slot : getSlot(none)
-    }
-  }
-  Goto returnToState if [# CargoState == "engaged" || !ServiceWorking || IOPortOccupied #] else wait_for_slot
-    
-  State wait_for_slot {}
-  Transition t0
-      whenReply slot_reserved -> accept_request
-      whenReply hold_full     -> refuse_request
-
-  State accept_request {
-    onMsg(slot_reserved : slotReserved(ID)) {
-        [# ReservedSlotId = payloadArg(0).toInt(); CargoState = "engaged" #]
-        forward ledmock -m led_ctrl : ledCmd(blink)
-        [# val SlotName = "slot$ReservedSlotId" #]
-        replyTo load_request with load_accepted : loadAccepted($SlotName)
-    }
-  }
-  Goto engaged
-
-  State handle_sonar {
-    onMsg(sonardata : distance(D)) {
-        [# IOPortOccupied = (payloadArg(0).toInt() < 50) #]
-    }
-  }
-  Goto do_robot_job if [# IOPortOccupied && CargoState == "engaged" #] else returnToState
-
-  // ... logica robot_job e timeout ...
-}
-```
-
 = Test plans <testplan>
 
 Al fine di validare il core-business implementato in questo Sprint, il piano di testing automatizzato (sviluppato in JUnit e Kotlin) si concentra sul verificare che il `cargoservice` rispetti il protocollo di Request/Reply e aggiorni correttamente il suo stato interno al variare delle condizioni simulate. 
@@ -312,6 +267,55 @@ class TestCargoServiceCore {
 ```
 
 = Project <model>
+
+== Modello QAK del cargoservice
+
+Il modello QAK seguente rappresenta larchitettura di progetto della macchina a stati del *cargoservice*.
+
+```qak
+QActor cargoservice context ctxcargoservice {
+  // ... inizializzazione variabili ...
+
+  State disengaged { }
+  Transition t0
+    whenRequest load_request       -> handle_load_request
+    whenEvent   sonardata          -> handle_sonar
+    whenMsg     set_service_status -> update_service
+
+  State handle_load_request {
+    if [# CargoState == "engaged" || !ServiceWorking || IOPortOccupied #] {
+        replyTo load_request with load_retrylater : loadRetryLater(none)
+    } else {
+        request hold -m get_slot : getSlot(none)
+    }
+  }
+  Goto returnToState if [# CargoState == "engaged" || !ServiceWorking || IOPortOccupied #] else wait_for_slot
+    
+  State wait_for_slot {}
+  Transition t0
+      whenReply slot_reserved -> accept_request
+      whenReply hold_full     -> refuse_request
+
+  State accept_request {
+    onMsg(slot_reserved : slotReserved(ID)) {
+        [# ReservedSlotId = payloadArg(0).toInt(); CargoState = "engaged" #]
+        forward ledmock -m led_ctrl : ledCmd(blink)
+        [# val SlotName = "slot\$ReservedSlotId" #]
+        replyTo load_request with load_accepted : loadAccepted(\$SlotName)
+    }
+  }
+  Goto engaged
+
+  State handle_sonar {
+    onMsg(sonardata : distance(D)) {
+        [# IOPortOccupied = (payloadArg(0).toInt() < 50) #]
+    }
+  }
+  Goto do_robot_job if [# IOPortOccupied && CargoState == "engaged" #] else returnToState
+
+  // ... logica robot_job e timeout ...
+}
+```
 
 // = Testing
 
