@@ -77,7 +77,7 @@ Come emerso dai requisiti, questo componente funge da *orchestratore*: coordina 
 Al fine di realizzare fin da questo prototipo un sistema scalabile e distribuito e ridurre l'“Abstraction Gap”, tutti i componenti mock verranno implementati nei loro context di appartenenza e comunicheranno tra loro tramite TCP.
 Se avessimo inserito tutti i componenti nello stesso context, questi avrebbero comunicato in locale, non rispecchiando a sufficienza il dominio reale del problema.
 Si è ritenuto opportuno mantenere per lo scambio di messaggi il protocollo TCP, di default per la comunicazione tra context in *QAK*, per garantire un basso overhead (non rispecchiando
-così di "appesantire" la comunicazione tra i nodi del sistema) pur mantenendo efficienza e una buona affidabilità, garantita dal three-way handshake del protocollo TCP. 
+così di "appesantire" la comunicazione tra i nodi del sistema) pur mantenendo efficienza e una buona affidabilità, garantità dal three-way handshake del protocollo TCP. 
 
 == Architettura a context
 
@@ -146,11 +146,8 @@ Dispatch set_service_status : setServiceStatus(STATUS) // STATUS: "working" o "o
 
 Interazione con i componenti di Sistema (Hold, Marker, LED e Robot): Il cargoservice interroga il magazzino e attende in modo asincrono il termine delle operazioni simulate.
 
-```qak
-// Gestione Hold
-Request get_slot      : getSlot(none)
-Reply   slot_reserved : slotReserved(ID) for get_slot
-Reply   hold_full     : holdFull(none)   for get_slot
+```
+Dispatch led_ctrl : ledCmd(CMD)        // CMD: "on", "off", "blink"
 
 // Gestione Marker e Robot
 Request mark_container: markContainer(none)
@@ -185,6 +182,51 @@ Si gestisce quindi il ciclo di vita della richiesta seguendo Le transizioni prin
 - moving_cargo: Non appena rileva la presenza del container, cargoservice comanda al cargorobotmock di prelevare il carico inviando la Request robot_move verso slot5. Dopo aver interrogato il markerdevice con Request mark_container, comanda un robot_move verso lo slot prenotato. Al termine di tutte le Reply, riporta le variabili allo stato originario, spegne il LED e torna nello stato "disengaged".
 */
 
+
+```qak
+QActor cargoservice context ctxcargoservice {
+  // ... inizializzazione variabili ...
+
+  State disengaged { }
+  Transition t0
+    whenRequest load_request       -> handle_load_request
+    whenEvent   sonardata          -> handle_sonar
+    whenMsg     set_service_status -> update_service
+
+  State handle_load_request {
+    if [# CargoState == "engaged" || !ServiceWorking || IOPortOccupied #] {
+        replyTo load_request with load_retrylater : loadRetryLater(none)
+    } else {
+        request hold -m get_slot : getSlot(none)
+    }
+  }
+  Goto returnToState if [# CargoState == "engaged" || !ServiceWorking || IOPortOccupied #] else wait_for_slot
+    
+  State wait_for_slot {}
+  Transition t0
+      whenReply slot_reserved -> accept_request
+      whenReply hold_full     -> refuse_request
+
+  State accept_request {
+    onMsg(slot_reserved : slotReserved(ID)) {
+        [# ReservedSlotId = payloadArg(0).toInt(); CargoState = "engaged" #]
+        forward ledmock -m led_ctrl : ledCmd(blink)
+        [# val SlotName = "slot$ReservedSlotId" #]
+        replyTo load_request with load_accepted : loadAccepted($SlotName)
+    }
+  }
+  Goto engaged
+
+  State handle_sonar {
+    onMsg(sonardata : distance(D)) {
+        [# IOPortOccupied = (payloadArg(0).toInt() < 50) #]
+    }
+  }
+  Goto do_robot_job if [# IOPortOccupied && CargoState == "engaged" #] else returnToState
+
+  // ... logica robot_job e timeout ...
+}
+```
 
 = Test plans <testplan>
 
@@ -270,55 +312,6 @@ class TestCargoServiceCore {
 ```
 
 = Project <model>
-
-== Modello QAK del cargoservice
-
-Il modello QAK seguente rappresenta l'architettura di progetto della macchina a stati del *cargoservice*.
-
-```qak
-QActor cargoservice context ctxcargoservice {
-  // ... inizializzazione variabili ...
-
-  State disengaged { }
-  Transition t0
-    whenRequest load_request       -> handle_load_request
-    whenEvent   sonardata          -> handle_sonar
-    whenMsg     set_service_status -> update_service
-
-  State handle_load_request {
-    if [# CargoState == "engaged" || !ServiceWorking || IOPortOccupied #] {
-        replyTo load_request with load_retrylater : loadRetryLater(none)
-    } else {
-        request hold -m get_slot : getSlot(none)
-    }
-  }
-  Goto returnToState if [# CargoState == "engaged" || !ServiceWorking || IOPortOccupied #] else wait_for_slot
-    
-  State wait_for_slot {}
-  Transition t0
-      whenReply slot_reserved -> accept_request
-      whenReply hold_full     -> refuse_request
-
-  State accept_request {
-    onMsg(slot_reserved : slotReserved(ID)) {
-        [# ReservedSlotId = payloadArg(0).toInt(); CargoState = "engaged" #]
-        forward ledmock -m led_ctrl : ledCmd(blink)
-        [# val SlotName = "slot\$ReservedSlotId" #]
-        replyTo load_request with load_accepted : loadAccepted(\$SlotName)
-    }
-  }
-  Goto engaged
-
-  State handle_sonar {
-    onMsg(sonardata : distance(D)) {
-        [# IOPortOccupied = (payloadArg(0).toInt() < 50) #]
-    }
-  }
-  Goto do_robot_job if [# IOPortOccupied && CargoState == "engaged" #] else returnToState
-
-  // ... logica robot_job e timeout ...
-}
-```
 
 // = Testing
 
