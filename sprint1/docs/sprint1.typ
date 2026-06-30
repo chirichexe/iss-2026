@@ -171,7 +171,7 @@ L'attore cargoservice è, già da Sprint 0, inteso come una Macchina a Stati Fin
 #]
 ```
 
-Si gestisce quindi il ciclo di vita della richiesta seguendo Le transizioni principali:
+Si gestisce quindi il ciclo di vita della richiesta seguendo le transizioni principali:
 
 
 /*
@@ -356,7 +356,7 @@ Questa architettura rappresenta il risultato finale dello Sprint 1 e costituirà
 
 La pianificazione prevista per lo Sprint 1 è stata rispettata. Non si sono verificati scostamenti significativi rispetto agli obiettivi inizialmente prefissati.
 
-== Obiettivi dello Sprint 2
+== Goal dello Sprint 2
 
 L'obiettivo principale dello Sprint 2 sarà incrementare il livello di realismo del prototipo sostituendo i componenti simulati con le rispettive implementazioni reali.
 
