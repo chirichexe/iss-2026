@@ -77,7 +77,7 @@ Come emerso dai requisiti, questo componente funge da *orchestratore*: coordina 
 Al fine di realizzare fin da questo prototipo un sistema scalabile e distribuito e ridurre l'“Abstraction Gap”, tutti i componenti mock verranno implementati nei loro context di appartenenza e comunicheranno tra loro tramite TCP.
 Se avessimo inserito tutti i componenti nello stesso context, questi avrebbero comunicato in locale, non rispecchiando a sufficienza il dominio reale del problema.
 Si è ritenuto opportuno mantenere per lo scambio di messaggi il protocollo TCP, di default per la comunicazione tra context in *QAK*, per garantire un basso overhead (non rispecchiando
-così di "appesantire" la comunicazione tra i nodi del sistema) pur mantenendo efficienza e una buona affidabilità, garantità dal three-way handshake del protocollo TCP. 
+così di "appesantire" la comunicazione tra i nodi del sistema) pur mantenendo efficienza e una buona affidabilità, garantita dal three-way handshake del protocollo TCP. 
 
 == Architettura a context
 
@@ -270,7 +270,7 @@ class TestCargoServiceCore {
 
 == Modello QAK del cargoservice
 
-Il modello QAK seguente rappresenta larchitettura di progetto della macchina a stati del *cargoservice*.
+Il modello QAK seguente rappresenta l'architettura di progetto della macchina a stati del *cargoservice*.
 
 ```qak
 QActor cargoservice context ctxcargoservice {
