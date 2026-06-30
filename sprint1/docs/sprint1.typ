@@ -71,7 +71,7 @@ L'uso del linguaggio qak ci permetterà di modellare il *cargoservice* come un *
   
   - *cargorobotmock*: fungerà da "simulatore" per il sistema di movimentazione, ricevendo la richiesta di movimento verso un target ed emettendo una fittizia risposta di completamento.
 
-= Problem analysis
+= Problem analysis <model>
 
 Come emerso dai requisiti, questo componente funge da *orchestratore*: coordina le operazioni degli altri componenti del sistema al fine di eseguire le procedure di carico. 
 Al fine di realizzare fin da questo prototipo un sistema scalabile e distribuito e ridurre l'“Abstraction Gap”, tutti i componenti mock verranno implementati nei loro context di appartenenza e comunicheranno tra loro tramite TCP.
@@ -345,7 +345,7 @@ L'architettura finale del prototipo sviluppato durante questo Sprint è riportat
   caption: [Architettura finale del prototipo.]
 )
 
-Per maggiori dettagli sul modello implementato si rimanda a #link(<model>)[Project], mentre i test sviluppati sono descritti in #link(<testplan>)[Test Plan].
+Per maggiori dettagli sul modello implementato si rimanda a #link(<model>)[ProblemAnalysis], mentre i test sviluppati sono descritti in #link(<testplan>)[Test Plan].
 
 Questa architettura rappresenta il risultato finale dello Sprint 1 e costituirà il punto di partenza per lo Sprint 2.
 
