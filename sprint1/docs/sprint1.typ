@@ -311,8 +311,6 @@ class TestCargoServiceCore {
 }
 ```
 
-= Project <model>
-
 // = Testing
 
 = Deployment <deployment>
