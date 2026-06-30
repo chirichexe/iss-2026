@@ -228,7 +228,7 @@ QActor cargoservice context ctxcargoservice {
 }
 ```
 
-= Test plans
+= Test plans <testplan>
 
 Al fine di validare il core-business implementato in questo Sprint, il piano di testing automatizzato (sviluppato in JUnit e Kotlin) si concentra sul verificare che il `cargoservice` rispetti il protocollo di Request/Reply e aggiorni correttamente il suo stato interno al variare delle condizioni simulate. 
 
@@ -311,13 +311,43 @@ class TestCargoServiceCore {
 }
 ```
 
-= Project
+= Project <model>
 
 = Testing
 
 = Deployment
 
-= Maintenance
+// = Maintenance
+
+= Pagina di sintesi
+== Architettura finale del prototipo
+
+L'architettura finale del prototipo sviluppato durante questo Sprint è riportata nella figura seguente.
+
+#figure(
+  image("../prototype/cargoservice/cargosystemarch.png", width: 90%),
+  caption: [Architettura finale del prototipo.]
+)
+
+Per maggiori dettagli sul modello implementato si rimanda a #link(<model>)[Project], mentre i test sviluppati sono descritti in #link(<testplan>)[Test Plan].
+
+Questa architettura rappresenta il risultato finale dello Sprint 1 e costituirà il punto di partenza per lo Sprint 2.
+
+// da verificare se è il caso di toglierla o meno
+== Verifica della pianificazione
+
+La pianificazione prevista per lo Sprint 1 è stata rispettata. Non si sono verificati scostamenti significativi rispetto agli obiettivi inizialmente prefissati.
+
+== Obiettivi dello Sprint 2
+
+L'obiettivo principale dello Sprint 2 sarà incrementare il livello di realismo del prototipo sostituendo i componenti simulati con le rispettive implementazioni reali.
+
+In particolare, le attività previste sono:
+
+- sostituire il *cargorobotmock* con l'attore reale interfacciato a *VirtualRobot26*;
+- realizzare l'*IOPort* come Web GUI, consentendo l'interazione dell'utente tramite browser;
+- integrare i nuovi componenti mantenendo invariata l'architettura ad attori del sistema;
+- verificare il corretto funzionamento del sistema mediante un aggiornamento dei test funzionali.
 
 // -----------------------------------------------------------------------------
 // Allegati - Team di lavoro
