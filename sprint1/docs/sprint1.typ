@@ -16,10 +16,15 @@
 
 = Introduction
 
-Il punto di partenza di questo sprint è l'architettura logica e l'analisi dei requisiti definita nello Sprint 0 (recuperabile al seguente #link("https://github.com/chirichexe/iss-2026/blob/main/sprint0/docs/sprint0_v2.pdf")[link]). Si riporta di seguito il goal dello sprint 1:
+Il punto di partenza di questo sprint è l'architettura logica e l'analisi dei requisiti definita nello Sprint 0 
+(recuperabile al seguente #link("https://github.com/chirichexe/iss-2026/blob/main/sprint0/docs/sprint0_v2.pdf")[link]). 
+Si riporta di seguito il goal dello sprint 1:
 
-Realizzare un primo prototipo eseguibile del *cargoservice* che implementi il
-comportamento principale descritto dai requisiti mediante collaboratori simulati, impostandolo anche in modo che abbia un architettura distribuita.
+Realizzare un primo prototipo eseguibile del *cargoservice* che ne implementi il 
+comportamento descritto dai requisiti mediante collaboratori simulati. Poiché l'obiettivo principale è validare la logica del servizio, 
+il movimento del robot viene astratto come collaborazione simulata, assumendo che l'operazione di deposito termini con esito positivo. 
+Questa scelta consente di verificare prima il coordinamento tra i componenti e rimandare a una fase successiva il controllo fisico del 
+robot e la gestione dei percorsi.
 
 Al termine dello Sprint1 il sistema dovrà essere in grado di:
 
@@ -38,6 +43,8 @@ In questa fase il cargorobot, il sonar, il markerdevice e l'IOPort saranno rappr
 tramite collaboratori simulati.
 
 = Requirements
+
+I requisiti del progetto sono riportati nel documento disponibile al seguente #link("https://anatali.github.io/issLab2026/_static/docs/Protobook.pdf#page=331")[link]
 
 L'azienda richiede di realizzare un servizio denominato *cargoservice* con il seguente funzionamento:
 
@@ -68,16 +75,21 @@ in questo Sprint 1 verranno utilizzati dei componenti *simulati* rappresentati c
 L'uso del linguaggio qak ci permetterà di modellare il *cargoservice* come un *attore autonomo*. 
 Il sistema si avvarrà dei seguenti collaboratori simulati:
 
-  - *ioportmock*: simulerà il Customer. Avrà il compito di generare la load_request e di attendere le risposte formali del sistema 
-  (load_accepted, load_refused, load_retrylater).
+  - *ioportmock*: simula il dispositivo fisico di input (il pulsante/GUI dell'IOPort). Il suo compito è quello di tradurre l'azione dell'utente generando il messaggio e di input (*load_request*) verso il componente orchestratore (*cargoservice*) e attendere le relative risposte di stato del sistema.
+
+  ```
+  Request load_request : loadRequest(none)
+  Reply load_accepted : loadAccepted(slotID) for load_request
+  Reply load_retrylater : loadRetryLater(none) for load_request
+  Reply load_refused : loadRefused(none) for load_request
+  ```
   
   - *sonarmock*: simulerà il rilevamento fisico del container, inviando al sistema un messaggio per notificare che l'area dell'IOPort
   è occupata. Simulerà inoltre eventuali eventi di guasto per forzare il sistema nello stato di Out of service.
   
   - *ledmock*: simulerà il dispositivo fisico di segnalazione, limitandosi a ricevere e stampare a video i comandi operativi.
   
-  - *cargorobotmock*: fungerà da "simulatore" per il sistema di movimentazione, ricevendo la richiesta di movimento verso un target 
-  ed emettendo una fittizia risposta di completamento.
+  - *cargorobotmock*: fungerà da "simulatore" per il sistema di movimentazione. 
 
 = Problem analysis <model>
 
@@ -86,7 +98,7 @@ eseguire le procedure di carico. Per realizzare ciò, tutti i componenti mock ve
 comunicheranno tra loro tramite TCP. Se avessimo inserito tutti i componenti nello stesso context, questi avrebbero comunicato in locale, 
 non rispecchiando a sufficienza la natura distribuita del problema.
 Si è ritenuto opportuno mantenere per la comunicazione il protocollo TCP, di default per la comunicazione tra context in *QAK*, 
-non rischiando così di "appesantire" la comunicazione tra i nodi del sistema ma mantenendo comunque efficienza e una buona affidabilità. 
+non rischiando così di "appesantire" la comunicazione tra i nodi del sistema ma mantenendo comunque efficienza e una buona affidabilità.
 
 == Rappresentazione dello stato interno della stiva
 
@@ -115,9 +127,9 @@ indica uno slot occupato o riservato.
 Questa scelta permette al *cargoservice* di verificare dinamicamente se la stiva è piena interrogando l'attore hold tramite Request / Reply, 
 senza conoscerne i dettagli interni
 
-=== Vocabolario delle Interazioni 
+== Vocabolario delle Interazioni 
 
-Per quanto riguarda l'interazione tra *Customer* (simulato da ioportmock) e *CargoService* si utilizzano i messaggi già
+ - Per quanto riguarda l'interazione tra *ioportmock* e *cargoservice* si utilizzano i messaggi già
 definiti in fase di Sprint 0:
 
 ```
@@ -127,30 +139,43 @@ Reply load_retrylater     : loadRetryLater(none) for load_request
 Reply load_refused        : loadRefused(none) for load_request
 ```
 
-Per quanto riguarda l'interazione con i Sensori simulati (Sonar e IOPort): Il *sonarmock* notificherà al sistema i 
-cambiamenti dell'ambiente.
-
-```qak
-Event    sonardata          : distance(D)  // Emesso dal sonar
-Dispatch set_service_status : setServiceStatus(STATUS) // STATUS: "working" o "outofservice"
-```
-
-Interazione con i componenti di Sistema (Hold, Marker, LED e Robot): 
-Il cargoservice interroga il magazzino e attende in modo asincrono il termine delle operazioni simulate.
+ - Per quanto riguarda l'interazione tra Cargoservice e Cargorobot e Markerdevice (simulati rispettivamente da *cargorobotmock* e *markerdevice*)  si considera che, una volta accettato il carico, il cargoservice deve delegare le operazioni fisiche di pesatura/etichettatura al *markerdevice* e di trasporto al *cargorobotmock*. L'orchestratore deve sapere esattamente quando queste operazioni asincrone terminano per poter aggiornare lo stato del sistema. Usiamo la Request/Reply per assicurarci che il cargoservice attenda la fine del task
 
 ```
-Dispatch led_ctrl : ledCmd(CMD)        // CMD: "on", "off", "blink"
+// Gestione Marker
+Request mark_container : markContainer(none)
+Reply   marking_done   : markingDone(none) for mark_container
 
-// Gestione Marker e Robot
-Request mark_container: markContainer(none)
-Reply   marking_done  : markingDone(none) for mark_container
-
-Request robot_move    : robotMove(TARGET) // TARGET: "slot5", "slot1", ecc.
-Reply   robot_done    : robotDone(none) for robot_move
-
-// Comando LED
-Dispatch led_ctrl     : ledCmd(CMD) // CMD: "on", "off", "blink"
+// Gestione Robot
+Request robot_move : robotMove(TARGET) // TARGET: "slot5", "slot1", ecc.
+Reply   robot_done : robotDone(none) for robot_move
 ```
+
+- Il *cargoservice* deve interrogare la *hold* per sapere se c'è un posto libero ed, eventualmente, riservarlo. Anche in questo caso, il cargoservice non può procedere finché la stiva non ha risposto. Scegliamo quindi il pattern Request/Reply:
+
+```
+Request get_slot        : getSlot(none)
+Reply   slot_reserved   : slotReserved(SLOTID) for get_slot
+Reply   hold_full       : holdFull(none) for get_slot
+Dispatch free_slot      : freeSlot(SLOTID)
+```
+
+- Il sensore fisico (simulato dal *sonarmock*) rileva continuamente la distanza e non conosce a priori quali componenti del sistema siano interessati a questo dato. Il Sonar emette un Event, ovvero un messaggio broadcast (con destinatario implicito):
+
+```
+Event sonardata : distance(D)  // Emesso dal sonar nell'ambiente
+``` 
+
+- Per gestire il ledmock o per forzare lo stato interno del servizio (utile in fase di testing), non è necessario attendere una risposta. Pertanto, utilizziamo il pattern Dispatch, che implementa una logica *"fire-and-forget"* verso un destinatario esplicito
+
+```
+Dispatch led_ctrl           : ledCmd(CMD) 
+// CMD: "on", "off", "blink"
+Dispatch set_service_status : setServiceStatus(STATUS) 
+// STATUS: "working" o "outofservice"
+```
+
+== Rappresentazione dell'attore cargoservice come Macchina a Stati Finiti
 
 L'attore cargoservice è, già da Sprint 0, inteso come una Macchina a Stati Finiti che utilizza variabili interne per mantenere 
 la conoscenza dello stato applicativo:
