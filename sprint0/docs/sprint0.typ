@@ -336,6 +336,13 @@ public class Hold {
 I test funzionali verificano il comportamento osservabile del sistema rispetto ai
 requisiti, indipendentemente dall'implementazione concreta dei componenti.
 
+= Architettura
+
+#figure(
+    image("../prototype/cargosystem/cargosystemarch.png"),
+    caption: [Architettura definita nello Sprint0.]
+)
+
 = Goal del successivo Sprint 1
 
 *Goal:* realizzare un primo prototipo eseguibile del *cargoservice* che implementi il
