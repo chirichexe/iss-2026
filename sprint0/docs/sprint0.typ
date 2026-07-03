@@ -198,33 +198,28 @@ QActor cargoservice context ctxcargoservice {
 Il *cargorobot* è il sottosistema responsabile della movimentazione fisica del container all'interno della hold.
 
 Dopo una discussione con la committente, si conviene che la responsabilità di decidere
-la sequenza applicativa resta in capo al *cargoservice*: il cargorobot non decide se
-una richiesta debba essere accettata, rifiutata o sospesa, ma viene guidato dal
-cargoservice per eseguire operazioni di movimentazione.
+la sequenza applicativa resta in capo al *cargoservice*, il quale movimenterà il cargorobot.
 
-Per ora non assumiamo che il cargorobot coincida con un QActor sviluppato da noi.
-È invece opportuno analizzare quali software già disponibili nella software house
-o in rete siano adeguati al problema, ad esempio servizi già esistenti per il controllo
-del DDR. In particolare, andrà valutato se riutilizzare software come *robosmart26* o
+Sarà successivamente opportuno analizzare quali software già disponibili nella software house
+o in rete siano adeguati al problema. In particolare, andrà valutato se riutilizzare software come *robosmart26* o
 *robotservice26*.
 
 Nel modello dei requisiti il cargorobot viene quindi considerato come collaboratore
 del cargoservice, eventualmente realizzato come servizio autonomo. La decisione sulla
-sua realizzazione concreta è rinviata all'analisi del problema.
+sua realizzazione concreta è rinviata all'analisi del problema. Di seguito viene riportata una formalizzazione del suo comportamento, che si limita a ricevere comandi di spostamento e a eseguirli.
 
 ```
 Context ctxrobot        ip [host="localhost" port=8053]
 
 QActor cargorobot context ctxrobot {
 
-    State s0 initial {}
-    Goto work
+  State s0 initial {}
+  Goto work
 
-    State work {
-      println("cargorobot | WORK: move container from IOPort to slot5 and then to reserved slot")
-    }
+  State work {
+    println("cargorobot | WORK: move container from IOPort to slot5 and then to reserved slot")
+  }
 }
-
 ```
 
 === IOPort
@@ -241,8 +236,45 @@ Nel modello QAK può essere rappresentato come attore per modellarne il comporta
 non perché la sua implementazione finale debba necessariamente essere QAK.
 
 ```qak
-QActor ioport context ctxCustomer {
-  // DA SVILUPPARE
+Request load_request    : loadRequest(none)
+
+Reply load_accepted     : loadAccepted(SLOTID) for load_request
+Reply load_retrylater   : loadRetryLater(none) for load_request
+Reply load_refused      : loadRefused(none) for load_request
+
+Context ctxioport       ip [host="localhost" port=8050]
+
+QActor ioportmock context ctxioport {
+
+  State s0 initial {}
+  Goto work
+
+  State work {
+    println("ioportmock | PUSHBUTTON: customer pressed pushbutton")
+    request cargoservice -m load_request : loadRequest(none)
+  }
+  Transition t0
+    whenReply load_accepted   -> accepted
+    whenReply load_retrylater -> retrylater
+    whenReply load_refused    -> refused
+
+  State accepted {
+    println("ioportmock | DISPLAY: load_accepted received") color green
+    // il display mostra lo slot riservato
+  }
+  Goto work
+
+  State retrylater {
+    println("ioportmock | DISPLAY: load_retrylater received") color yellow
+    // il display mostra richiesta rinviata
+  }
+  Goto work
+
+  State refused {
+    println("ioportmock | DISPLAY: load_refused received") color red
+    // il display mostra richiesta rifiutata
+  }
+  Goto work
 }
 ```
 
