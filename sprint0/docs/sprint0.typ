@@ -212,6 +212,21 @@ Nel modello dei requisiti il cargorobot viene quindi considerato come collaborat
 del cargoservice, eventualmente realizzato come servizio autonomo. La decisione sulla
 sua realizzazione concreta è rinviata all'analisi del problema.
 
+```
+Context ctxrobot        ip [host="localhost" port=8053]
+
+QActor cargorobot context ctxrobot {
+
+    State s0 initial {}
+    Goto work
+
+    State work {
+      println("cargorobot | WORK: move container from IOPort to slot5 and then to reserved slot")
+    }
+}
+
+```
+
 === IOPort
 
 L'IOPort rappresenta l'interfaccia tra customer e sistema. 
