@@ -30,10 +30,7 @@ Reply   marking_done   : markingDone(none) for mark_container
 
 
 //CONTESTI
-Context ctxcargoservice ip [host="localhost" port=8050] //Cargoservice
-Context ctxcustomer     ip [host="localhost" port=8051] //Ioport e led 
-Context ctxdevices      ip [host="localhost" port=8052] //Sonar hold markerdevice
-Context ctxrobot        ip [host="localhost" port=8053] //Cargorobot
+Context ctxcargoservice ip [host="localhost" port=8050] // Contesto unico del prototipo per lo Sprint 1
 
 
 
@@ -179,7 +176,7 @@ QActor cargoservice context ctxcargoservice {
 
 //HOLD MOCK
 
-QActor hold context ctxdevices {
+QActor hold context ctxcargoservice {
     [#
         var Slots = intArrayOf(0, 0, 0, 0)
         
@@ -225,7 +222,7 @@ QActor hold context ctxdevices {
 
 //SONAR MOCK
 
-QActor sonarmock context ctxdevices {
+QActor sonarmock context ctxcargoservice {
     State s0 initial {
         delay 4000
         println("sonarmock | Container placed -> Emitting sonardata(30)") color cyan
@@ -245,7 +242,7 @@ QActor sonarmock context ctxdevices {
 
 //MARKER MOCK
 
-QActor markerdevice context ctxdevices {
+QActor markerdevice context ctxcargoservice {
     State s0 initial {
         println("markerdevice | STARTED") color green
     }
@@ -267,7 +264,7 @@ QActor markerdevice context ctxdevices {
 
 //LED MOCK
 
-QActor ledmock context ctxcustomer {
+QActor ledmock context ctxcargoservice {
     State s0 initial { }
     Goto work
     
@@ -286,7 +283,7 @@ QActor ledmock context ctxcustomer {
 //IOPORT MOCK
 
 
-QActor ioportmock context ctxcustomer {
+QActor ioportmock context ctxcargoservice {
     State s0 initial {
         delay 1000
         println("ioportmock | Sending 1st load_request (should be accepted)") color cyan
@@ -331,7 +328,7 @@ QActor ioportmock context ctxcustomer {
 
 //CARGOROBOT MOCK
 
-QActor cargorobotmock context ctxrobot {
+QActor cargorobotmock context ctxcargoservice {
     State s0 initial { }
     Goto work
     
