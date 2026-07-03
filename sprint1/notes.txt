@@ -16,3 +16,42 @@ Come procedere per finire il documento:
 Project: Qui l'architettura logica finale catta da gabriele
     8. Deployment: poche righe su come lanciare il prototipo (es. tramite ./gradlew run o eseguendo un Main generato da QAK). Non serve ancora docker
 
+
+
+
+
+
+
+==== chiaramente
+
+alla fine di ogni sprint deve esserci un src con un qak da sottoporre alla macchina,
+
+giustificare perchè LED e IOPORT sono nello stesso context, 
+
+NON STIAMO modellando requisit, stiamo facendo un mix tra requisiti / pensieri su come 
+sistemare sw che svilupperemo nello sprin1
+
+Problema: IOPort in un context vs. LED come elemento di picow
+
+se facciamo lo sforzo di definire alla fine dello sprint0 un modello e facciamo lo sforzo di sottoporlo alla macchina, ci troviamo gia una struttura che sarà l'input dello sprint1, ogni sprint comincia sempre col modello dello sprint precedente
+
+
+
+sprint0 togli Project
+
+cosa importante: abbiamo detto chde un software va nel picow, quindi nodo diverso, quindi context differente, basta che le entità software in un contesto non hanno memoria comune con altri 
+
+differenza sprin0 sprin1
+
+sprint0: analisi dei requisiti ESEGUIBILE
+
+
+natura distribuita del problema : entità logiche che non condividono memoria
+
+all'inizio è un delirio fare 4 contesti diversi, facciamo comunicar gli ATTORI senza memoria condivisa
+
+i 4 contesti sono un requisito: SERVONO, 
+nello sprint1 possiamo (fase prototipale) rinunciarci e mettere tutto in uno stesso contesto
+alla fine sappiamo che dovrà girare in 4 contesti
+
+

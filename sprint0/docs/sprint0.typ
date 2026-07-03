@@ -157,8 +157,39 @@ Il componente è da sviluppare.
 Dal punto di vista della natura software, presenta un comportamento sia reattivo (gestione di richieste ed eventi) sia proattivo (invio di comandi e aggiornamenti). Per questo motivo si ritiene opportuno rappresentarlo come un QAK Actor.
 
 ```qak
-QActor cargoservice context ctxCargoService {
-    // DA SVILUPPARE: definizione degli stati e delle transizioni secondo i requisiti
+Request load_request      : loadRequest(none)
+Reply load_accepted       : loadAccepted(slotID) for load_request
+Reply load_retrylater     : loadRetryLater(none) for load_request
+Reply load_refused        : loadRefused(none) for load_request
+
+Context ctxcargoservice ip [host="localhost" port=8050]
+
+QActor cargoservice context ctxcargoservice {
+
+  State s0 initial {
+    println("cargoservice | started")
+  }
+  Goto disengaged
+
+  State disengaged {
+    println("cargoservice | DISENGAGED: waiting for load_request...")
+  }
+  Transition t0
+    whenRequest load_request -> handle_load_request
+
+  State handle_load_request {
+
+    println("cargoservice | MOCK: handling load_request with accepted")
+    
+    replyTo load_request with load_accepted : loadAccepted(slot1)
+    // replyTo load_request with load_retrylater : loadRetryLater(none)
+    // replyTo load_request with load_refused : loadRefused(none)
+  }
+  Goto engaged
+
+  State engaged {
+    println("cargoservice | ENGAGED: slot reserved")
+  }
 }
 ```
 
@@ -267,42 +298,7 @@ class Hold {
 Il *core business* del sistema è la gestione del ciclo di carico di un container. La responsabilità della sequenza applicativa resta in *cargoservice*: il cargorobot è coinvolto per eseguire spostamenti richiesti dal servizio, non per decideree se una richiesta debba essere accettata, rifiutata o sospesa. La sequenza principale ricavata dai requisiti è espressa dal metamodello ccome segue:
 
 ```
-System cargosystem
 
-// Vocabolario delle interazioni
-Request load_request      : loadRequest(none)
-Reply load_accepted       : loadAccepted(slotID) for load_request
-Reply load_retrylater     : loadRetryLater(none) for load_request
-Reply load_refused        : loadRefused(none) for load_request
-
-Context ctxcargoservice ip [host="localhost" port=8050]
-
-// Core Business
-QActor cargoservice context ctxcargoservice {
-
-    State s0 initial {
-        println("cargoservice | started")
-    }
-    Goto disengaged
-
-    State disengaged {
-        println("cargoservice | DISENGAGED: waiting for load_request...")
-    }
-    Transition t0
-        whenRequest load_request -> handle_load_request
-
-    State handle_load_request {
-        printCurrentMessage
-
-        // simulazione di una richiesta accettata
-        replyTo load_request with load_accepted : loadAccepted(slot1)
-    }
-    Goto engaged
-
-    State engaged {
-        println("cargoservice | ENGAGED: slot reserved")
-    }
-}
 ```
 
 // =============================================================================
