@@ -68,6 +68,11 @@ L'azienda richiede di realizzare un servizio denominato *cargoservice* con il se
 ] 
 / *Risposta della committente*: Si conferma che l'interpretazione è corretta.
 
+#domanda[ 
+  *Indicazioni sulla realizzazione dell'IOPort.* Ci sono indicazioni sulla realizzazione dell'IOPort?
+] 
+/ *Risposta della committente*: Si conferma che bisogna svilupparla come una web GUI.
+
 
 // =============================================================================
 = Requirement analysis
@@ -115,21 +120,31 @@ columns: (auto, 1fr),
 
 == Contesti logici
 
-Ogni contesto logico rappresenta un nodo di elaborazione, costituito da una JVM che opera su un computer fisico denotato da un
-indirizzo IP e una port
-
+Dai requisiti emerge che il sistema non è naturalmente concentrato in un unico processo; le entità sono quindi state distribuite su context distinti, ciascuno dei quali rappresenta un nodo di elaborazione.
 #iss-table(
 columns: (auto, 1fr),
 [*Contesto*], [*Componenti e responsabilità*],
 [*ctxCargoService*],
-[Contiene l'attore cargoservice. Nucleo del comportamento richiesto e punto di orchestrazione del ciclo di carico.],
+[È il nucleo del comportamento richiesto e punto di orchestrazione del ciclo di carico. Contiene il cargoservice.],
 [*ctxIOPort*],
-[Contiene l'IOPort, entità dedicato all'interazione con l'utente (con display e pushbutton).],
+[Raggruppa le entità dedicate all'interazione con l'utente. Contiene l'IOPort (con display e pushbutton)],
 [*ctxDevices*],
-[Raggruppa i dispositivi presenti nella hold: sonar, hold e markerdevice.],
+[Raggruppa i dispositivi presenti nella hold: sonar, LED, hold e markerdevice.],
 [*ctxRobot*],
-[Raggruppa le entità legate al cargorobot e alla movimentazione richiesta e il LED.],
+[Raggruppa le entità legate al cargorobot e alla movimentazione richiesta.],
 )
+
+== Formalizzazione dei messaggi QAK 
+
+Dai requisiti, l'unica richiesta che si evince è quella di carico, che viene modellata come request in qak.
+La richiesta viene inviata dal customer al cargoservice tramite l'IOPort.
+
+```qak
+Request  load_request    : loadRequest(none)
+Reply load_accepted : loadAccepted(slotID) for load_request // accettazione
+Reply load_retrylater : loadRetryLater(none) for load_request // rinvio temporaneo
+Reply load_refused : loadRefused(none) for load_request // rifiuto definitivo
+```
 
 == Macro-componenti e natura software
 
@@ -246,43 +261,6 @@ class Hold {
   // TODO
 }
 ```
-
-== Formalizzazione dei messaggi QAK 
-
-Dai requisiti, l'unica richiesta che si evince è quella di carico, che viene modellata come request in qak.
-La richiesta viene inviata dal customer al cargoservice tramite l'IOPort.
-
-```qak
-Request  load_request    : loadRequest(none)
-Reply load_accepted : loadAccepted(slotID) for load_request // accettazione
-Reply load_retrylater : loadRetryLater(none) for load_request // rinvio temporaneo
-Reply load_refused : loadRefused(none) for load_request // rifiuto definitivo
-```
-
-Il payload *none* indica che, al livello dei requisiti attuali, il messaggio non trasporta informazioni applicative aggiuntive. 
-La richiesta di carico è generata dal pulsante dell'IOPort.
-
-== Distribuzione preliminare del software
-
-Dai requisiti emerge che il sistema non è naturalmente concentrato in un unico
-processo. Le entità coinvolte possono richiedere processori distinti:
-
-#iss-table(
-columns: (auto, 1fr),
-[*Unità di esecuzione*], [*Responsabilità*],
-
-[*Applicazione cargoservice*], [Gestione della logica applicativa e delle richieste di carico.],
-
-[*PicoW*], [Gestione dei dispositivi fisici locali, da requisiti: sonar e LED.],
-
-[*Robot*], [Esecuzione del software di controllo del DDR o di un servizio robotico riusato.],
-
-[*IOPort*], [Esecuzione della Web GUI o del relativo server applicativo.]
-)
-
-Questa osservazione motiva ulteriormente il passaggio da componenti passivi di tipo
-POJO a servizi comunicanti tramite messaggi: un POJO implica trasferimento di controllo,
-mentre un servizio autonomo viene interrogato tramite scambio di messaggi.
 
 == Core business 
 
