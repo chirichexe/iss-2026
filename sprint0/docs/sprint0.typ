@@ -385,7 +385,7 @@ columns: (1.2fr, 2fr, 2fr, 2fr),
 
       LoadReply reply = service.loadRequest();
 
-      assertEquals(LoadReplyType.LOAD_ACCEPTED, reply.getType());
+      assertEquals(LoadReplyType.LOAD_ACCEPTED, rverificare lo stato della hold, dell’IOPort e del servizio;eply.getType());
       assertEquals("slot1", reply.getSlotId());
       assertTrue(service.isSlotReserved("slot1"));
       assertEquals(ServiceState.ENGAGED, service.getState());
@@ -491,12 +491,11 @@ Al termine dello Sprint1 il sistema dovrà essere in grado di:
   - *load_accepted(slotID)*;
   - *load_retrylater*;
   - *load_refused*;
-- mantenere il modello logico della hold e la prenotazione dello slot;
+- tenere traccia dello stato della hold e delle prenotazioni degli slot;
 - gestire gli stati *engaged* e *disengaged*;
 - pilotare il LED in funzione dello stato del sistema;
-- superare i test funzionali definiti nello Sprint0.
 
-In questa fase il cargorobot, il sonar, il markerdevice e l'IOPort saranno rappresentati
+// In questa fase il cargorobot, il sonar, il markerdevice e l'IOPort saranno rappresentati
 tramite collaboratori simulati.
 
 // -----------------------------------------------------------------------------
