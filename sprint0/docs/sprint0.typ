@@ -150,11 +150,9 @@ Reply load_refused : loadRefused(none) for load_request // rifiuto definitivo
 
 === cargoservice
 
-Il cargoservice è l'orchestratore principale del sistema. Gestisce le richieste di carico, verifica le condizioni della hold, controlla i timeout e coordina le altre componenti.
+Il cargoservice è l'*orchestratore* principale del sistema. Gestisce le richieste di carico, verifica le condizioni della hold, controlla i timeout e coordina le altre componenti.
 
 Il componente è da sviluppare.
-
-Dal punto di vista della natura software, presenta un comportamento sia reattivo (gestione di richieste ed eventi) sia proattivo (invio di comandi e aggiornamenti). Per questo motivo si ritiene opportuno rappresentarlo come un QAK Actor.
 
 ```qak
 Request load_request      : loadRequest(none)
@@ -204,9 +202,7 @@ Sarà successivamente opportuno analizzare quali software già disponibili nella
 o in rete siano adeguati al problema. In particolare, andrà valutato se riutilizzare software come *robosmart26* o
 *robotservice26*.
 
-Nel modello dei requisiti il cargorobot viene quindi considerato come collaboratore
-del cargoservice, eventualmente realizzato come servizio autonomo. La decisione sulla
-sua realizzazione concreta è rinviata all'analisi del problema. Di seguito viene riportata una formalizzazione del suo comportamento, che si limita a ricevere comandi di spostamento e a eseguirli.
+Di seguito viene riportata una formalizzazione del suo comportamento, che si limita a ricevere comandi di spostamento e a eseguirli. La decisione sulla loro realizzazione concreta è rinviata all'analisi del problema.
 
 ```
 Context ctxrobot        ip [host="localhost" port=8053]
@@ -229,9 +225,6 @@ Dopo una discussione con la committente, si comprende che esso viene interpretat
 da un display. Dai requisiti si deduce che è IOPort ad emettere la richiesta *load_request* verso *cargoservice* e mostrare informazioni 
 di stato.
 
-Viene demandata all'analisi del problema la scelta se il server dell'IOPort coincida con quello del cargoservice oppure se sia modellato 
-come servizio separato per ottenere maggiore disaccoppiamento.
-
 Nel modello QAK può essere rappresentato come attore per modellarne il comportamento comunicativo,
 non perché la sua implementazione finale debba necessariamente essere QAK.
 
@@ -244,13 +237,13 @@ Reply load_refused      : loadRefused(none) for load_request
 
 Context ctxioport       ip [host="localhost" port=8050]
 
-QActor ioportmock context ctxioport {
+QActor ioport context ctxioport {
 
   State s0 initial {}
   Goto work
 
   State work {
-    println("ioportmock | PUSHBUTTON: customer pressed pushbutton")
+    println("ioport | PUSHBUTTON: customer pressed pushbutton")
     request cargoservice -m load_request : loadRequest(none)
   }
   Transition t0
@@ -259,19 +252,19 @@ QActor ioportmock context ctxioport {
     whenReply load_refused    -> refused
 
   State accepted {
-    println("ioportmock | DISPLAY: load_accepted received") color green
+    println("ioport | DISPLAY: load_accepted received") color green
     // il display mostra lo slot riservato
   }
   Goto work
 
   State retrylater {
-    println("ioportmock | DISPLAY: load_retrylater received") color yellow
+    println("ioport | DISPLAY: load_retrylater received") color yellow
     // il display mostra richiesta rinviata
   }
   Goto work
 
   State refused {
-    println("ioportmock | DISPLAY: load_refused received") color red
+    println("ioport | DISPLAY: load_refused received") color red
     // il display mostra richiesta rifiutata
   }
   Goto work
@@ -284,23 +277,11 @@ Il sonar rileva la presenza di un container nella sensor_area.
 
 Il dispositivo fisico è considerato fornito ed è collegato al PicoW, mentre il software di integrazione è da sviluppare.
 
-```qak
-QActor sonar context ctxDevices {
-  // DA SVILUPPARE
-}
-```
-
 === markerdevice
 
 Il markerdevice etichetta i container depositati nello slot5 e notifica il completamento della marcatura.
 
 Il dispositivo è considerato disponibile in forma simulata, mentre il software di controllo è da sviluppare.
-
-```qak
-QActor markerdevice context ctxDevices {
-  // DA SVILUPPARE
-}
-```
 
 === LED
 
@@ -316,37 +297,35 @@ da sviluppare o integrare nel software eseguito sul PicoW.
 
 === hold
 
-La hold è l'entità che rappresenta logicamente la stiva della nave e lo stato di occupazione degli slot.
+La hold è l'entità che rappresenta logicamente la stiva e lo stato di occupazione degli slot.
 
 Il componente è da sviluppare.
 
-Dal punto di vista della natura software, può essere rappresentata come una struttura dati passiva composta
-composta da Celle. Ogni Cella può indicare uno spazio libero, un ostacolo, una posizione speciale o uno slot.
-Una possibile implementazione consiste in una matrice bidimensionale di celle, In particolare, la hold contiene gli slot
-di destinazione *slot1*--*slot4* e lo *slot5* usato per la marcatura.
-
-La seguente rappresentazione non vincola l'implementazione finale, ma permette di formalizzare il concetto di hold piena e di slot libero.
+Dal punto di vista della natura software, può essere formalizzata come una struttura dati composta da Celle, ovvero una matrice bidimensionale. Ogni Cella può indicare uno spazio libero, un ostacolo, la HOME, il SONAR, l'IOPORT o uno slot (*slot1*--*slot4* e lo *slot5* usato per la marcatura).
 
 ```java
-num CellType {
-    FREE, OBSTACLE, HOME, SENSOR,
-    IOPORT, SLOT1, SLOT2, SLOT3, SLOT4, SLOT5
+public enum CellType {
+    FREE, OBSTACLE, HOME, SONAR, IOPORT, SLOT1, SLOT2, SLOT3, SLOT4, SLOT5
 }
 
-class Hold {
-    private final CellType[][] cells;
-    private final boolean[] occupiedSlots = new boolean[4];
-  // TODO
+public class Hold {
+
+    private final CellType[][] cells = {
+
+        { FREE,     HOME,     FREE,      FREE,      FREE,      FREE,  FREE },
+        { SONAR,   FREE,     SLOT1,     OBSTACLE,  SLOT2,     FREE,  FREE }, 
+        { FREE,     FREE,     FREE,      FREE,      FREE,      SLOT5, FREE },
+        { FREE,     FREE,     SLOT3,     OBSTACLE,  SLOT4,     FREE,  FREE },
+        { FREE,     FREE,     FREE,      FREE,      FREE,      FREE,  FREE },
+        { FREE,     FREE,     FREE,      FREE,      FREE,      FREE,  FREE },
+        { IOPORT,   FREE,     FREE,      FREE,      FREE,      FREE,  FREE } 
+    };
+
+    // slot occupati (SLOT1 ... SLOT5)
+    private final boolean[] occupiedSlots = new boolean[5];
 }
 ```
 
-== Core business 
-
-Il *core business* del sistema è la gestione del ciclo di carico di un container. La responsabilità della sequenza applicativa resta in *cargoservice*: il cargorobot è coinvolto per eseguire spostamenti richiesti dal servizio, non per decideree se una richiesta debba essere accettata, rifiutata o sospesa. La sequenza principale ricavata dai requisiti è espressa dal metamodello ccome segue:
-
-```
-
-```
 
 // =============================================================================
 
@@ -499,13 +478,7 @@ columns: (1.2fr, 2fr, 2fr, 2fr),
   }
 ```
 
-// =============================================================================
-= Project
-// =============================================================================
-
-Dall'analisi dei requisiti si propone, come ipotesi iniziale, una struttura a *tre sprint* con integrazione progressiva dei componenti. La suddivisione serve a organizzare il lavoro e i test, non a fissare decisioni architetturali definitive.
-
-== Sprint 1: Core business
+= Goal del successivo Sprint 1
 
 *Goal:* realizzare un primo prototipo eseguibile del *cargoservice* che implementi il
 comportamento principale descritto dai requisiti mediante collaboratori simulati.
