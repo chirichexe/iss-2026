@@ -113,6 +113,24 @@ columns: (auto, 1fr),
 [*slot libero*], [Primo slot disponibile tra slot1-slot4.],
 )
 
+== Contesti logici
+
+Ogni contesto logico rappresenta un nodo di elaborazione, costituito da una JVM che opera su un computer fisico denotato da un
+indirizzo IP e una port
+
+#iss-table(
+columns: (auto, 1fr),
+[*Contesto*], [*Componenti e responsabilità*],
+[*ctxCargoService*],
+[Contiene l'attore cargoservice. Nucleo del comportamento richiesto e punto di orchestrazione del ciclo di carico.],
+[*ctxIOPort*],
+[Contiene l'IOPort, entità dedicato all'interazione con l'utente (con display e pushbutton).],
+[*ctxDevices*],
+[Raggruppa i dispositivi presenti nella hold: sonar, hold e markerdevice.],
+[*ctxRobot*],
+[Raggruppa le entità legate al cargorobot e alla movimentazione richiesta e il LED.],
+)
+
 == Macro-componenti e natura software
 
 === cargoservice
@@ -265,21 +283,6 @@ columns: (auto, 1fr),
 Questa osservazione motiva ulteriormente il passaggio da componenti passivi di tipo
 POJO a servizi comunicanti tramite messaggi: un POJO implica trasferimento di controllo,
 mentre un servizio autonomo viene interrogato tramite scambio di messaggi.
-
-== Contesti logici
-
-#iss-table(
-columns: (auto, 1fr),
-[*Contesto*], [*Componenti e responsabilità*],
-[*ctxCargoService*],
-[Contiene l'attore cargoservice. Nucleo del comportamento richiesto e punto di orchestrazione del ciclo di carico.],
-[*ctxCustomer*],
-[Raggruppa le entità dedicate all'interazione con l'utente: IOPort (con display e pushbutton) e LED.],
-[*ctxDevices*],
-[Raggruppa i dispositivi presenti nella hold: sonar, hold e markerdevice.],
-[*ctxRobot*],
-[Raggruppa le entità legate al cargorobot e alla movimentazione richiesta.],
-)
 
 == Core business 
 
