@@ -42,6 +42,11 @@ Al termine dello Sprint1 il sistema dovrà essere in grado di:
 In questa fase il cargorobot, il sonar, il markerdevice e l'IOPort saranno rappresentati
 tramite collaboratori simulati.
 
+Proposta di aggiunta:
+ =Evoluzione dal modello dello sprint 0
+
+Prendendo come punto di partenza il modello sviluppato alla fine dello sprint0, dobbiamo poi ecc.. ecc..
+
 = Requirements
 
 I requisiti del progetto sono riportati nel documento disponibile al seguente #link("https://anatali.github.io/issLab2026/_static/docs/Protobook.pdf#page=331")[link]
@@ -99,6 +104,14 @@ comunicheranno tra loro tramite TCP. Se avessimo inserito tutti i componenti nel
 non rispecchiando a sufficienza la natura distribuita del problema.
 Si è ritenuto opportuno mantenere per la comunicazione il protocollo TCP, di default per la comunicazione tra context in *QAK*, 
 non rischiando così di "appesantire" la comunicazione tra i nodi del sistema ma mantenendo comunque efficienza e una buona affidabilità.
+
+
+!!! Prop modifica:
+Come emerso dai requisiti, questo componente funge da *orchestratore*: coordina le operazioni degli altri componenti del sistema al fine di 
+eseguire le procedure di carico. Per non rallentare la prototipazione, tutti gli altri componenti verranno rappresentati tramite dei "mock" presenti
+tutti nello stesso context di cargoservice.
+
+
 
 == Rappresentazione dello stato interno della stiva
 
@@ -201,6 +214,10 @@ mentre se riceve slot_reserved salva l'ID, risponde load_accepted(ID) e comanda 
 
 - moving_cargo: Non appena rileva la presenza del container, cargoservice comanda al cargorobotmock di prelevare il carico inviando la Request robot_move verso slot5. Dopo aver interrogato il markerdevice con Request mark_container, comanda un robot_move verso lo slot prenotato. Al termine di tutte le Reply, riporta le variabili allo stato originario, spegne il LED e torna nello stato "disengaged".
 */
+
+Proposta di aggiunta:
+descrizione dettagliata in linguaggio naturale del funzionamento del codice QAK
+
 
 
 ```qak
