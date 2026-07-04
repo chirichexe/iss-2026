@@ -14,7 +14,7 @@ class TestPlanSprint0 {
 
     @Before
     fun setup() {
-        CommUtils.outcyan("=== [TestPlanSprint0] Connessione al cargoservice (porta 8050) ===")
+        CommUtils.outcyan("Connessione al cargoservice (porta 8050)")
         try {
             conn = TcpClientSupport.connect("127.0.0.1", 8050, 10)
         } catch (e: Exception) {
@@ -25,21 +25,22 @@ class TestPlanSprint0 {
     @After
     fun teardown() {
         conn?.close()
-        CommUtils.outcyan("=== [TestPlanSprint0] Connessione chiusa ===")
+        CommUtils.outcyan("Connessione chiusa")
     }
 
     @Test
     fun testLoadRequest() {
-        CommUtils.outmagenta("--- Test: Invio load_request e verifica risposta QAK ---")
+        CommUtils.outmagenta("Invio load_request e verifica risposta QAK")
         try {
-            // 1. Costruzione messaggio QAK (Prolog)
+            
+            // firma della richiesta in base al modello definito
             val requestMsg = "msg(load_request, request, testunit, cargoservice, loadRequest(none), 1)"
 
-            // 2. Invio sincrono su TCP e attesa della reply dal server
+            // invio richiesta
             val reply = conn?.request(requestMsg)
             CommUtils.outgreen("Risposta ricevuta dal server: $reply")
 
-            // 3. Verifica: la risposta deve essere una delle 3 reply previste dal modello
+            // la risposta deve essere una delle 3 reply previste dal modello
             val isValidReply = reply != null && (
                 reply.contains("load_accepted") ||
                 reply.contains("load_retrylater") ||
