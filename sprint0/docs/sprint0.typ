@@ -191,6 +191,8 @@ QActor cargoservice context ctxcargoservice {
 }
 ```
 
+Il codice è disponibile al seguente link #link("https://github.com/chirichexe/iss-2026/blob/main/sprint0/prototype/cargosystem/src/cargosystem.qak")[link] 
+
 === cargorobot
 
 Il *cargorobot* è il sottosistema responsabile della movimentazione fisica del container all'interno della hold.
@@ -217,6 +219,8 @@ QActor cargorobot context ctxrobot {
   }
 }
 ```
+
+Il codice è disponibile al seguente link #link("https://github.com/chirichexe/iss-2026/blob/main/sprint0/prototype/cargosystem/src/cargosystem.qak")[link] 
 
 === IOPort
 
@@ -271,9 +275,11 @@ QActor ioport context ctxioport {
 }
 ```
 
+Il codice è disponibile al seguente link #link("https://github.com/chirichexe/iss-2026/blob/main/sprint0/prototype/cargosystem/src/cargosystem.qak")[link] 
+
 === sonar
 
-Il sonar rileva la presenza di un container nella sensor_area.
+Il sonar rileva la presenza di un container.
 
 Il dispositivo fisico è considerato fornito ed è collegato al PicoW, mentre il software di integrazione è da sviluppare.
 
@@ -301,7 +307,7 @@ La hold è l'entità che rappresenta logicamente la stiva e lo stato di occupazi
 
 Il componente è da sviluppare.
 
-Dal punto di vista della natura software, può essere formalizzata come una struttura dati composta da Celle, ovvero una matrice bidimensionale. Ogni Cella può indicare uno spazio libero, un ostacolo, la HOME, il SONAR, l'IOPORT o uno slot (*slot1*--*slot4* e lo *slot5* usato per la marcatura).
+Può essere formalizzata come una struttura dati composta da Celle, ovvero una matrice bidimensionale. Ogni Cella può indicare uno spazio libero, un ostacolo, la HOME, il SONAR, l'IOPORT o uno slot (*slot1*--*slot4* e lo *slot5* usato per la marcatura).
 
 ```java
 public enum CellType {
@@ -336,7 +342,14 @@ public class Hold {
 I test funzionali verificano il comportamento osservabile del sistema rispetto ai
 requisiti, indipendentemente dall'implementazione concreta dei componenti.
 
-= Goal del successivo Sprint 1
+= Architettura
+
+#figure(
+    image("../prototype/cargosystem/cargosystemarch.png"),
+    caption: [Architettura definita nello Sprint0.]
+)
+
+= Goal del successivo Sprint 1 (DA AGGIORNARE)
 
 *Goal:* realizzare un primo prototipo eseguibile del *cargoservice* che implementi il
 comportamento principale descritto dai requisiti mediante collaboratori simulati.
