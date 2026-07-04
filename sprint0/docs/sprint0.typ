@@ -349,7 +349,7 @@ requisiti, indipendentemente dall'implementazione concreta dei componenti.
     caption: [Architettura definita nello Sprint0.]
 )
 
-= Goal del successivo Sprint 1
+= Goal del successivo Sprint 1 (DA AGGIORNARE)
 
 *Goal:* realizzare un primo prototipo eseguibile del *cargoservice* che implementi il
 comportamento principale descritto dai requisiti mediante collaboratori simulati.
