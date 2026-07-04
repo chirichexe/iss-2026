@@ -113,6 +113,39 @@ sourceSets {
     }
 }  
 
+def qakModelFile = file("src/cargosystem.qak")
+def generatedQakKotlin = fileTree("src/it/unibo") {
+    include "**/*.kt"
+}
+
+tasks.register("verifyQakSync") {
+    group = "verification"
+    description = "Fail if src/cargosystem.qak is newer than generated Kotlin sources"
+    outputs.upToDateWhen { false }
+    doLast {
+        boolean skipQakSync = (project.findProperty("skipQakSync")?.toString()?.toBoolean() ?: false)
+        if (skipQakSync) {
+            logger.warn("Skipping QAK/Kotlin sync check because -PskipQakSync=true")
+            return
+        }
+        if (!qakModelFile.exists()) return
+        long qakLastModified = qakModelFile.lastModified()
+        def staleFiles = generatedQakKotlin.files.findAll { it.lastModified() < qakLastModified }
+        if (!staleFiles.isEmpty()) {
+            throw new GradleException(
+                    "QAK model is newer than generated Kotlin sources.\n" +
+                    "Update detected in ${qakModelFile}.\n" +
+                    "Regenerate Kotlin from QAK before running Gradle tasks.\n" +
+                    "Temporary bypass (runs possibly stale code): ./gradlew run -PskipQakSync=true"
+            )
+        }
+    }
+}
+
+tasks.named("compileKotlin") {
+    dependsOn("verifyQakSync")
+}
+
 tasks.withType(Copy).configureEach {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
@@ -160,6 +193,15 @@ task runCargosystem(type: JavaExec) {
     description = "Avvia cargosystem (ctxcargosystem:8050) con cargoservice + ioport in-process"
     classpath = sourceSets.main.runtimeClasspath
     mainClass = 'it.unibo.ctxcargosystem.MainCtxcargosystemKt'
+    standardInput = System.in
+}
+
+// Avvia il contesto ctxrobot (porta 8053) con cargorobot
+task runRobot(type: JavaExec) {
+    group = "Execution"
+    description = "Avvia ctxrobot (porta 8053) con l'attore cargorobot"
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'it.unibo.ctxrobot.MainCtxrobotKt'
     standardInput = System.in
 }
 

@@ -58,9 +58,9 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 						/*
 						 * Testplan minimale:
 						 *
-						 * T1: richiesta accettata
-						 * T2: richiesta rinviata
-						 * T3: richiesta rifiutata
+						 * T1: richiesta accettata   (attiva)
+						 * T2: richiesta rinviata    (commentata)
+						 * T3: richiesta rifiutata   (commentata)
 						 *
 						 * Decommentare UNA sola reply alla volta.
 						 */
@@ -93,6 +93,19 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 					//After Lenzi Aug2002
 					sysaction { //it:State
 					}	 	 
+					// Se arriva una seconda richiesta mentre il servizio è engaged → rifiuta (T3)
+					 transition(edgeName="t_reject",targetState="handle_load_request_engaged",cond=whenRequest("load_request"))
+				}	 
+				state("handle_load_request_engaged") { //this:State
+					action { //it:State
+						CommUtils.outred("cargoservice -> ioport | load_refused: loadRefused(none) [service engaged]")
+						answer("load_request", "load_refused", "loadRefused(none)")
+						//genTimer( actor, state )
+					}
+					//After Lenzi Aug2002
+					sysaction { //it:State
+					}	 	 
+					 transition( edgeName="goto",targetState="disengaged", cond=doswitch() )
 				}	 
 			}
 		}

@@ -8,6 +8,8 @@ Reply load_refused    : loadRefused(none)    for load_request
 
 Context ctxcargoservice ip [host="localhost" port=8050]
 Context ctxioport       ip [host="localhost" port=8051]
+Context ctxrobot        ip [host="localhost" port=8052]
+
 
 QActor cargoservice context ctxcargoservice {
 
@@ -39,7 +41,7 @@ QActor cargoservice context ctxcargoservice {
         replyTo load_request with load_accepted : loadAccepted(slot1)
 
         /*
-        println("cargoservice -> ioport | load_retrylater: loadRetryLater(none)") color yellow
+        println("cargoservice -> ioport | load_retrylater: loadRetryLater(none)") color blue
         replyTo load_request with load_retrylater : loadRetryLater(none)
         */
 
@@ -78,10 +80,20 @@ QActor ioport context ctxioport {
     }
 
     State retrylater {
-        println("ioport | DISPLAY: retry later") color yellow
+        println("ioport | DISPLAY: retry later") color blue
     }
 
     State refused {
         println("ioport | DISPLAY: load refused") color red
     }
+}
+
+QActor cargorobot context ctxrobot {
+
+  State s0 initial {}
+  Goto work
+
+  State work {
+    println("cargorobot | WORK: move container from IOPort to slot5 and then to reserved slot")
+  }
 }
