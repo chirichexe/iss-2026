@@ -9,11 +9,6 @@ import unibo.basicomm23.interfaces.Interaction
 import unibo.basicomm23.tcp.TcpClientSupport
 import unibo.basicomm23.utils.CommUtils
 
-/*
- * TestPlan automatico per il prototipo dello Sprint 0.
- * Obiettivo: Verificare che il cargoservice (porta 8050) gestisca correttamente
- * la richiesta di carico (load_request) rispettando il protocollo Request/Reply.
- */
 class TestPlanSprint0 {
     private var conn: Interaction? = null
 
@@ -37,7 +32,7 @@ class TestPlanSprint0 {
     fun testLoadRequest() {
         CommUtils.outmagenta("--- Test: Invio load_request e verifica risposta QAK ---")
         try {
-            // 1. Costruzione messaggio QAK (Prolog): msg(MSGID, MSGTYPE, SENDER, RECEIVER, CONTENT, SEQNUM)
+            // 1. Costruzione messaggio QAK (Prolog)
             val requestMsg = "msg(load_request, request, testunit, cargoservice, loadRequest(none), 1)"
 
             // 2. Invio sincrono su TCP e attesa della reply dal server
