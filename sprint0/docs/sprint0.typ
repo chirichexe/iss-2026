@@ -191,6 +191,8 @@ QActor cargoservice context ctxcargoservice {
 }
 ```
 
+Il codice è disponibile al seguente link #link("https://github.com/chirichexe/iss-2026/blob/main/sprint0/prototype/cargosystem/src/cargosystem.qak")[link] 
+
 === cargorobot
 
 Il *cargorobot* è il sottosistema responsabile della movimentazione fisica del container all'interno della hold.
@@ -217,6 +219,8 @@ QActor cargorobot context ctxrobot {
   }
 }
 ```
+
+Il codice è disponibile al seguente link #link("https://github.com/chirichexe/iss-2026/blob/main/sprint0/prototype/cargosystem/src/cargosystem.qak")[link] 
 
 === IOPort
 
@@ -270,6 +274,8 @@ QActor ioport context ctxioport {
   Goto work
 }
 ```
+
+Il codice è disponibile al seguente link #link("https://github.com/chirichexe/iss-2026/blob/main/sprint0/prototype/cargosystem/src/cargosystem.qak")[link] 
 
 === sonar
 
