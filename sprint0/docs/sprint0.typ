@@ -279,7 +279,7 @@ Il codice è disponibile al seguente link #link("https://github.com/chirichexe/i
 
 === sonar
 
-Il sonar rileva la presenza di un container nella sensor_area.
+Il sonar rileva la presenza di un container.
 
 Il dispositivo fisico è considerato fornito ed è collegato al PicoW, mentre il software di integrazione è da sviluppare.
 
