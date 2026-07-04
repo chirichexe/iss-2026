@@ -27,7 +27,13 @@ with Diagram('cargosystemArch', show=False, outformat='png', graph_attr=graphatt
 ### see https://renenyffenegger.ch/notes/tools/Graphviz/attributes/label/HTML-like/index
      with Cluster('ctxcargoservice', graph_attr=nodeattr):
           cargoservice=Custom('cargoservice','./qakicons/symActorWithobjSmall.png')
+     with Cluster('ctxioport', graph_attr=nodeattr):
           ioport=Custom('ioport','./qakicons/symActorWithobjSmall.png')
+     with Cluster('ctxrobot', graph_attr=nodeattr):
           cargorobot=Custom('cargorobot','./qakicons/symActorWithobjSmall.png')
+     with Cluster('ctxdevices', graph_attr=nodeattr):
+          led=Custom('led','./qakicons/symActorWithobjSmall.png')
+          markerdevice=Custom('markerdevice','./qakicons/symActorWithobjSmall.png')
+          sonar=Custom('sonar','./qakicons/symActorWithobjSmall.png')
      ioport >> Edge(color='magenta', style='solid', decorate='true', label='<load_request<font color="darkgreen"> load_accepted load_retrylater load_refused</font> &nbsp; >',  fontcolor='magenta') >> cargoservice
 diag

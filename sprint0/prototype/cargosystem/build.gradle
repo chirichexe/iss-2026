@@ -152,14 +152,26 @@ distributions {
 
 run {
     standardInput = System.in
+    if (project.hasProperty('mainClass')) {
+        mainClass = project.getProperty('mainClass')
+    }
 }
 
-// Alias esplicito (uguale a run)
-task runCargosystem(type: JavaExec) {
+// Alias esplicito
+task runCargoservice(type: JavaExec) {
     group = "Execution"
-    description = "Avvia cargosystem dai file generati correnti (.pl/.kt)"
+    description = "Avvia cargoservice dai file generati correnti (.pl/.kt)"
     classpath = sourceSets.main.runtimeClasspath
     mainClass = 'it.unibo.ctxcargoservice.MainCtxcargoserviceKt'
+    standardInput = System.in
+}
+task runCargosystem(dependsOn: runCargoservice)
+
+task runIoport(type: JavaExec) {
+    group = "Execution"
+    description = "Avvia ctxioport"
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'it.unibo.ctxioport.MainCtxioportKt'
     standardInput = System.in
 }
 
@@ -169,6 +181,14 @@ task runRobot(type: JavaExec) {
     description = "Avvia ctxrobot (porta 8053) con l'attore cargorobot"
     classpath = sourceSets.main.runtimeClasspath
     mainClass = 'it.unibo.ctxrobot.MainCtxrobotKt'
+    standardInput = System.in
+}
+
+task runDevices(type: JavaExec) {
+    group = "Execution"
+    description = "Avvia ctxdevices"
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'it.unibo.ctxdevices.MainCtxdevicesKt'
     standardInput = System.in
 }
 

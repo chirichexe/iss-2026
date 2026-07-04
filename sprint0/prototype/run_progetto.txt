@@ -1,0 +1,11 @@
+  • Per  cargoservice:                                                                                                                                               
+    ./run.sh c                                                                                                                                                                  
+                                                                                                                                                                                
+  • Per ioport:                                                                                                                                                    
+    ./run.sh i                                                                                                                                                                  
+                                                                                                                                                                                
+  • Per cargorobot:                                                                                                                                                               
+    ./run.sh r                                                                                                                                                                  
+                                                                                                                                                                                
+  • Per devices:                                                                                                                                                          
+    ./run.sh d  

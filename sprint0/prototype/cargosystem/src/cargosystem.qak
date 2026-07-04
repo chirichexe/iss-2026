@@ -9,6 +9,7 @@ Reply load_refused    : loadRefused(none)    for load_request
 Context ctxcargoservice ip [host="localhost" port=8050]
 Context ctxioport       ip [host="localhost" port=8051]
 Context ctxrobot        ip [host="localhost" port=8052]
+Context ctxdevices      ip [host="localhost" port=8053]
 
 
 QActor cargoservice context ctxcargoservice {
@@ -56,7 +57,7 @@ QActor cargoservice context ctxcargoservice {
     }
 }
 
-QActor ioport context ctxcargoservice {
+QActor ioport context ctxioport {
 
     State s0 initial {
         println("ioport | started") color blue
@@ -75,7 +76,7 @@ QActor ioport context ctxcargoservice {
         whenReply load_refused    -> refused
 
     State accepted {
-        println("ioport | DISPLAY: load accepted, reserved slot = slot1") color green
+        println("ioport | DISPLAY: load accepted") color green
     }
 
     State retrylater {
@@ -87,7 +88,7 @@ QActor ioport context ctxcargoservice {
     }
 }
 
-QActor cargorobot context ctxcargoservice {
+QActor cargorobot context ctxrobot {
 
   State s0 initial {}
   Goto work
@@ -95,4 +96,34 @@ QActor cargorobot context ctxcargoservice {
   State work {
     println("cargorobot | WORK: move container from IOPort to slot5 and then to reserved slot") color blue
   }
+}
+
+QActor led context ctxdevices {
+
+    State s0 initial {}
+    Goto work
+
+    State work{
+        println("led | WORK: led off or led on") color green
+    }
+}
+
+QActor markerdevice context ctxdevices {  
+
+    State s0 initial {}
+    Goto work
+
+    State work{
+        println("markerdevice | WORK: marking") color yellow
+    }
+}
+
+QActor sonar context ctxdevices {
+
+    State s0 initial {}
+    Goto work
+
+    State work{
+        println("sonar | WORK: misuring...") color blue
+    }
 }

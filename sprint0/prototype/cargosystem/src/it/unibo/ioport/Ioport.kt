@@ -56,7 +56,7 @@ class Ioport ( name: String, scope: CoroutineScope, isconfined: Boolean=false, i
 				}	 
 				state("accepted") { //this:State
 					action { //it:State
-						CommUtils.outgreen("ioport | DISPLAY: load accepted, reserved slot = slot1")
+						CommUtils.outgreen("ioport | DISPLAY: load accepted")
 						//genTimer( actor, state )
 					}
 					//After Lenzi Aug2002
