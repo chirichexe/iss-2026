@@ -53,8 +53,8 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 				state("handle_load_request") { //this:State
 					action { //it:State
 						CommUtils.outcyan("ioport -> cargoservice | load_request: loadRequest(none)")
-						CommUtils.outyellow("cargoservice -> ioport | load_retrylater: loadRetryLater(none)")
-						answer("load_request", "load_retrylater", "loadRetryLater(none)"   )  
+						CommUtils.outgreen("cargoservice -> ioport | load_accepted: loadAccepted(slot1)")
+						answer("load_request", "load_accepted", "loadAccepted(slot1)"   )  
 						//genTimer( actor, state )
 					}
 					//After Lenzi Aug2002
