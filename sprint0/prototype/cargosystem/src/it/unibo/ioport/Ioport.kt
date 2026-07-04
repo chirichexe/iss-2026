@@ -28,8 +28,7 @@ class Ioport ( name: String, scope: CoroutineScope, isconfined: Boolean=false, i
 	}
 	override fun getBody() : (ActorBasicFsm.() -> Unit){
 		//val interruptedStateTransitions = mutableListOf<Transition>()
-		//IF actor.withobj !== null val actor.withobj.name = actor.withobj.methodENDIF
-		
+		//IF actor.withobj !== null val actor.withobj.name� = actor.withobj.method�ENDIF
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
@@ -41,55 +40,28 @@ class Ioport ( name: String, scope: CoroutineScope, isconfined: Boolean=false, i
 					}	 	 
 					 transition( edgeName="goto",targetState="press_button", cond=doswitch() )
 				}	 
-
-				// T1: prima richiesta → attesa load_accepted
 				state("press_button") { //this:State
 					action { //it:State
 						CommUtils.outmagenta("customer -> ioport | pushbutton pressed")
-						CommUtils.outcyan("ioport -> cargoservice | sending load_request [T1]")
-						request("load_request", "loadRequest(none)", "cargoservice")
+						CommUtils.outcyan("ioport -> cargoservice | sending load_request")
+						request("load_request", "loadRequest(none)" ,"cargoservice" )  
 						//genTimer( actor, state )
 					}
 					//After Lenzi Aug2002
 					sysaction { //it:State
 					}	 	 
-					 transition(edgeName="t0",targetState="accepted",cond=whenReply("load_accepted"))
+					 transition(edgeName="t01",targetState="accepted",cond=whenReply("load_accepted"))
+					transition(edgeName="t02",targetState="retrylater",cond=whenReply("load_retrylater"))
+					transition(edgeName="t03",targetState="refused",cond=whenReply("load_refused"))
 				}	 
 				state("accepted") { //this:State
 					action { //it:State
 						CommUtils.outgreen("ioport | DISPLAY: load accepted, reserved slot = slot1")
-						delay(1000)  // pausa di 1 secondo tra le due richieste
 						//genTimer( actor, state )
 					}
 					//After Lenzi Aug2002
 					sysaction { //it:State
 					}	 	 
-					 transition( edgeName="goto",targetState="press_button_2", cond=doswitch() )
-				}	 
-
-				// T3: seconda richiesta → cargoservice è engaged → load_refused
-				state("press_button_2") { //this:State
-					action { //it:State
-						CommUtils.outmagenta("customer -> ioport | pushbutton pressed")
-						CommUtils.outcyan("ioport -> cargoservice | sending load_request [T3 NUOVO - service engaged]")
-						request("load_request", "loadRequest(none)", "cargoservice")
-						//genTimer( actor, state )
-					}
-					//After Lenzi Aug2002
-					sysaction { //it:State
-					}	 	 
-					 transition(edgeName="t1",targetState="refused",cond=whenReply("load_refused"))
-					transition(edgeName="t2",targetState="retrylater",cond=whenReply("load_retrylater"))
-				}	 
-				state("refused") { //this:State
-					action { //it:State
-						CommUtils.outred("ioport | DISPLAY: load refused")
-						//genTimer( actor, state )
-					}
-					//After Lenzi Aug2002
-					sysaction { //it:State
-					}
-					// fine: nessuna transizione, il programma si ferma
 				}	 
 				state("retrylater") { //this:State
 					action { //it:State
@@ -98,8 +70,16 @@ class Ioport ( name: String, scope: CoroutineScope, isconfined: Boolean=false, i
 					}
 					//After Lenzi Aug2002
 					sysaction { //it:State
+					}	 	 
+				}	 
+				state("refused") { //this:State
+					action { //it:State
+						CommUtils.outred("ioport | DISPLAY: load refused")
+						//genTimer( actor, state )
 					}
-					// fine: nessuna transizione, il programma si ferma
+					//After Lenzi Aug2002
+					sysaction { //it:State
+					}	 	 
 				}	 
 			}
 		}

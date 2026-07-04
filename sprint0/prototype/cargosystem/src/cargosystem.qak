@@ -37,18 +37,19 @@ QActor cargoservice context ctxcargoservice {
          * Decommentare UNA sola reply alla volta.
          */
 
+        /*
         println("cargoservice -> ioport | load_accepted: loadAccepted(slot1)") color green
         replyTo load_request with load_accepted : loadAccepted(slot1)
-
-        /*
-        println("cargoservice -> ioport | load_retrylater: loadRetryLater(none)") color blue
+         */
+        
+        println("cargoservice -> ioport | load_retrylater: loadRetryLater(none)") color yellow
         replyTo load_request with load_retrylater : loadRetryLater(none)
-        */
-
+        
         /*
         println("cargoservice -> ioport | load_refused: loadRefused(none)") color red
         replyTo load_request with load_refused : loadRefused(none)
         */
+        
     }
     Goto engaged
 
@@ -80,7 +81,7 @@ QActor ioport context ctxioport {
     }
 
     State retrylater {
-        println("ioport | DISPLAY: retry later") color blue
+        println("ioport | DISPLAY: retry later") color yellow
     }
 
     State refused {
@@ -94,6 +95,6 @@ QActor cargorobot context ctxrobot {
   Goto work
 
   State work {
-    println("cargorobot | WORK: move container from IOPort to slot5 and then to reserved slot")
+    println("cargorobot | WORK: move container from IOPort to slot5 and then to reserved slot") color blue
   }
 }

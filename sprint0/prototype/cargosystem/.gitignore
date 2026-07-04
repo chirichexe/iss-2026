@@ -1,6 +1,5 @@
 bin
 bin/default
-venv
 .metadata
 .classpath
 .project

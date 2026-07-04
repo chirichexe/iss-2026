@@ -28,8 +28,7 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 	}
 	override fun getBody() : (ActorBasicFsm.() -> Unit){
 		//val interruptedStateTransitions = mutableListOf<Transition>()
-		//IF actor.withobj !== null val actor.withobj.name = actor.withobj.methodENDIF
-		
+		//IF actor.withobj !== null val actor.withobj.name� = actor.withobj.method�ENDIF
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
@@ -49,35 +48,13 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 					//After Lenzi Aug2002
 					sysaction { //it:State
 					}	 	 
-					 transition(edgeName="t0",targetState="handle_load_request",cond=whenRequest("load_request"))
+					 transition(edgeName="t00",targetState="handle_load_request",cond=whenRequest("load_request"))
 				}	 
 				state("handle_load_request") { //this:State
 					action { //it:State
 						CommUtils.outcyan("ioport -> cargoservice | load_request: loadRequest(none)")
-
-						/*
-						 * Testplan minimale:
-						 *
-						 * T1: richiesta accettata   (attiva)
-						 * T2: richiesta rinviata    (commentata)
-						 * T3: richiesta rifiutata   (commentata)
-						 *
-						 * Decommentare UNA sola reply alla volta.
-						 */
-
-						CommUtils.outgreen("cargoservice -> ioport | load_accepted: loadAccepted(slot1)")
-						answer("load_request", "load_accepted", "loadAccepted(slot1)")
-
-						/*
 						CommUtils.outyellow("cargoservice -> ioport | load_retrylater: loadRetryLater(none)")
-						answer("load_request", "load_retrylater", "loadRetryLater(none)")
-						*/
-
-						/*
-						CommUtils.outred("cargoservice -> ioport | load_refused: loadRefused(none)")
-						answer("load_request", "load_refused", "loadRefused(none)")
-						*/
-
+						answer("load_request", "load_retrylater", "loadRetryLater(none)"   )  
 						//genTimer( actor, state )
 					}
 					//After Lenzi Aug2002
@@ -93,19 +70,6 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 					//After Lenzi Aug2002
 					sysaction { //it:State
 					}	 	 
-					// Se arriva una seconda richiesta mentre il servizio è engaged → rifiuta (T3)
-					 transition(edgeName="t_reject",targetState="handle_load_request_engaged",cond=whenRequest("load_request"))
-				}	 
-				state("handle_load_request_engaged") { //this:State
-					action { //it:State
-						CommUtils.outred("cargoservice -> ioport | load_refused: loadRefused(none) [service engaged]")
-						answer("load_request", "load_refused", "loadRefused(none)")
-						//genTimer( actor, state )
-					}
-					//After Lenzi Aug2002
-					sysaction { //it:State
-					}	 	 
-					 transition( edgeName="goto",targetState="disengaged", cond=doswitch() )
 				}	 
 			}
 		}

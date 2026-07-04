@@ -28,8 +28,7 @@ class Cargorobot ( name: String, scope: CoroutineScope, isconfined: Boolean=fals
 	}
 	override fun getBody() : (ActorBasicFsm.() -> Unit){
 		//val interruptedStateTransitions = mutableListOf<Transition>()
-		//IF actor.withobj !== null val actor.withobj.name = actor.withobj.methodENDIF
-		
+		//IF actor.withobj !== null val actor.withobj.name� = actor.withobj.method�ENDIF
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
@@ -42,13 +41,12 @@ class Cargorobot ( name: String, scope: CoroutineScope, isconfined: Boolean=fals
 				}	 
 				state("work") { //this:State
 					action { //it:State
-						println("cargorobot | WORK: move container from IOPort to slot5 and then to reserved slot")
+						CommUtils.outblue("cargorobot | WORK: move container from IOPort to slot5 and then to reserved slot")
 						//genTimer( actor, state )
 					}
 					//After Lenzi Aug2002
 					sysaction { //it:State
 					}	 	 
-					// nessuna transizione: resta in attesa
 				}	 
 			}
 		}

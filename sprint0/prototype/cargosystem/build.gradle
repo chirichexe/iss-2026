@@ -119,7 +119,7 @@ tasks.withType(Copy).configureEach {
 
 application {
     //Define the main class for the application.
-     mainClassName    = 'it.unibo.ctxcargosystem.MainCtxcargosystemKt'
+     mainClassName    = 'it.unibo.ctxcargoservice.MainCtxcargoserviceKt'
 }
  
  jar {
@@ -157,9 +157,9 @@ run {
 // Alias esplicito (uguale a run)
 task runCargosystem(type: JavaExec) {
     group = "Execution"
-    description = "Avvia cargosystem (ctxcargosystem:8050) con cargoservice + ioport in-process"
+    description = "Avvia cargosystem dai file generati correnti (.pl/.kt)"
     classpath = sourceSets.main.runtimeClasspath
-    mainClass = 'it.unibo.ctxcargosystem.MainCtxcargosystemKt'
+    mainClass = 'it.unibo.ctxcargoservice.MainCtxcargoserviceKt'
     standardInput = System.in
 }
 
