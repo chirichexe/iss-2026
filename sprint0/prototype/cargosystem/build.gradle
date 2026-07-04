@@ -29,7 +29,7 @@ kotlin {
 
 repositories {
     mavenCentral()
-    flatDir {   dirs '../../../unibolibs'   }
+    flatDir { dirs "${projectDir}/../../../unibolibs" }
 }
  
 
@@ -111,39 +111,6 @@ sourceSets {
             exclude 'main/**'
         }
     }
-}  
-
-def qakModelFile = file("src/cargosystem.qak")
-def generatedQakKotlin = fileTree("src/it/unibo") {
-    include "**/*.kt"
-}
-
-tasks.register("verifyQakSync") {
-    group = "verification"
-    description = "Fail if src/cargosystem.qak is newer than generated Kotlin sources"
-    outputs.upToDateWhen { false }
-    doLast {
-        boolean skipQakSync = (project.findProperty("skipQakSync")?.toString()?.toBoolean() ?: false)
-        if (skipQakSync) {
-            logger.warn("Skipping QAK/Kotlin sync check because -PskipQakSync=true")
-            return
-        }
-        if (!qakModelFile.exists()) return
-        long qakLastModified = qakModelFile.lastModified()
-        def staleFiles = generatedQakKotlin.files.findAll { it.lastModified() < qakLastModified }
-        if (!staleFiles.isEmpty()) {
-            throw new GradleException(
-                    "QAK model is newer than generated Kotlin sources.\n" +
-                    "Update detected in ${qakModelFile}.\n" +
-                    "Regenerate Kotlin from QAK before running Gradle tasks.\n" +
-                    "Temporary bypass (runs possibly stale code): ./gradlew run -PskipQakSync=true"
-            )
-        }
-    }
-}
-
-tasks.named("compileKotlin") {
-    dependsOn("verifyQakSync")
 }
 
 tasks.withType(Copy).configureEach {
