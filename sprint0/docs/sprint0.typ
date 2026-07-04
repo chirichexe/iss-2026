@@ -307,7 +307,7 @@ La hold è l'entità che rappresenta logicamente la stiva e lo stato di occupazi
 
 Il componente è da sviluppare.
 
-Dal punto di vista della natura software, può essere formalizzata come una struttura dati composta da Celle, ovvero una matrice bidimensionale. Ogni Cella può indicare uno spazio libero, un ostacolo, la HOME, il SONAR, l'IOPORT o uno slot (*slot1*--*slot4* e lo *slot5* usato per la marcatura).
+Può essere formalizzata come una struttura dati composta da Celle, ovvero una matrice bidimensionale. Ogni Cella può indicare uno spazio libero, un ostacolo, la HOME, il SONAR, l'IOPORT o uno slot (*slot1*--*slot4* e lo *slot5* usato per la marcatura).
 
 ```java
 public enum CellType {
