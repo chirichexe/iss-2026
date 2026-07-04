@@ -339,11 +339,6 @@ public class Hold {
 
 Il codice dei test è disponibile al seguente #link("https://github.com/chirichexe/iss-2026/blob/main/sprint0/prototype/cargosystem/src/TestPlanSprint0.kt")[link] 
 
-// =============================================================================
-
-I test funzionali verificano il comportamento osservabile del sistema rispetto ai
-requisiti, indipendentemente dall'implementazione concreta dei componenti.
-
 = Architettura
 
 #figure(
