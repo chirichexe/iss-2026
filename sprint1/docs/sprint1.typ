@@ -56,7 +56,9 @@ Proposta di aggiunta:
 
 Prendendo come punto di partenza il modello sviluppato alla fine dello sprint0, dobbiamo poi ecc.. ecc..
 
+// =============================================================================
 = Requirements
+// =============================================================================
 
 I requisiti del progetto sono riportati nel documento disponibile al seguente #link("https://anatali.github.io/issLab2026/_static/docs/Protobook.pdf#page=331")[link]
 
@@ -73,29 +75,22 @@ L'azienda richiede di realizzare un servizio denominato *cargoservice* con il se
   - il messaggio *"Service working"* quando tutto sta procedendo correttamente
   - il messaggio *"Out of service"* se il sensore sonar misura una distanza D > D#sub[FREE] per almeno 3 secondi (possibile guasto del sonar)
 
+// =============================================================================
 = Requirement analysis
+// =============================================================================
+
+// Non analizziamo nessun requisito nuovo: ha senso che la chiamiamo analisi dei requisiti?
 
 L'analisi dettagliata del dominio e dei requisiti è già stata affrontata nello Sprint 0, in questa fase ci concentriamo esclusivamente 
 sul ciclo di gestione delle richieste di carico (*core business*) del sistema.
 
-Lo svolgimento corretto di tali azioni presuppone tuttavia dell'esistenza di altri componenti del sistema fisici o in forma simulata (ad es. *sonar*, *LED* del picoW, *cargorobot*, *markerdevice* ) non ancora sviluppati. La loro realizzazione concreta è pianificata per gli sprint successivi. I componenti "mock" che replicheranno, per test, il comportamento di quelli mancanti verranno evoluti rispetto alla formalizzazione QAK già avvenuta in fase di Sprint0 (recuperabile al seguente #link("https://github.com/chirichexe/iss-2026/blob/main/sprint0/prototype/cargosystem/src/cargosystem.qak")[link]). 
+Lo svolgimento corretto di tali azioni presuppone tuttavia dell'esistenza di altri componenti del sistema fisici o in forma simulata (*sonar*, *LED*, *cargorobot*, *markerdevice*, *IOPort* come web GUI) non ancora sviluppati. 
+La loro realizzazione concreta è pianificata per gli sprint successivi. I componenti "mock" che replicheranno, per test, il comportamento di quelli mancanti verranno evoluti rispetto alla formalizzazione QAK già avvenuta in fase di Sprint0 (recuperabile al seguente #link("https://github.com/chirichexe/iss-2026/blob/main/sprint0/prototype/cargosystem/src/cargosystem.qak")[link]). 
 
 = Problem analysis <model>
 
-Come emerso dai requisiti, questo componente funge da *orchestratore*: coordina le operazioni degli altri componenti del sistema al fine di 
-eseguire le procedure di carico. Per realizzare ciò, tutti i componenti mock verranno implementati nei loro context di appartenenza e 
-comunicheranno tra loro tramite TCP. Se avessimo inserito tutti i componenti nello stesso context, questi avrebbero comunicato in locale, 
-non rispecchiando a sufficienza la natura distribuita del problema.
-Si è ritenuto opportuno mantenere per la comunicazione il protocollo TCP, di default per la comunicazione tra context in *QAK*, 
-non rischiando così di "appesantire" la comunicazione tra i nodi del sistema ma mantenendo comunque efficienza e una buona affidabilità.
-
-
-!!! Prop modifica:
-Come emerso dai requisiti, questo componente funge da *orchestratore*: coordina le operazioni degli altri componenti del sistema al fine di 
-eseguire le procedure di carico. Per non rallentare la prototipazione, tutti gli altri componenti verranno rappresentati tramite dei "mock" presenti
-tutti nello stesso context di cargoservice.
-
-
+Come emerso dall'analisi dei requisiti, questo componente funge da *orchestratore*: coordina le operazioni degli altri componenti del sistema al fine di eseguire le procedure di carico. 
+Inoltre, le entità sono distribuite su quattro nodi separati ma, per non rallentare la prototipazione, tutti i componenti verranno rappresentati nello stesso nodo (rappresentato da un Context), tenendo in considerazione che gli attori non condividono memoria, e comunicano tra loro tramite scambio di messaggi.
 
 == Rappresentazione dello stato interno della stiva
 
