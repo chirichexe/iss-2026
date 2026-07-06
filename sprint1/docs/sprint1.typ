@@ -16,9 +16,18 @@
 
 = Introduction
 
-Il punto di partenza di questo sprint è l'architettura logica e l'analisi dei requisiti definita nello Sprint 0 
-(recuperabile al seguente #link("https://github.com/chirichexe/iss-2026/blob/main/sprint0/docs/sprint0_v2.pdf")[link]). 
+Il punto di partenza di questo sprint è l'architettura logica (recuperabile al seguente #link("https://github.com/chirichexe/iss-2026/blob/main/sprint0/docs/sprint0_v3.pdf")[link]) e la formalizzazione dei requisiti (recuperabile al seguente #link("https://github.com/chirichexe/iss-2026/blob/main/sprint0/prototype/cargosystem/src/cargosystem.qak")[link]).
+
+
+#figure(
+    image("../../sprint0/prototype/cargosystem/cargosystemarch.png"),
+    caption: [Architettura definita nello Sprint0.]
+)
+
+
 Si riporta di seguito il goal dello sprint 1:
+
+*DA AGGIORNARE*
 
 Realizzare un primo prototipo eseguibile del *cargoservice* che ne implementi il 
 comportamento descritto dai requisiti mediante collaboratori simulati. Poiché l'obiettivo principale è validare la logica del servizio, 
@@ -69,32 +78,7 @@ L'azienda richiede di realizzare un servizio denominato *cargoservice* con il se
 L'analisi dettagliata del dominio e dei requisiti è già stata affrontata nello Sprint 0, in questa fase ci concentriamo esclusivamente 
 sul ciclo di gestione delle richieste di carico (*core business*) del sistema.
 
-Come emerso in precedenza, il fulcro del sistema è l'attore *cargoservice*, con lo scopo di coordinare le operazioni.
-
-Tuttavia, i requisiti affrontati in questo sprint presupporrebbero già l'implementazione e la presenza di altri componenti del sistema, 
-come la stiva (hold), i sensori (sonar), i dispositivi di I/O (IOPort, LED, markerdevice) e l'interazione con il robot 
-(cargorobot).
-Per focalizzarci unicamente sulla logica di business e rispettare un processo di costruzione incrementale, 
-in questo Sprint 1 verranno utilizzati dei componenti *simulati* rappresentati come attori all'interno dei propri context.
-
-L'uso del linguaggio qak ci permetterà di modellare il *cargoservice* come un *attore autonomo*. 
-Il sistema si avvarrà dei seguenti collaboratori simulati:
-
-  - *ioportmock*: simula il dispositivo fisico di input (il pulsante/GUI dell'IOPort). Il suo compito è quello di tradurre l'azione dell'utente generando il messaggio e di input (*load_request*) verso il componente orchestratore (*cargoservice*) e attendere le relative risposte di stato del sistema.
-
-  ```
-  Request load_request : loadRequest(none)
-  Reply load_accepted : loadAccepted(slotID) for load_request
-  Reply load_retrylater : loadRetryLater(none) for load_request
-  Reply load_refused : loadRefused(none) for load_request
-  ```
-  
-  - *sonarmock*: simulerà il rilevamento fisico del container, inviando al sistema un messaggio per notificare che l'area dell'IOPort
-  è occupata. Simulerà inoltre eventuali eventi di guasto per forzare il sistema nello stato di Out of service.
-  
-  - *ledmock*: simulerà il dispositivo fisico di segnalazione, limitandosi a ricevere e stampare a video i comandi operativi.
-  
-  - *cargorobotmock*: fungerà da "simulatore" per il sistema di movimentazione. 
+Lo svolgimento corretto di tali azioni presuppone tuttavia dell'esistenza di altri componenti del sistema fisici o in forma simulata (ad es. *sonar*, *LED* del picoW, *cargorobot*, *markerdevice* ) non ancora sviluppati. La loro realizzazione concreta è pianificata per gli sprint successivi. I componenti "mock" che replicheranno, per test, il comportamento di quelli mancanti verranno evoluti rispetto alla formalizzazione QAK già avvenuta in fase di Sprint0 (recuperabile al seguente #link("https://github.com/chirichexe/iss-2026/blob/main/sprint0/prototype/cargosystem/src/cargosystem.qak")[link]). 
 
 = Problem analysis <model>
 
@@ -377,10 +361,6 @@ Per ciascuna directory è sufficiente eseguire:
 
 L'architettura finale del prototipo sviluppato durante questo Sprint è riportata nella figura seguente.
 
-#figure(
-  image("../prototype/cargoservice/cargosystemarch.png", width: 90%),
-  caption: [Architettura finale del prototipo.]
-)
 
 Per maggiori dettagli sul modello implementato si rimanda a #link(<model>)[ProblemAnalysis], mentre i test sviluppati sono descritti in #link(<testplan>)[Test Plan].
 
