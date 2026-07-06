@@ -40,3 +40,5 @@ src-gen/
 Thumbs.db
 *~
 *.swp
+
+venv/

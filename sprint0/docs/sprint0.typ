@@ -283,11 +283,39 @@ Il sonar rileva la presenza di un container.
 
 Il dispositivo fisico è considerato fornito ed è collegato al PicoW, mentre il software di integrazione è da sviluppare.
 
+La formalizzazione del sonar come attore è disponibile al seguente #link("https://github.com/chirichexe/iss-2026/blob/main/sprint0/prototype/cargosystem/src/cargosystem.qak")[link]
+
+```
+QActor sonar context ctxdevices {
+
+  State s0 initial {}
+  Goto work
+
+  State work{
+    println("sonar | WORK: misuring...") color blue
+  }
+}
+```
+
 === markerdevice
 
 Il markerdevice etichetta i container depositati nello slot5 e notifica il completamento della marcatura.
 
 Il dispositivo è considerato disponibile in forma simulata, mentre il software di controllo è da sviluppare.
+
+La formalizzazione del markerdevice come attore è disponibile al seguente #link("https://github.com/chirichexe/iss-2026/blob/main/sprint0/prototype/cargosystem/src/cargosystem.qak")[link]
+
+```
+QActor markerdevice context ctxdevices {  
+
+  State s0 initial {}
+  Goto work
+
+  State work{
+    println("markerdevice | WORK: marking") color yellow
+  }
+}
+```
 
 === LED
 
@@ -300,6 +328,20 @@ lampeggiare; quando il sistema torna nello stato *disengaged*, il LED deve esser
 Dopo una consultazione con la committente, si è definito che il LED è considerato un dispositivo 
 fisico integrato nel PicoW che gestisce anche il sonar. Il software di controllo del LED è quindi 
 da sviluppare o integrare nel software eseguito sul PicoW.
+
+La formalizzazione del LED come attore è disponibile al seguente #link("https://github.com/chirichexe/iss-2026/blob/main/sprint0/prototype/cargosystem/src/cargosystem.qak")[link]
+
+```
+QActor led context ctxdevices {
+
+  State s0 initial {}
+  Goto work
+
+  State work{
+    println("led | WORK: led off or led on") color green
+  }
+}
+```
 
 === hold
 
@@ -337,7 +379,69 @@ public class Hold {
 
 = Test plan
 
+I requisiti dello Sprint 0 descrivono esclusivamente il comportamento osservabile del cargoservice in risposta a una richiesta di carico, senza fornire dettagli implementativi sui collaboratori o sulla logica interna del sistema. 
+
+Di conseguenza, il piano di test si limita a *verificare i casi funzionali* direttamente deducibili dai requisiti e formalizzati nel modello sviluppato.
+
 Il codice dei test è disponibile al seguente #link("https://github.com/chirichexe/iss-2026/blob/main/sprint0/prototype/cargosystem/src/TestPlanSprint0.kt")[link] 
+
+```
+package test
+
+import org.junit.Assert.assertTrue
+import org.junit.Assert.fail
+import org.junit.After
+import org.junit.Before
+import org.junit.Test
+import unibo.basicomm23.interfaces.Interaction
+import unibo.basicomm23.tcp.TcpClientSupport
+import unibo.basicomm23.utils.CommUtils
+
+class TestPlanSprint0 {
+    private var conn: Interaction? = null
+
+    @Before
+    fun setup() {
+        CommUtils.outcyan("Connessione al cargoservice (porta 8050)")
+        try {
+            conn = TcpClientSupport.connect("127.0.0.1", 8050, 10)
+        } catch (e: Exception) {
+            fail("Errore di connessione TCP: assicurati che il server cargoservice sia avviato.")
+        }
+    }
+
+    @After
+    fun teardown() {
+        conn?.close()
+        CommUtils.outcyan("Connessione chiusa")
+    }
+
+    @Test
+    fun testLoadRequest() {
+        CommUtils.outmagenta("Invio load_request e verifica risposta QAK")
+        try {
+            
+            // firma della richiesta in base al modello definito
+            val requestMsg = "msg(load_request, request, testunit, cargoservice, loadRequest(none), 1)"
+
+            // invio richiesta
+            val reply = conn?.request(requestMsg)
+            CommUtils.outgreen("Risposta ricevuta dal server: $reply")
+
+            // la risposta deve essere una delle 3 reply previste dal modello
+            val isValidReply = reply != null && (
+                reply.contains("load_accepted") ||
+                reply.contains("load_retrylater") ||
+                reply.contains("load_refused")
+            )
+            assertTrue("Il server non ha restituito una risposta di carico valida!", isValidReply)
+
+        } catch (e: Exception) {
+            fail("Test fallito durante l'esecuzione: ${e.message}")
+        }
+    }
+}
+```
 
 = Architettura
 
