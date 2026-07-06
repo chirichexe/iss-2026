@@ -9,6 +9,3 @@
                                                                                                                                                                                 
   - Per devices:                                                                                                                                                          
     ./run.sh d  
-
-  - Per test
-    ./run.sh t
