@@ -9,56 +9,172 @@
   authors:       ("Davide Chirichella", "Gabriele Doti", "Daniele Maccagnan"),
 )
 
+#let giustificazione(body) = block(
+  width: 100%,
+  fill: rgb("#f4f9ff"),
+  stroke: (left: 3.5pt + rgb("#0066cc"), rest: 0.5pt + rgb("#d8eaff")),
+  inset: (left: 12pt, right: 12pt, top: 10pt, bottom: 10pt),
+  radius: (right: 4pt),
+)[
+  #text(weight: "bold", fill: rgb("#004488"))[💡 Giustificazione Ingegneristica] \
+  #v(3pt)
+  #body
+]
+
 = Obiettivi dello Sprint 1
 
-Obiettivo dello Sprint 1 è quello, partendo dall'architettura e dalle considerazioni analitiche maturate nello Sprint 0, di analizzare, progettare e realizzare un prototipo eseguibile del core-business del sistema da poter sottoporre a verifica formale e mostrare al committente. 
+Obiettivo primario dello Sprint 1 è quello di transitare dall'architettura concettuale e dall'analisi dei requisiti maturate nello Sprint 0 verso la realizzazione di un primo *prototipo eseguibile del core-business* del sistema, da poter sottoporre a verifica formale e mostrare al committente. 
 
-Nello specifico, in ottica di *Separation of Concerns* e sulla base delle priorità operative dei requisiti, l'analisi si concentra sulla correttezza algoritmica e comportamentale dell'orchestratore principale (`cargoservice`). Bisogna considerare che le funzionalità trattate in questa fase presuppongono l'interazione con sensori fisici (sonar), attuatori (LED, marker laser) e robot che non sono ancora stati sviluppati o integrati. Per tale ragione, nello Sprint 1 verranno impiegati dei *componenti mock* progettati ad hoc per replicare in modo deterministico e ripetibile il protocollo di interazione dei sottosistemi mancanti.
+In ottica di rigorosa *Separation of Concerns* e conformemente a un approccio incrementale guidato dal rischio (*risk-driven*), lo sviluppo si concentra sulla correttezza comportamentale, sulle logiche di sincronizzazione e sul protocollo di comunicazione dell'orchestratore principale (`cargoservice`). Occorre considerare che le funzionalità trattate presuppongono la cooperazione con dispositivi fisici di campo (sensori sonar per la rilevazione della pedana), attuatori (display IOPort, LED di segnalazione, marker laser di etichettatura) e unità robotiche mobili che non sono ancora state sviluppate né integrate sull'hardware finale (es. Raspberry Pi PicoW o robot differenziale reale). 
 
-== Sottoinsieme di Requisiti Considerati
-Come stabilito nello Sprint 0, il lavoro si focalizza sul sottoinsieme di requisiti ad alta priorità che regolano il ciclo di ammissione, etichettatura e deposito del container:
-- *Requisiti `cargoservice`:*
-  - Deve poter accogliere le richieste di carico (`load_request`) inviate dai clienti (`ioport`).
-  - Deve poter rifiutare la richiesta se tutti gli slot sono occupati (`hold_full`), se il sistema è in stato di allarme (`!ServiceWorking`) o se l'area di ingresso è già ingombrata da un altro container (`IOPortOccupied`).
-  - In caso di richiesta accettata (`load_accepted`), deve riservare una cella in stiva (`get_slot`), associare lo slot e comunicarne il nome al cliente.
-  - Durante la gestione del carico, deve disabilitare l'accettazione immediata di altre richieste (instradandole verso un rinvio `load_retrylater`).
-  - Deve attendere la rilevazione fisica del container all'interfaccia di ingresso, coordinare le azioni di prelievo, etichettatura e deposito con il robot e interrompere ogni attività in caso di anomalie ambientali o guasti.
+Per isolare il collaudo della logica applicativa da incertezze tecnologiche e ritardi di fornitura hardware, nello Sprint 1 si ricorre all'introduzione di *componenti mock* progettati ad hoc. Tali entità simulano in modo temporizzato, deterministico e ripetibile il protocollo di interazione dei sottosistemi mancanti, permettendo di validare la Macchina a Stati Finiti (FSM) del servizio marittimo in tutte le condizioni operative e di eccezione.
 
-= Analisi del Problema e Nuova Architettura Logica
+= Sottoinsieme di Requisiti Considerati
 
-Il passaggio dal modello dello *Sprint 0* (`/sprint0/src/cargosystem.qak`) al prototipo dello *Sprint 1* (`/sprint1/prototype/codice_con_tutti_i_componenti.qak`) evidenzia l'applicazione del principio di *"zooming architetturale"*: si transita da una vista astratta di dominio a una specifica implementativa pienamente reattiva.
+In continuità con quanto stabilito nel piano di lavoro dello Sprint 0, il presente Sprint prende in esame il sottoinsieme di requisiti ad alta priorità che governano l'ammissione dei container, la gestione delle risorse di stiva e il coordinamento del ciclo di movimentazione:
 
-== Analisi della Topologia di Rete (Contesti QAK)
-Una prima fondamentale indagine riguarda la disposizione degli attori nei contesti di esecuzione. A questo punto si aprono due possibilità: mantenere i 4 contesti distribuiti ipotizzati nello Sprint 0 (`ctxcargoservice`, `ctxioport`, `ctxrobot`, `ctxdevices`) oppure raggruppare i componenti in un contesto locale unico.
+- *Requisiti `cargoservice` (Orchestratore di Dominio):*
+  - Deve essere in grado di ricevere e processare le richieste di carico (`load_request`) inviate dai clienti tramite il pulsante dell'interfaccia di ingresso (`ioport`).
+  - Deve rifiutare immediatamente la richiesta, inviando una risposta di rinvio temporaneo (`load_retrylater`), qualora l'area di ingresso (`IOPort`) sia attualmente ingombrata da un container oppure se il sistema si trovi in stato di allarme e fuori servizio (`Out of service`).
+  - Deve rifiutare definitivamente la richiesta (`load_refused`) quando la stiva (`hold`) risulta completamente satura (ovvero i 4 slot di stoccaggio `slot1`-`slot4` sono tutti occupati).
+  - In caso di esito positivo e risorse disponibili, deve commutare il proprio stato logico in *engaged*, riservare atomica una cella libera in stiva e restituire al cliente la risposta `load_accepted(slotID)` indicante il codice dello slot allocato.
+  - Per tutta la durata in cui il sistema permane nello stato *engaged*, deve comandare all'attuatore LED di lampeggiare in modo continuo.
+  - Al rilascio di `load_accepted`, deve attendere che il cliente posizioni fisicamente il container sulla pedana entro un intervallo temporale limite prestabilito (es. 30 secondi); scaduto tale termine senza rilevamento, deve sbloccare la riserva e retrocedere allo stato *disengaged*.
+  - Una volta rilevato il container, deve coordinare l'unità robotica per movimentare il carico dall'IOPort verso la postazione di etichettatura (`slot5`), comandare al dispositivo marker l'applicazione del codice identificativo e, a marcatura ultimata, ordinare al robot il deposito nello slot riservato, concludendo il ciclo e ripristinando lo stato *disengaged*.
+
+- *Requisiti dei Collaboratori e Interfacce di Bordo:*
+  - *`ioport`*: Deve fungere da interfaccia verso l'utente, emettendo le richieste di carico e visualizzando sul display lo stato dell'impianto ("Service working" o "Out of service") nonché l'esito della prenotazione.
+  - *`sonar` e allarmi*: Il sensore deve misurare costantemente la distanza dalla pedana. Qualora rilevi una distanza $D > D_"FREE"$ per un tempo continuativo di almeno 3 secondi, deve segnalare una condizione di possibile guasto, forzando l'impianto in stato *Out of service* e bloccando l'ammissione di nuove richieste.
+  - *`markerdevice` e `led`*: Devono operare come attuatori passivi in grado di ricevere comandi di esecuzione e, nel caso del marker, notificare il completamento dell'etichettatura.
+
+= Architettura dello Sprint 0 (Riferimento e Punto di Partenza)
+
+L'analisi svolta nello Sprint 0 ha fornito il modello di dominio di riferimento (`/sprint0/src/cargosystem.qak`), individuando le macro-entità del problema e definendo i primi contratti di interazione in linguaggio QAK. 
+
+Nello specifico, l'architettura di partenza era caratterizzata dai seguenti elementi:
+1. *Decomposizione nei macro-sottosistemi:* Sono stati identificati gli attori principali del dominio: l'orchestratore `cargoservice`, l'interfaccia utente `ioport`, il movimentatore `cargorobot` e i dispositivi di campo `sonar`, `markerdevice` e `led`, oltre alla struttura logica `hold` per la mappatura degli slot.
+2. *Topologia concettuale distribuita:* Il modello originario ipotizzava una ripartizione su 4 contesti di esecuzione fisicamente o logicamente distinti (`ctxcargoservice`, `ctxioport`, `ctxrobot`, `ctxdevices`), riflettendo l'intenzione di distribuire i componenti su nodi di calcolo eterogenei.
+3. *Interazione di Ammissione:* Era già stato codificato il protocollo di base di tipo *Request/Reply* per l'invio della richiesta di carico (`load_request` $->$ `load_accepted` / `load_retrylater` / `load_refused`).
+4. *Astrazione del Comportamento (FSM preliminare):* Nel modello dello Sprint 0, il `cargoservice` era descritto tramite una Macchina a Stati Finiti altamente astratta, che sostava in un unico stato generico di lavoro (`work`) e utilizzava semplici commenti testuali o stampe a video (`println`) per indicare le intenzioni di coordinamento del robot e della stiva.
+
+Il compito analitico dello Sprint 1 consiste nel colmare l'abstraction gap rimasto aperto, trasformando le interazioni abbozzate e i commenti informali dello Sprint 0 in un protocollo di esecuzione rigoroso, formalmente collaudabile e resiliente ai guasti e ai ritardi ambientali.
+
+= Analisi Approfondita del Problema (Stile Accademico)
+
+Per giungere alla definizione di un'architettura logica esecutiva e di un prototipo di alta qualità, è indispensabile analizzare nel dettaglio le problematiche ingegneristiche emerse durante la transizione dai requisiti ai contratti software. Seguendo l'approccio analitico adottato in progetti accademici di riferimento per sistemi concorrenti e reattivi, si valutano di seguito le diverse alternative progettuali e le relative giustificazioni.
+
+== Analisi del Core Business: Cargoservice e Stiva (Hold)
+
+=== Gestione dello Stato della Stiva: Volatile vs Persistente
+Un primo nodo decisionale critico concerne la rappresentazione e la memorizzazione dello stato di occupazione dei 4 slot della stiva marittima e dell'area di etichettatura (`slot5`). 
+Durante l'analisi si sono contrapposte due macro-soluzioni architetturali:
+1. *Persistenza Relazionale/NoSQL o su File System:* L'adozione di un database esterno (es. SQLite, PostgreSQL) o di un sistema di log persistente garantisce che lo stato della stiva sopravviva ad eventuali riavvii accidentali dell'applicazione, permettendo al contempo di storicizzare le associazioni tra codice identificativo del container e slot allocato.
+2. *Struttura Dati Volatile in Memoria (Array/Mappe in RAM JVM):* La modellazione della stiva come attore locale o componente in memoria dell'orchestratore, provvisto di strutture di array (es. `intArrayOf(0, 0, 0, 0)`), assicura tempi di accesso istantanei, assenza di overhead di I/O e una semplicità algoritmica ottimale.
+
+#giustificazione([Per gli obiettivi specifici dello Sprint 1 — centrati sulla verifica formale della logica di coordinamento della FSM e del protocollo di smistamento — l'introduzione di un database esterno rappresenterebbe una complessità accidentale prematura (*over-engineering*). I requisiti attuali non impongono la persistenza a fronte di crash di sistema o la storicizzazione di lungo periodo; si richiede bensì una verifica transazionale rapida e atomica sulla disponibilità degli spazi. Pertanto, si opta per la realizzazione della stiva tramite un attore QAK dedicato (`hold`) dotato di memoria volatile. Tale astrazione isola l'algoritmo di ricerca dello slot libero (`getFreeSlot()`) dal supporto fisico di memorizzazione, lasciando aperta la possibilità di iniettare un adapter verso un database persistente nelle fasi di rilascio finali.])
+
+=== Protocollo di Ammissione e Accodamento Richieste
+Un ulteriore quesito analitico riguarda il comportamento da adottare quando il servizio riceve una richiesta di carico (`load_request`) mentre si trova già impegnato nella gestione di un ciclo operativo precedente o quando sussistono condizioni ambientali avverse.
+Si pongono due alternative di gestione del traffico:
+1. *Bufferizzazione e Accodamento Applicativo:* Il servizio accoglie le richieste in arrivo, le inserisce in una coda FIFO applicativa e le processa sequenzialmente via via che la stiva o la pedana si liberano.
+2. *Rifiuto Immediato o Rinvio Non-Bloccante:* Il servizio analizza istantaneamente lo stato dell'infrastruttura e, in caso di indisponibilità temporanea o permanente, emette all'istante una risposta di rinvio (`load_retrylater`) o rifiuto (`load_refused`), lasciando al cliente l'onere di riprovare in futuro.
+
+#giustificazione([Le risposte del committente maturate durante lo Sprint 0 hanno chiarito in modo inequivocabile che *le richieste non devono essere bufferizzate*. Nel paradigma QAK, ogni attore è dotato nativamente di una coda di messaggi in ricezione gestita dal runtime della JVM; tuttavia, per rispettare il vincolo contrattuale di non-accodamento logico, l'orchestratore `cargoservice` deve processare i messaggi in modo continuo senza rimanere bloccato in attese lunghe. La scelta ingegneristica ricade sul mantenimento rigoroso del pattern *Request/Reply*. La risposta `load_retrylater` viene emessa immediatamente valutando una guardia booleana atomica che compendia le tre precondizioni di inibizione: sistema già impegnato (`CargoState == "engaged"`), impianto in allarme (`!ServiceWorking`) o pedana di ingresso già occupata da un altro corpo (`IOPortOccupied`). Ciò evita lo spreco di risorse in bufferizzazione applicativa e garantisce reattività real-time alle interfacce utente.])
+
+=== Interazione con la Stiva (`hold`): Transazione a Due Fasi
+Nel momento in cui una richiesta di carico supera le verifiche di ammissibilità preliminare, il servizio deve allargare il controllo alla disponibilità effettiva della stiva.
+In termini architetturali, si analizza se `cargoservice` debba conoscere direttamente la mappa delle celle oppure interrogare un'entità terza. L'incapsulamento della stiva in un attore separato (`hold`) impone la definizione di un protocollo di sincronizzazione sicuro per evitare *race conditions* o allocazioni multiple sul medesimo slot.
+
+#giustificazione([Si è optato per un protocollo transazionale a due fasi basato sullo scambio di messaggi sincroni `Request get_slot` / `Reply slot_reserved` (o `hold_full`). L'orchestratore non risponde subito all'utente con una conferma, ma inoltra la richiesta di allocazione all'attore `hold`. Solo alla ricezione della risposta asincrona di riserva confermata (`slotReserved(SLOTID)`), l'orchestratore commuta il proprio stato in *engaged*, attiva il lampeggio del LED e inoltra al cliente il messaggio formale `load_accepted(slotX)`. Questa separazione garantisce la coerenza transazionale dello stato anche in scenari concorrenti e disaccoppia la logica di smistamento dalla struttura dati interna della stiva.])
+
+=== Interazione e Coordinamento tra Orchestratore, Robot e Marker
+La movimentazione del container dalla pedana al punto di marcatura (`slot5`) e infine alla cella di destinazione richiede una stretta cooperazione tra `cargoservice`, `cargorobot` e `markerdevice`. 
+L'analisi del problema solleva una questione di progettazione fondamentale: *chi detiene il controllo del flusso di lavoro?*
+1. *Robot Autonomo (Smart Robot / Choreography):* L'orchestratore si limita a comunicare al robot l'identificativo dello slot finale. Il robot ingloba la logica di dominio, recandosi in autonomia allo `slot5`, richiedendo la marcatura e poi procedendo allo stoccaggio finale.
+2. *Orchestratore Centrale (Single Point of Control / Orchestration):* Il `cargoservice` mantiene il totale controllo della sequenza applicativa. Il robot viene degradato a mero esecutore cinetico di comandi elementari di traslazione (`move to X`), mentre l'orchestratore supervisiona le transizioni di stato e coordina esplicitamente il marker.
+
+#giustificazione([L'adozione del modello di *Orchestrazione Centrale (Single Point of Control)* è la soluzione vincente per mantenere una chiara *Separation of Concerns*. Delegare le regole di business navale (l'obbligo di etichettatura preventiva in `slot5`) all'unità robotica avrebbe violato la coesione architetturale, rendendo il robot riutilizzabile con difficoltà in altri contesti industriali. Nello Sprint 1, l'orchestratore `cargoservice` invia una richiesta `robot_move(slot5)` a `cargorobotmock`, attende il messaggio di completamento (`robot_done`), invia una richiesta `mark_container` a `markerdevice`, ne attende l'esito (`marking_done`) e invia infine la seconda movimentazione `robot_move(slotX)`. Questo srotolamento asincrono (*unrolling*) elimina ogni blocco sul thread principale e garantisce la tracciabilità millimetrica di ogni fase di lavoro nei log di audit.])
+
+=== Gestione Reattiva degli Allarmi e Routing Asincrono
+Uno dei problemi teorici e pratici più complessi affrontati in questo Sprint riguarda la reattività dell'infrastruttura a fronte di eventi imprevisti. Il sensore sonar può emettere in qualsiasi istante aggiornamenti di distanza (`sonardata`) o il monitor d'allarme può notificare un guasto proiettato sull'impianto (`set_service_status(outofservice)`).
+Il problema analitico risiede nel come consentire all'orchestratore di assorbire queste notifiche asincrone e di aggiornare le proprie variabili di stato climatico (`IOPortOccupied`, `ServiceWorking`) *senza perdere la memoria dello stato logico corrente* (ossia se l'impianto si trovi in `disengaged` o `engaged`).
+
+#giustificazione([Per scongiurare la duplicazione di decine di righe di transizione condizionale all'interno di ogni singolo stato operativo, è stato ideato uno *stato di routing asincrono centralizzato* denominato *`returnToState`*. Qualunque messaggio di aggiornamento ambientale ricevuto durante gli stati di riposo o attesa provoca una transizione immediata verso gli stati di decodifica (`handle_sonar` o `update_service`), al termine dei quali il motore scatta verso `returnToState`. Questo stato è privo di codice applicativo e agisce come un selettore di flusso puramente logico: esamina la variabile di memoria `CargoState` e ri-direziona l'attore nello stato `engaged` oppure `disengaged`. Si ottiene così una resilienza architetturale completa agli *interrupt* senza sporcare la logica di business principale.])
+
+=== Resilienza e Timeout di Deposito (`handle_deposit_timeout`)
+L'ultimo aspetto analizzato concerne il comportamento da adottare nel caso limite in cui un cliente, dopo aver inoltrato una richiesta e aver ricevuto l'accettazione formale `load_accepted(slotID)`, non provveda a depositare materialmente il container sulla pedana di ingresso.
+In assenza di un meccanismo di guardia temporale, il sistema rimarrebbe imprigionato a tempo indeterminato nello stato `engaged`: lo slot riservato in stiva resterebbe bloccato, il LED continuerebbe a lampeggiare e nessun altro cliente potrebbe accedere al servizio.
+
+#giustificazione([Si è resa obbligatoria l'integrazione di un meccanismo di recovery basato su un *timeout temporale non-bloccante*. Entrato nello stato di attesa del carico (`engaged`), l'attore imposta un timer nativo QAK (`whenTime 30000`). Se entro 30 secondi il sonar non notifica una distanza inferiore a 50 cm (presenza del container all'IOPort), la transizione temporale innesca lo stato di compensazione `handle_deposit_timeout`. Qui, l'orchestratore emette un dispatch `free_slot($ReservedSlotId)` verso la stiva per sbloccare la cella, comanda lo spegnimento del LED, reimposta `CargoState = "disengaged"` e ritorna operativo per nuove richieste. Questo pattern di *compensazione transazionale* garantisce che l'impianto mantenga la propria disponibilità (*liveness*) anche a fronte di client difettosi o negligenti.])
+
+== Analisi della Topologia e Disposizione nei Contesti QAK
+
+=== Contesto Unico vs Contesti Distribuiti
+In continuità con quanto sollevato nello Sprint 0, è necessario stabilire la disposizione fisica e logica dei 7 attori individuati (`cargoservice`, `hold`, `sonarmock`, `markerdevice`, `ledmock`, `ioportmock`, `cargorobotmock`).
+Si mettono a confronto due opzioni di deployment per il prototipo di verifica:
+1. *Mantenimento dei 4 Contesti Distribuiti (Sprint 0):* I componenti vengono istanziati su processi o JVM differenti all'interno della stessa macchina o su reti di test (porte TCP `8050`, `8051`, `8052`, `8053`), comunicando via socket di rete.
+2. *Aggregazione in un Contesto Unico Locale (`ctxprototype` :8050):* Tutti i 7 attori vengono compattati ed eseguiti all'interno del medesimo ambiente QAK su una sola JVM locale sulla porta `8050`.
 
 #v(4pt)
 #iss-table(
   columns: (18%, 26%, 26%, 30%),
   [*Parametro*], [*Sprint 0 (Analisi)*], [*Sprint 1 (Prototipo)*], [*Motivazione Ingegneristica*],
-  [Topologia], [4 Contesti elementari distanti tra loro], [*1 Contesto Unico* \ (`ctxcargoservice` :8050)], [Focalizzazione sulla correttezza logica della FSM senza introdurre complessità di rete premature.],
+  [Topologia], [4 Contesti elementari distanti tra loro], [*1 Contesto Unico* \ (`ctxprototype` :8050)], [Focalizzazione sulla correttezza logica della FSM senza introdurre complessità di rete premature.],
   [Meccanismo di Comunicazione], [TCP/IP tra nodi di rete separati], [Scambio messaggi locale \ (in memoria, stessa JVM)], [Elimina latenza e overhead di serializzazione, rendendo il debug formale e immediato.],
   [Preparazione per Sprint 2], [N/A], [Architettura multi-contesto già archiviata in `uTiLs/prototype/`], [La separazione in contesti fisici distribuirà gli attori sui nodi reali nel prossimo Sprint.],
 )
 #v(4pt)
 
-La scelta di adottare un *Contesto Unico nello Sprint 1* risponde a un criterio rigoroso: isolare la verifica logico-algoritmica da problematiche infrastrutturali. Se si fossero distribuiti subito i mock su socket TCP separati, eventuali fallimenti durante i collaudi avrebbero potuto essere causati da problemi di rete (firewall, porte occupate, serializzazione) anziché da errori nella Macchina a Stati Finiti. La topologia distribuita, già formalizzata e archiviata nella libreria `uTiLs/prototype/`, costituisce la base evolutiva pronta per il deployment fisico nello Sprint 2.
+#giustificazione([La decisione di adottare il *Contesto Unico (`ctxprototype` :8050)* nello Sprint 1 risponde a un imperativo metodologico: *separare la complessità computazionale dalla complessità di distribuzione*. Se si fossero eseguiti i collaudi iniziali su 4 contesti di rete separati, eventuali fallimenti di comunicazione o stalli della FSM avrebbero potuto essere imputabili a fattori infrastrutturali esterni (latenze TCP, fallimenti di serializzazione delle stringhe Prolog, blocchi del sistema operativo o configurazioni di rete errate) anziché a difetti intrinseci alla logica di business. \ \ L'aggregazione in un contesto unico locale consente un debug formale, immediato e deterministico. L'architettura distribuita multi-contesto delineata nello Sprint 0 non è stata affatto abbandonata: è stata accuratamente implementata e archiviata come libreria di riferimento nella cartella `uTiLs/prototype/`, pronta per essere schierata senza modifiche alla business logic non appena l'hardware reale verrà collegato nello Sprint 2.])
 
-== Analisi delle Alternative e Uso del Linguaggio QAK
-La progettazione del sistema ha tratto un vantaggio decisivo dall'adozione del meta-modello QAK. L'abstraction gap colmato dal DSL alleggerisce lo sviluppo di molti dettagli già gestiti nativamente dal runtime, come la gestione delle code di messaggi, il multithreading e lo scambio asincrono di eventi.
+= Riepilogo dei Messaggi del Sistema
 
-- *Gestione dell'Accodamento Richieste:* Dall'incontro con il committente è emerso che le richieste di carico inviate durante una fase operativa debbano poter essere accodate o rinviate in modo ordinato. La semantica a messaggi di QAK assorbe questa complessità nativamente tramite le code di ricezione degli attori.
-- *Interazione Client-Servizio:* Per vincolare il cliente all'esito della richiesta di carico, si è mantenuto il paradigma *Request/Reply* rigoroso (`load_request` $\to$ `load_accepted` / `load_retrylater` / `load_refused`). Alternative come l'uso di semplici dispatch o coppie dispatch/event avrebbero reso la correlazione della risposta inutilmente frammentata.
+Per garantire chiarezza formale e fungere da contratto per la successiva implementazione, la tabella seguente riassume l'intero set di messaggi (Request, Reply, Dispatch, Event) definiti per governare il prototipo dello Sprint 1 all'interno del contesto `ctxprototype`:
+
+#v(4pt)
+#iss-table(
+  columns: (18%, 18%, 18%, 20%, 26%),
+  [*Nome Messaggio*], [*Tipo QAK*], [*Mittente*], [*Destinatario*], [*Payload / Semantica*],
+  [`load_request`], [Request], [`ioport` / `ioportmock`], [`cargoservice`], [`loadRequest(none)` \ Richiesta di ammissione del container.],
+  [`load_accepted`], [Reply], [`cargoservice`], [`ioport` / `ioportmock`], [`loadAccepted(SLOTID)` \ Richiesta accoltà, slot riservato.],
+  [`load_retrylater`], [Reply], [`cargoservice`], [`ioport` / `ioportmock`], [`loadRetryLater(none)` \ Rinvio temporaneo (occupato o out of service).],
+  [`load_refused`], [Reply], [`cargoservice`], [`ioport` / `ioportmock`], [`loadRefused(none)` \ Rifiuto definitivo (stiva piena).],
+  [`get_slot`], [Request], [`cargoservice`], [`hold`], [`getSlot(none)` \ Interrogazione alla stiva per allocazione.],
+  [`slot_reserved`], [Reply], [`hold`], [`cargoservice`], [`slotReserved(SLOTID)` \ Identificativo 1-indexed della cella libera.],
+  [`hold_full`], [Reply], [`hold`], [`cargoservice`], [`holdFull(none)` \ Notifica di esaurimento dei 4 slot.],
+  [`free_slot`], [Dispatch], [`cargoservice`], [`hold`], [`freeSlot(SLOTID)` \ Comando di rilascio cella per timeout o scarico.],
+  [`sonardata`], [Event], [`sonar` / `sonarmock`], [Broadcast / `cargoservice`], [`distance(D)` \ Misura in cm della distanza dalla pedana.],
+  [`set_service_status`], [Dispatch], [`sonar` / `sonarmock`], [`cargoservice`], [`setServiceStatus(STATUS)` \ Segnalazione di stato (`working` o `outofservice`).],
+  [`led_ctrl`], [Dispatch], [`cargoservice`], [`led` / `ledmock`], [`ledCmd(CMD)` \ Comando attuatore (`on`, `off`, `blink`).],
+  [`robot_move`], [Request], [`cargoservice`], [`cargorobotmock`], [`robotMove(TARGET)` \ Comando di traslazione verso `slot5` o `slotX`.],
+  [`robot_done`], [Reply], [`cargorobotmock`], [`cargoservice`], [`robotDone(none)` \ Notifica di arrivo a destinazione.],
+  [`mark_container`], [Request], [`cargoservice`], [`markerdevice`], [`markContainer(none)` \ Avvio operazione laser di etichettatura.],
+  [`marking_done`], [Reply], [`markerdevice`], [`cargoservice`], [`markingDone(none)` \ Conferma di avvenuta etichettatura.],
+)
+#v(4pt)
+
+= Nuova Architettura Logica (Sprint 1)
+
+L'integrazione delle decisioni analitiche finora discusse porta alla definizione di una *Nuova Architettura Logica* per il prototipo dello Sprint 1, illustrata formalmente e sintetizzata nel modello di deployment unico locale.
+
+All'interno dell'unico ambiente esecutivo *`ctxprototype`* (in esecuzione sull'host `localhost` in ascolto sulla porta TCP `8050`), operano in regime concorrente e asincrono i 7 attori del sistema:
+- *`cargoservice`*: L'attore orchestratore, cuore applicativo che implementa la FSM di controllo, valuta le guardie booleane di ammissione e governa l'avanzamento sequenziale tramite le risposte dei collaboratori.
+- *`hold`*: L'attore di stoccaggio, gestore transazionale della memoria volatile degli slot navali.
+- *`sonarmock` e `ioportmock`*: I generatori di stimoli e client intelligenti. Il `sonarmock` diffonde eventi ambientali di presenza (`sonardata(30)`) ed emula guasti temporanei del sensore (`setServiceStatus(outofservice)`), mentre `ioportmock` esegue uno script temporizzato di richieste di carico per saggiare la reattività del servizio sia in condizioni normali che di allarme.
+- *`markerdevice`, `ledmock` e `cargorobotmock`*: Gli attuatori simulati. Ricevono comandi operativi dal servizio e simulano il tempo fisico delle operazioni industriali tramite ritardi controllati (`delay`), restituendo la notifica di completamento per permettere alla FSM di avanzare al passo successivo.
+
+Questa architettura logica rappresenta un superamento qualitativo ed esecutivo del modello dello Sprint 0: elimina ogni vaghezza interpretativa, sostituisce i commenti informali con interazioni rigorose tra attori e costituisce una base formale verificabile end-to-end tramite test automatizzati JUnit prima della discesa sul campo fisico prevista per lo Sprint 2.
 
 = Progettazione e Scelte Implementative (`cargoservice`)
 
 La progettazione dell'orchestratore si basa sul principio di *Single Point of Control*: `cargoservice` coordina tutte le fasi di ammissione, interroga la stiva e gestisce le movimentazioni senza delegare la logica di controllo ad altri entità. Di seguito vengono analizzate le scelte progettuali attuate nel passaggio da Sprint 0 a Sprint 1.
 
-== 1. Sdoppiamento dello Stato di Attesa (`work` $->$ `disengaged` / `engaged`)
+== Sdoppiamento dello Stato di Attesa (`work` $->$ `disengaged` / `engaged`)
 Nello Sprint 0 il sistema sosta in un generico stato `work`. Per aderire fedelmente alla terminologia contrattuale (*"considera il sistema come engaged quando gestisce un carico... altrimenti disengaged"*), lo stato `work` è stato eliminato in favore di due stati espliciti:
 - `disengaged`: Sistema in inattività logica, LED spento e pronto a ricevere nuove richieste.
 - `engaged`: Sistema impegnato, LED in lampeggio e precondizioni di ammissione attive.
 
-== 2. Guardia Booleana sulle Precondizioni di Carico
+== Guardia Booleana sulle Precondizioni di Carico
 In fase di ammissione (`handle_load_request`), le regole decisionali abbozzate a parole nello Sprint 0 sono state tradotte in un'asserzione di guardia valutata deterministicamente:
 ```qak
 if [# CargoState == "engaged" || !ServiceWorking || IOPortOccupied #] {
@@ -69,7 +185,7 @@ if [# CargoState == "engaged" || !ServiceWorking || IOPortOccupied #] {
 ```
 Se l'impianto è occupato, in allarme o la pedana non è sgombra, la richiesta viene deviata senza bloccare l'attore.
 
-== 3. Srotolamento Asincrono ("Unrolling") del Ciclo Operativo
+== Srotolamento Asincrono ("Unrolling") del Ciclo Operativo
 Nello Sprint 0 l'intero processo di movimentazione, etichettatura e stoccaggio era compresso in commenti inline. Nello Sprint 1, per rispettare la natura non bloccante degli attori, questo flusso è stato srotolato in *7 stati sequenziali e reattivi*:
 1. `wait_for_slot`: Attesa asincrona della conferma di disponibilità da parte della stiva (`hold`).
 2. `accept_request` / `refuse_request`: Smistamento finale della risposta verso la `ioport`.
@@ -79,7 +195,7 @@ Nello Sprint 0 l'intero processo di movimentazione, etichettatura e stoccaggio e
 6. `move_to_reserved_slot`: Ordine finale al robot per il deposito nella cella riservata.
 7. `finish_job`: Risoluzione della transazione, spegnimento del LED e ripristino di `disengaged`.
 
-== 4. Gestione degli Interrupt e Routing Asincrono (`returnToState`)
+== Gestione degli Interrupt e Routing Asincrono (`returnToState`)
 Un punto aperto di fondamentale importanza riguarda la gestione di eventi asincroni improvvisi, come gli allarmi del sonar (`set_service_status` con payload `outofservice`/`working` o variazioni di `sonardata`). L'attore deve poter aggiornare le variabili ambientali senza perdere la memoria logica del lavoro in corso.
 A tale scopo è stato progettato lo stato di routing *`returnToState`*:
 ```qak
@@ -88,7 +204,7 @@ Goto engaged if [# CargoState == "engaged" #] else disengaged
 ```
 Questo meccanismo agisce da trampolino: dopo aver processato l'evento o l'allarme, il sistema valuta la variabile di stato `CargoState` e rientra in `engaged` (se era nel mezzo di un ciclo) o in `disengaged` (se era in attesa), eliminando la ridondanza e impedendo stalli logici.
 
-== 5. Timeout di Sicurezza sul Deposito (`handle_deposit_timeout`)
+== Timeout di Sicurezza sul Deposito (`handle_deposit_timeout`)
 Per evitare che il sistema rimanga congelato indefinitamente se un cliente, dopo aver ricevuto `load_accepted`, non deposita il container, è stata introdotta una transizione di tempo di 30 secondi nello stato `engaged`. Allo scadere del timeout, l'orchestratore attiva `handle_deposit_timeout`, invia alla stiva un messaggio di rilascio (`free_slot`), spegne il LED e torna allo stato `disengaged`.
 
 = Confronto Tabellare degli Stati (`cargoservice`)
@@ -118,7 +234,7 @@ Per evitare che il sistema rimanga congelato indefinitamente se un cliente, dopo
 
 Per mostrare in modo esaustivo e trasparente come le scelte architetturali discusse siano state concretamente realizzate, di seguito viene riportato l'intero codice QAK del prototipo dello Sprint 1 (`/sprint1/prototype/codice_con_tutti_i_componenti.qak`), analizzato per sezioni logiche (snippet di codice accompagnati da analisi critica).
 
-== 1. Dichiarazione del Sistema, Contesto e Messaggistica
+== Dichiarazione del Sistema, Contesto e Messaggistica
 ```qak
 System cargosystem
 
@@ -150,17 +266,17 @@ Request mark_container : markContainer(none)
 Reply   marking_done   : markingDone(none) for mark_container
 
 //CONTESTI
-Context ctxcargoservice ip [host="localhost" port=8050] // Contesto unico del prototipo per lo Sprint 1
+Context ctxprototype ip [host="localhost" port=8050] // Contesto unico del prototipo per lo Sprint 1
 ```
 
 *Analisi del Blocco 1:* 
 La prima sezione del modello definisce i confini di interazione e l'infrastruttura di comunicazione. 
 - *Distinzione semantica dei messaggi:* In accordo con le buone pratiche di ingegneria dei protocolli, si distingue rigorosamente tra comunicazioni binarie sincrone/correlate (`Request`/`Reply`), comandi asincroni diretti (`Dispatch`, utilizzati ad esempio per liberare lo slot con `free_slot` o per accendere/spegnere il LED con `led_ctrl`) e notifiche broadcast ambientali (`Event`, impiegato dal sonar per diffondere la misura della distanza `sonardata`).
-- *Contesto Unico:* La dichiarazione di `ctxcargoservice` sulla porta `8050` vincola tutti i 7 attori del sistema a eseguire nella stessa JVM. Come argomentato nell'analisi, ciò elimina il rumore infrastrutturale e le latenze TCP durante i test di correttezza della business logic.
+- *Contesto Unico:* La dichiarazione di `ctxprototype` sulla porta `8050` vincola tutti i 7 attori del sistema a eseguire nella stessa JVM. Come argomentato nell'analisi, ciò elimina il rumore infrastrutturale e le latenze TCP durante i test di correttezza della business logic.
 
-== 2. Orchestratore (`cargoservice`): Inizializzazione e Stati di Riposo
+== Orchestratore (`cargoservice`): Inizializzazione e Stati di Riposo
 ```qak
-QActor cargoservice context ctxcargoservice {
+QActor cargoservice context ctxprototype {
     [#
         var IOPortOccupied = false
         var ServiceWorking = true
@@ -195,7 +311,7 @@ QActor cargoservice context ctxcargoservice {
 - *Variabili del Modello di Memoria:* Nel blocco Kotlin `[# ... #]`, l'attore inizializza le variabili di stato interne che governano la Macchina a Stati Finiti. Il flag `IOPortOccupied` tiene traccia dell'ingombro fisico all'IOPort, `ServiceWorking` memorizza lo stato di salute dell'impianto (interrotto/funzionante), mentre `CargoState` ed esplicitamente il lessico del committente ("engaged/disengaged").
 - *Sdoppiamento dell'Attesa:* A differenza dello Sprint 0 dove esisteva un solo stato `work`, qui si osserva la chiara separazione tra `disengaged` (nessuna operazione in corso) ed `engaged` (carico autorizzato e in attesa del container). In entrambi gli stati, l'attore mantiene la reattività verso le richieste di carico, gli eventi del sonar e gli allarmi di guasto.
 
-== 3. Orchestratore (`cargoservice`): Ammissione e Smistamento Richieste
+== Orchestratore (`cargoservice`): Ammissione e Smistamento Richieste
 ```qak
     //GESTIONE RICHIESTE
     
@@ -237,7 +353,7 @@ QActor cargoservice context ctxcargoservice {
 - *Guardia Booleana di Ammissione:* Lo stato `handle_load_request` implementa la logica di filtro critico dell'intero sistema. La condizione `if [# CargoState == "engaged" || !ServiceWorking || IOPortOccupied #]` valuta simultaneamente la logica di business, la sicurezza hardware e lo stato fisico della pedana. In caso negativo, il servizio emette immediatamente la risposta `load_retrylater` senza bloccare la propria esecuzione.
 - *Transazione a due fasi con la Stiva:* Se le precondizioni sono soddisfatte, l'orchestratore non accetta ciecamente la richiesta, ma inoltra una richiesta `get_slot` all'attore `hold`. Solo alla ricezione della risposta asincrona `slot_reserved` (transizione verso `accept_request`), l'orchestratore alloca il `ReservedSlotId`, commuta lo stato in `engaged`, comanda all'attuatore LED di lampeggiare (`ledCmd(blink)`) e invia la conferma `load_accepted(slotX)` al cliente.
 
-== 4. Orchestratore (`cargoservice`): Gestione Sonar, Allarmi e Routing Asincrono
+== Orchestratore (`cargoservice`): Gestione Sonar, Allarmi e Routing Asincrono
 ```qak
     //GESTIONE SONAR
     
@@ -272,7 +388,7 @@ QActor cargoservice context ctxcargoservice {
 - *Innesco Reattivo o Routing:* Se la pedana diventa occupata e il sistema si trova nello stato logico di ingaggio (`IOPortOccupied && CargoState == "engaged"`), la FSM scatta automaticamente verso l'avvio della movimentazione robotica (`do_robot_job`).
 - *Stato di Routing (`returnToState`):* Costituisce un punto di eccellenza architetturale dello Sprint 1. Sia l'aggiornamento degli allarmi (`update_service`) che le letture sonar non rilevanti terminano con una transizione a `returnToState`. Questo stato privo di corpo agisce da switch logico: interroga `CargoState` e riporta l'attore in `engaged` o in `disengaged`. In questo modo si garantisce resilienza totale alle interruzioni esterne senza duplicare il codice di transizione nei singoli stati operativi.
 
-== 5. Orchestratore (`cargoservice`): Coordinamento Robot, Etichettatura e Timeout
+== Orchestratore (`cargoservice`): Coordinamento Robot, Etichettatura e Timeout
 ```qak
     // GESTIONE ROBOT E MARKER
 
@@ -321,11 +437,11 @@ QActor cargoservice context ctxcargoservice {
 - *Chiusura del Ciclo (`finish_job`):* Una volta deposto il container nello slot finale, l'attore reimposta `CargoState = "disengaged"` e invia il dispatch di spegnimento al LED (`ledCmd(off)`), riportando il sistema allo stato di riposo iniziale.
 - *Gestione del Caso Limite (Timeout):* Lo stato di recovery `handle_deposit_timeout` entra in azione allo scadere dei 30 secondi nello stato `engaged` in assenza del container. Per garantire che le risorse non rimangano bloccate a causa dell'inadempienza del cliente, l'orchestratore invia un messaggio di compensazione alla stiva (`freeSlot($ReservedSlotId)`), spegne il LED e risistema l'infrastruttura per nuove richieste.
 
-== 6. Collaboratore Simulato di Stiva (`hold`)
+== Collaboratore Simulato di Stiva (`hold`)
 ```qak
 //HOLD MOCK
 
-QActor hold context ctxcargoservice {
+QActor hold context ctxprototype {
     [#
         var Slots = intArrayOf(0, 0, 0, 0)
         
@@ -374,11 +490,11 @@ QActor hold context ctxcargoservice {
 - *Memoria Volatile Mappata:* In accordo con le considerazioni sui requisiti ad alta priorità, l'attore `hold` modella la stiva navale tramite una struttura dati in memoria ad alta efficienza (`Slots = intArrayOf(0,0,0,0)`).
 - *Atomicità di Allocazione e Rilascio:* Alla ricezione della richiesta `get_slot`, l'attore esegue l'algoritmo lineare di ricerca `getFreeSlot()`. Se individua una cella vuota, ne marca lo stato a `1` e risponde con l'identificativo 1-indexed (`slotReserved`); se tutti i 4 slot sono pieni, risponde immediatamente con `holdFull`. Parallelamente, la gestione del dispatch `free_slot` permette di resettare la cella a `0` (indispensabile sia per il timeout di deposito che per futuri cicli di scarico).
 
-== 7. Sensori e Attuatori Simulati (`sonarmock`, `markerdevice`, `ledmock`)
+== Sensori e Attuatori Simulati (`sonarmock`, `markerdevice`, `ledmock`)
 ```qak
 //SONAR MOCK
 
-QActor sonarmock context ctxcargoservice {
+QActor sonarmock context ctxprototype {
     State s0 initial {
         delay 4000
         println("sonarmock | Container placed -> Emitting sonardata(30)") color cyan
@@ -398,7 +514,7 @@ QActor sonarmock context ctxcargoservice {
 
 //MARKER MOCK
 
-QActor markerdevice context ctxcargoservice {
+QActor markerdevice context ctxprototype {
     State s0 initial {
         println("markerdevice | STARTED") color green
     }
@@ -420,7 +536,7 @@ QActor markerdevice context ctxcargoservice {
 
 //LED MOCK
 
-QActor ledmock context ctxcargoservice {
+QActor ledmock context ctxprototype {
     State s0 initial { }
     Goto work
     
@@ -441,11 +557,11 @@ QActor ledmock context ctxcargoservice {
 - *Simulatore Sonar Dinamico:* Il `sonarmock` funge da generatore di stimoli per collaudare la reattività dell'orchestratore. Mediante una sequenza temporizzata (`delay`), emette in primo luogo l'evento di presenza container (`distance(30)`), e successivamente simula un guasto ambientale prolungato inviando `setServiceStatus(outofservice)`, seguito dal ripristino (`working`). Ciò dimostra che la FSM è in grado di gestire interrupt dinamici senza fallimenti.
 - *Emulazione Attuatori:* Il `markerdevice` simula il tempo fisico di marcatura laser con un ritardo bloccante locale (`delay 1500`) restituendo la risposta di completamento al termine. Il `ledmock` funge da ricevitore puro per certificare visivamente nei log di debug che l'accensione, il lampeggio e lo spegnimento avvengano esattamente in corrispondenza delle transizioni logiche del servizio.
 
-== 8. Client e Robot Simulati (`ioportmock`, `cargorobotmock`)
+== Client e Robot Simulati (`ioportmock`, `cargorobotmock`)
 ```qak
 //IOPORT MOCK
 
-QActor ioportmock context ctxcargoservice {
+QActor ioportmock context ctxprototype {
     State s0 initial {
         delay 1000
         println("ioportmock | Sending 1st load_request (should be accepted)") color cyan
@@ -490,7 +606,7 @@ QActor ioportmock context ctxcargoservice {
 
 //CARGOROBOT MOCK
 
-QActor cargorobotmock context ctxcargoservice {
+QActor cargorobotmock context ctxprototype {
     State s0 initial { }
     Goto work
     
@@ -512,7 +628,7 @@ QActor cargorobotmock context ctxcargoservice {
 
 = Piano di Test e Collaudo Automatizzato
 
-L'impiego di QAK e la scomposizione modulare realizzata nello Sprint 1 forniscono la base per la verifica rigorosa dei requisiti. La suite di collaudo, tradotta in codice Kotlin con framework JUnit (`TestCargoServiceCore.kt`), agisce come un client esterno che si connette al contesto `ctxcargoservice` (porta 8050) e invia richieste strutturate secondo la semantica Prolog (`msg(load_request, ...)`).
+L'impiego di QAK e la scomposizione modulare realizzata nello Sprint 1 forniscono la base per la verifica rigorosa dei requisiti. La suite di collaudo, tradotta in codice Kotlin con framework JUnit (`TestCargoServiceCore.kt`), agisce come un client esterno che si connette al contesto `ctxprototype` (porta 8050) e invia richieste strutturate secondo la semantica Prolog (`msg(load_request, ...)`).
 
 L'esecuzione nel contesto unico garantisce un collaudo ripetibile e deterministico:
 1. *Verifica Accettazione (T1):* A stiva disponibile e sistema `disengaged`, il test verifica l'effettiva ricezione della risposta `load_accepted` e la corretta prenotazione dello slot.
@@ -521,4 +637,16 @@ L'esecuzione nel contesto unico garantisce un collaudo ripetibile e deterministi
 
 = Conclusioni e Sviluppi Futuri
 
-In sintesi, le scelte progettuali dello Sprint 1 sono state guidate da criteri di modularità, chiarezza comportamentale e aderenza al lessico di dominio. L'architettura formalizzata garantisce la totale separazione tra la logica di controllo e le dipendenze fisiche esterne. Il prototipo così validato costituisce la base solida ed estensibile per gli sviluppi dello Sprint 2, nei quali i collaboratori mock verranno progressivamente sostituiti dalle interfacce reali verso la web-gui, i sensori su Raspberry Pi e l'attuatore `cargorobot`.
+#block(
+  width: 100%,
+  fill: rgb("#f6f8fa"),
+  stroke: (left: 3.5pt + rgb("#28a745"), rest: 0.5pt + rgb("#e1e4e8")),
+  inset: (left: 12pt, right: 12pt, top: 10pt, bottom: 10pt),
+  radius: (right: 4pt),
+)[
+  #text(weight: "bold", fill: rgb("#1b5e20"))[🎯 Traguardi Raggiunti e Roadmap per lo Sprint 2] \
+  #v(3pt)
+  In sintesi, le scelte progettuali dello Sprint 1 sono state guidate da criteri di modularità, chiarezza comportamentale e aderenza al lessico di dominio. L'architettura formalizzata garantisce la totale separazione tra la logica di controllo e le dipendenze fisiche esterne. 
+  
+  Il prototipo così validato costituisce la base solida ed estensibile per gli sviluppi dello Sprint 2, nei quali i collaboratori mock verranno progressivamente sostituiti dalle interfacce reali verso la web-gui, i sensori su Raspberry Pi e l'attuatore `cargorobot`.
+]
