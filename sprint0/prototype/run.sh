@@ -22,6 +22,10 @@ case "$1" in
         echo -e "\033[1;33m=== Avvio Contesto: ctxdevices (porta 8053) ===\033[0m"
         ./gradlew runDevices
         ;;
+    test|t|testplan)
+        echo -e "\033[1;32m=== Esecuzione JUnit TestPlan ===\033[0m"
+        ./gradlew test --tests "test.TestPlanSprint0" -i
+        ;;
     *)
         echo -e "\033[1;31mUso errato o comando mancante.\033[0m"
         echo "Utilizza lo script in questo modo dalla cartella prototype:"
@@ -30,6 +34,7 @@ case "$1" in
         echo "  ./run.sh ioport         (oppure  ./run.sh iop )  -> Avvia ctxioport"
         echo "  ./run.sh robot          (oppure  ./run.sh r )    -> Avvia ctxrobot"
         echo "  ./run.sh devices        (oppure  ./run.sh d )    -> Avvia ctxdevices"
+        echo "  ./run.sh test           (oppure  ./run.sh t )    -> Esegue il TestPlan JUnit"
         echo ""
         exit 1
         ;;

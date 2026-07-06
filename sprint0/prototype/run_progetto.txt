@@ -1,11 +1,11 @@
-  • Per  cargoservice:                                                                                                                                               
+  - Per  cargoservice:                                                                                                                                               
     ./run.sh c                                                                                                                                                                  
                                                                                                                                                                                 
-  • Per ioport:                                                                                                                                                    
+  - Per ioport:                                                                                                                                                    
     ./run.sh i                                                                                                                                                                  
                                                                                                                                                                                 
-  • Per cargorobot:                                                                                                                                                               
+  - Per cargorobot:                                                                                                                                                               
     ./run.sh r                                                                                                                                                                  
                                                                                                                                                                                 
-  • Per devices:                                                                                                                                                          
+  - Per devices:                                                                                                                                                          
     ./run.sh d  
