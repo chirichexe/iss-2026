@@ -1,5 +1,5 @@
 %====================================================================================
-% cargosystem description   
+% prototype_sprint1 description   
 %====================================================================================
 request( load_request, loadRequest(none) ).
 reply( load_accepted, loadAccepted(SLOTID) ).  %%for load_request

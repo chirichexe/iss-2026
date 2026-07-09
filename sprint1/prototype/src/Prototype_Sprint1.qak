@@ -1,6 +1,6 @@
-System cargosystem
+System prototype_sprint1
  
-//INTERAZIONI TRA COMPONENTI 
+//INTERAZIONI TRA COMPONENTI   
 
 // Customer <-> CargoService 
 Request load_request    : loadRequest(none)
@@ -126,8 +126,8 @@ QActor cargoservice context ctxprototype {
     // GESTIONE ROBOT E MARKER
 
     State do_robot_job {
-        println("cargoservice | Container deposited! Moving robot to slot5 (5,2) for marking via robotsmart26...") color magenta
-        request robotsmart -m moverobot : moverobot(5, 2, $StepTime)
+        println("cargoservice | Container deposited! Moving robot to slot5 (2,5) [Row,Col] for marking via robotsmart26...") color magenta
+        request robotsmart -m moverobot : moverobot(2, 5, $StepTime)
     }
     Transition t0
         whenReply moverobotdone   -> mark_container
@@ -145,16 +145,20 @@ QActor cargoservice context ctxprototype {
             val DestX = Hold.getSlotX(ReservedSlotId)
             val DestY = Hold.getSlotY(ReservedSlotId)
         #]
-        println("cargoservice | Marked! Moving container to slot$ReservedSlotId ($DestX, $DestY) via robotsmart26...") color magenta
-    	request robotsmart -m moverobot : moverobot($DestX, $DestY, $StepTime)
+        println("cargoservice | Marked! Moving container to slot$ReservedSlotId ($DestY, $DestX) [Row,Col] via robotsmart26...") color magenta
+    	request robotsmart -m moverobot : moverobot($DestY, $DestX, $StepTime)
     }
     Transition t0
         whenReply moverobotdone   -> return_home
         whenReply moverobotfailed -> handle_robot_fail
 
     State return_home {
-        println("cargoservice | Container stored! Returning robot to HOME (1,0) via robotsmart26...") color magenta
-        request robotsmart -m moverobot : moverobot(1, 0, $StepTime)
+        [# 
+            val HomeX = Hold.getHomeX()
+            val HomeY = Hold.getHomeY()
+        #]
+        println("cargoservice | Container stored! Returning robot to HOME ($HomeY,$HomeX) [Row,Col] via robotsmart26...") color magenta
+        request robotsmart -m moverobot : moverobot($HomeY, $HomeX, $StepTime)
     }
     Transition t0
         whenReply moverobotdone   -> finish_job

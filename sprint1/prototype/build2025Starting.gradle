@@ -154,9 +154,9 @@ task dovesiamo {
 
 distributions {
     main {
-        distributionBaseName = 'cargosystem'
+        distributionBaseName = 'prototype_sprint1'
         contents { 
-             from './cargosystem.pl'
+             from './prototype_sprint1.pl'
              from './sysRules.pl'
              from './facadeConfig.json'
         }

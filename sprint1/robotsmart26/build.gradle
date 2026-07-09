@@ -30,7 +30,7 @@ kotlin {
 
 repositories {
     mavenCentral()
-    flatDir {   dirs '../unibolibs'	 }
+    flatDir { dirs "${projectDir}/../../unibolibs" }
 }
  
 

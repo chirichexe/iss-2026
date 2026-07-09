@@ -21,7 +21,7 @@ evattr = {
     'color': 'darkgreen',
     'style': 'dotted'
 }
-with Diagram('cargosystemArch', show=False, outformat='png', graph_attr=graphattr) as diag:
+with Diagram('prototype_sprint1Arch', show=False, outformat='png', graph_attr=graphattr) as diag:
   with Cluster('env'):
      sys = Custom('','./qakicons/system.png')
 ### see https://renenyffenegger.ch/notes/tools/Graphviz/attributes/label/HTML-like/index
@@ -38,7 +38,7 @@ with Diagram('cargosystemArch', show=False, outformat='png', graph_attr=graphatt
           planexec=Custom('planexec(ext)','./qakicons/externalQActor.png')
      sys >> Edge( label='sonardata', **evattr, decorate='true', fontcolor='darkgreen') >> cargoservice
      sonarmock >> Edge( label='sonardata', **eventedgeattr, decorate='true', fontcolor='red') >> sys
-     cargoservice >> Edge(color='magenta', style='solid', decorate='true', label='<moverobot<font color="darkgreen"> moverobotdone moverobotfailed</font> &nbsp; >',  fontcolor='magenta') >> cargorobotmock
+     cargoservice >> Edge(color='magenta', style='solid', decorate='true', label='<moverobot<font color="darkgreen"> moverobotdone moverobotfailed</font> &nbsp; >',  fontcolor='magenta') >> robotsmart
      cargoservice >> Edge(color='magenta', style='solid', decorate='true', label='<mark_container<font color="darkgreen"> marking_done</font> &nbsp; >',  fontcolor='magenta') >> markerdevice
      ioportmock >> Edge(color='magenta', style='solid', decorate='true', label='<load_request<font color="darkgreen"> load_accepted load_retrylater load_refused</font> &nbsp; >',  fontcolor='magenta') >> cargoservice
      cargoservice >> Edge(color='blue', style='solid',  decorate='true', label='<led_ctrl &nbsp; >',  fontcolor='blue') >> ledmock

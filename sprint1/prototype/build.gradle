@@ -35,7 +35,7 @@ kotlin {
 
 repositories {
     mavenCentral()
-    flatDir {   dirs '../../unibolibs'	 }
+    flatDir { dirs "${projectDir}/../../unibolibs" }
 }
  
 
@@ -162,9 +162,9 @@ task dovesiamo {
 
 distributions {
     main {
-        distributionBaseName = 'cargosystem'
+        distributionBaseName = 'Prototype_sprint1'
         contents { 
-             from './cargosystem.pl'
+             from './prototype_sprint1.pl'
              from './sysRules.pl'
         }
     }

@@ -148,8 +148,8 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 				}	 
 				state("do_robot_job") { //this:State
 					action { //it:State
-						CommUtils.outmagenta("cargoservice | Container deposited! Moving robot to slot5 (5,2) for marking...")
-						request("moverobot", "moverobot(5,2,$StepTime)" ,"cargorobotmock" )  
+						CommUtils.outmagenta("cargoservice | Container deposited! Moving robot to slot5 (2,5) [Row,Col] for marking via robotsmart26...")
+						request("moverobot", "moverobot(2,5,$StepTime)" ,"robotsmart" )  
 						//genTimer( actor, state )
 					}
 					//After Lenzi Aug2002
@@ -174,8 +174,8 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 						 
 						            val DestX = Hold.getSlotX(ReservedSlotId)
 						            val DestY = Hold.getSlotY(ReservedSlotId)
-						CommUtils.outmagenta("cargoservice | Marked! Moving container to slot$ReservedSlotId ($DestX, $DestY)...")
-						request("moverobot", "moverobot($DestX,$DestY,$StepTime)" ,"cargorobotmock" )  
+						CommUtils.outmagenta("cargoservice | Marked! Moving container to slot$ReservedSlotId ($DestY, $DestX) [Row,Col] via robotsmart26...")
+						request("moverobot", "moverobot($DestY,$DestX,$StepTime)" ,"robotsmart" )  
 						//genTimer( actor, state )
 					}
 					//After Lenzi Aug2002
@@ -186,8 +186,11 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 				}	 
 				state("return_home") { //this:State
 					action { //it:State
-						CommUtils.outmagenta("cargoservice | Container stored! Returning robot to HOME (1,0)...")
-						request("moverobot", "moverobot(1,0,$StepTime)" ,"cargorobotmock" )  
+						 
+						            val HomeX = Hold.getHomeX()
+						            val HomeY = Hold.getHomeY()
+						CommUtils.outmagenta("cargoservice | Container stored! Returning robot to HOME ($HomeY,$HomeX) [Row,Col] via robotsmart26...")
+						request("moverobot", "moverobot($HomeY,$HomeX,$StepTime)" ,"robotsmart" )  
 						//genTimer( actor, state )
 					}
 					//After Lenzi Aug2002
