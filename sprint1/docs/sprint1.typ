@@ -218,14 +218,18 @@ L'attore cargoservice è, già da Sprint 0, inteso come una Macchina a Stati Fin
 Per quanto riguarda le transizioni della FSM, si estende il comportamento già realizzato in Sprint0.
 
 ```qak
-Context ctxprototype ip [host="localhost" port=8050] // CONTESTO UNICO
+Context ctxprototype ip [host="localhost" port=8050] // Contesto unico del prototipo per lo Sprint 1
+Context ctxrobotsmart      ip [host="127.0.0.1" port=8020]
+
+ExternalQActor robotsmart context ctxrobotsmart
 
 QActor cargoservice context ctxprototype {
-    [# // VARIABILI INTERNE
+    [#
         var IOPortOccupied = false
         var ServiceWorking = true
         var CargoState     = "disengaged"
         var ReservedSlotId = -1
+        val StepTime       = 345
     #]
 ```
 
@@ -243,8 +247,7 @@ Il timer di 30 secondi viene avviato quando il sistema entra nello stato *engage
 
 
 ```qak
-
-    State s0 initial {
+State s0 initial {
         println("cargoservice | STARTED") color magenta
     }
     Goto disengaged
@@ -264,6 +267,7 @@ Il timer di 30 secondi viene avviato quando il sistema entra nello stato *engage
         whenRequest load_request -> handle_load_request
         whenEvent   sonardata    -> handle_sonar
 
+
     //GESTIONE RICHIESTE
     
     State handle_load_request {
@@ -273,31 +277,23 @@ Il timer di 30 secondi viene avviato quando il sistema entra nello stato *engage
         if [# CargoState == "engaged" || !ServiceWorking || IOPortOccupied #] {
             replyTo load_request with load_retrylater : loadRetryLater(none)
         } else {
-            // Interroga la Hold per uno slot libero
-            request hold -m get_slot : getSlot(none)
+            // Interroga il POJO Hold per uno slot libero
+            [# val SlotId = Hold.reserveSlot() #]
+            if [# SlotId > 0 #] {
+                [# 
+                    ReservedSlotId = SlotId
+                    CargoState     = "engaged" 
+                #]
+                forward ledmock -m led_ctrl : ledCmd(blink)
+                [# val SlotName = "slot$ReservedSlotId" #]
+                replyTo load_request with load_accepted : loadAccepted($SlotName)
+            } else {
+                replyTo load_request with load_refused : loadRefused(none)
+            }
         }
     }
-    Transition t0
-        whenReply slot_reserved -> accept_request
-        whenReply hold_full     -> refuse_request
+    Goto engaged if [# CargoState == "engaged" #] else disengaged
 
-    State accept_request {
-        onMsg(slot_reserved : slotReserved(ID)) {
-            [# 
-                ReservedSlotId = payloadArg(0).toInt()
-                CargoState     = "engaged" 
-            #]
-            forward ledmock -m led_ctrl : ledCmd(blink)
-            [# val SlotName = "slot$ReservedSlotId" #]
-    		replyTo load_request with load_accepted : loadAccepted($SlotName)
-        }
-    }
-    Goto engaged
-
-    State refuse_request {
-        replyTo load_request with load_refused : loadRefused(none)
-    }
-    Goto disengaged
 ```
 
 - Il cargoservic interpreta gli eventi emessi dal sonar in tre modi principali:
@@ -313,8 +309,6 @@ Al termine dell'elaborazione dell'evento il cargoserivce valuta se siano contemp
 
 
 ```qak
-    //GESTIONE SONAR
-    
     State handle_sonar {
         onMsg(sonardata : distance(D)) {
             [# val Dist = payloadArg(0).toInt() #]
@@ -343,6 +337,7 @@ Al termine dell'elaborazione dell'evento il cargoserivce valuta se siano contemp
 
     State returnToState {}
     Goto engaged if [# CargoState == "engaged" #] else disengaged
+
 ```
 
 -Analisi
@@ -351,11 +346,12 @@ Al termine dell'elaborazione dell'evento il cargoserivce valuta se siano contemp
     // GESTIONE ROBOT E MARKER
 
     State do_robot_job {
-        println("cargoservice | Container deposited! Moving to slot5...") color magenta
-        request cargorobotmock -m robot_move : robotMove(slot5)
+        println("cargoservice | Container deposited! Moving robot to slot5 (2,5) [Row,Col] for marking via robotsmart26...") color magenta
+        request robotsmart -m moverobot : moverobot(2, 5, $StepTime)
     }
     Transition t0
-        whenReply robot_done -> mark_container
+        whenReply moverobotdone   -> mark_container
+        whenReply moverobotfailed -> handle_robot_fail
         
     State mark_container {
         println("cargoservice | At slot5. Asking markerdevice to mark...") color magenta
@@ -365,12 +361,28 @@ Al termine dell'elaborazione dell'evento il cargoserivce valuta se siano contemp
         whenReply marking_done -> move_to_reserved_slot
         
     State move_to_reserved_slot {
-        println("cargoservice | Marked! Moving to slot$ReservedSlotId...") color magenta
-        [# val TargetSlot = "slot$ReservedSlotId" #]
-    	request cargorobotmock -m robot_move : robotMove($TargetSlot)
+        [# 
+            val DestX = Hold.getSlotX(ReservedSlotId)
+            val DestY = Hold.getSlotY(ReservedSlotId)
+        #]
+        println("cargoservice | Marked! Moving container to slot$ReservedSlotId ($DestY, $DestX) [Row,Col] via robotsmart26...") color magenta
+    	request robotsmart -m moverobot : moverobot($DestY, $DestX, $StepTime)
     }
     Transition t0
-        whenReply robot_done -> finish_job
+        whenReply moverobotdone   -> return_home
+        whenReply moverobotfailed -> handle_robot_fail
+
+    State return_home {
+        [# 
+            val HomeX = Hold.getHomeX()
+            val HomeY = Hold.getHomeY()
+        #]
+        println("cargoservice | Container stored! Returning robot to HOME ($HomeY,$HomeX) [Row,Col] via robotsmart26...") color magenta
+        request robotsmart -m moverobot : moverobot($HomeY, $HomeX, $StepTime)
+    }
+    Transition t0
+        whenReply moverobotdone   -> finish_job
+        whenReply moverobotfailed -> handle_robot_fail
         
     State finish_job {
         println("cargoservice | Job completed!") color green
@@ -379,14 +391,22 @@ Al termine dell'elaborazione dell'evento il cargoserivce valuta se siano contemp
     }
     Goto disengaged
 
+    State handle_robot_fail {
+        println("cargoservice | Robot movement failed!") color red
+    }
+    Goto engaged
+
     State handle_deposit_timeout {
         println("cargoservice | Deposit timeout! Freeing slot.") color red
         
-        [# CargoState = "disengaged" #]
-        forward hold -m free_slot : freeSlot($ReservedSlotId)
+        [# 
+            CargoState = "disengaged" 
+            Hold.freeSlot(ReservedSlotId)
+        #]
         forward ledmock -m led_ctrl : ledCmd(off)
     }
     Goto disengaged
+}
 }
 ```
 
