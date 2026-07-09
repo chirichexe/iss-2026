@@ -1,4 +1,4 @@
-public class Hold {
+public class Hold implements IHold {
 
     private static Hold INSTANCE = new Hold("hold_config.json");
 
@@ -146,6 +146,7 @@ public class Hold {
         return INSTANCE.doReserveSlot();
     }
 
+    @Override
     public synchronized int doReserveSlot() {
         for (int i = 0; i < 4; i++) {
             if (!occupiedSlots[i]) {
@@ -163,6 +164,7 @@ public class Hold {
         INSTANCE.doFreeSlot(slotId);
     }
 
+    @Override
     public synchronized void doFreeSlot(int slotId) {
         if (slotId >= 1 && slotId <= 5) {
             occupiedSlots[slotId - 1] = false;
@@ -176,6 +178,7 @@ public class Hold {
         return INSTANCE.doGetSlotX(slotId);
     }
 
+    @Override
     public int doGetSlotX(int slotId) {
         if (slotId >= 1 && slotId <= 5) {
             return slotX[slotId - 1];
@@ -190,6 +193,7 @@ public class Hold {
         return INSTANCE.doGetSlotY(slotId);
     }
 
+    @Override
     public int doGetSlotY(int slotId) {
         if (slotId >= 1 && slotId <= 5) {
             return slotY[slotId - 1];
@@ -201,19 +205,30 @@ public class Hold {
      * Restituisce la coordinata X della HOME.
      */
     public static int getHomeX() {
-        return INSTANCE.homeX;
+        return INSTANCE.doGetHomeX();
+    }
+
+    @Override
+    public int doGetHomeX() {
+        return homeX;
     }
 
     /**
      * Restituisce la coordinata Y della HOME.
      */
     public static int getHomeY() {
-        return INSTANCE.homeY;
+        return INSTANCE.doGetHomeY();
+    }
+
+    @Override
+    public int doGetHomeY() {
+        return homeY;
     }
 
     /**
      * Restituisce il tipo di cella (CellType) alle coordinate (x, y) specificate.
      */
+    @Override
     public CellType getCell(int x, int y) {
         if (y >= 0 && y < height && x >= 0 && x < width) {
             return cells[y][x];
@@ -224,6 +239,7 @@ public class Hold {
     /**
      * Verifica se uno specifico slot risulta attualmente occupato.
      */
+    @Override
     public boolean isOccupied(int slotId) {
         if (slotId >= 1 && slotId <= 5) {
             return occupiedSlots[slotId - 1];
@@ -231,3 +247,4 @@ public class Hold {
         return false;
     }
 }
+
