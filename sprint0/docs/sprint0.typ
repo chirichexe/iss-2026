@@ -44,7 +44,7 @@ L'azienda richiede di realizzare un servizio denominato *cargoservice* con il se
 - Il servizio deve inoltre mostrare sul display dell'IOPort:
   - lo stato attuale della hold
   - il messaggio *"Service working"* quando tutto sta procedendo correttamente
-  - il messaggio *"Out of service"* se il sensore sonar misura una distanza D > D#sub[FREE] per almeno 3 secondi (possibile guasto del sonar)
+  - il messaggio *"Out of service"* se il sensore sonar misura la distanza (del container dal sonar stesso) D > D#sub[FREE] per almeno 3 secondi (possibile guasto del sonar)
 
 == Domande aperte alla committente 
 

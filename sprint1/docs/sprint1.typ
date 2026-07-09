@@ -89,8 +89,13 @@ La loro realizzazione concreta è pianificata per gli sprint successivi. I compo
 
 = Problem analysis <model>
 
-Come emerso dall'analisi dei requisiti, questo componente funge da *orchestratore*: coordina le operazioni degli altri componenti del sistema al fine di eseguire le procedure di carico. 
-Inoltre, le entità sono distribuite su quattro nodi separati ma, per non rallentare la prototipazione, tutti i componenti verranno rappresentati nello stesso nodo (rappresentato da un Context), tenendo in considerazione che gli attori non condividono memoria, e comunicano tra loro tramite scambio di messaggi.
+Come emerso dall'analisi dei requisiti, questo componente funge da *orchestratore*: coordina le operazioni degli altri componenti del sistema al 
+fine di eseguire le procedure di carico. 
+Inoltre, le entità sono distribuite su quattro nodi separati ma, per non rallentare la prototipazione, tutti i componenti 
+verranno rappresentati nello stesso nodo (rappresentato da un Context), tenendo in considerazione che gli attori non condividono memoria, e comunicano
+tra loro tramite scambio di messaggi.
+
+// avrebbe senso non rappresentare la hold come actor ma come stato interno del cargoservice??
 
 == Rappresentazione dello stato interno della stiva
 
@@ -118,6 +123,60 @@ indica uno slot occupato o riservato.
 
 Questa scelta permette al *cargoservice* di verificare dinamicamente se la stiva è piena interrogando l'attore hold tramite Request / Reply, 
 senza conoscerne i dettagli interni
+
+== Analisi delle Interazioni
+
+Di seguito si riporta una formalizzazione delle altre interazioni modellate interpretando e applicando opportune scelte progettuali 
+sui requisiti del sistema.
+
+- Sappiamo che il cargoservice deve interrogare la hold per sapere se c'è un posto libero ed eventualmente riservarlo. Il cargoservice non può quindi procedere finché la hold non ha risposto in modo affermativo (in caso di slot libero) o negativo (in caso di stiva piena). Scegliamo quindi una comunicazione di tipo Request/Reply. 
+
+- Sarà anche necessario fornire un meccanismo per liberare lo slot una volta che il timeout di 30 secondi sarà scaduto. In questo caso, non è necessario attendere una risposta, quindi si utilizza una Dispatch.
+
+```
+//  CargoService <-> Hold 
+Request get_slot        : getSlot(none)
+Reply   slot_reserved   : slotReserved(SLOTID) for get_slot
+Reply   hold_full       : holdFull(none) for get_slot
+Dispatch free_slot      : freeSlot(SLOTID) // NON NECESSARIO, guarda risposta committente sprint0
+```
+
+- Da requisiti, sappiamo che il sonar deve misurare continuamente la distanza del container dal sonar stesso. Nasce quindi la necessità di dover trasmettere queste misurazioni al cargoservice. Per isolare la responsabilità del sonar a semplice "misuratore e trasmettitore" di informazione, viene naturale formalizzare tale comunicazione come un Event, ovvero un messaggio broadcast che verrà ascoltato da chi interessato (in questo caso *cargoservice*)
+
+```
+Event    sonardata          : distance(D)
+```
+
+- L'invio di comandi al led è delegato al cargoservice. Non è necessario attendere una risposta, quindi utilizziamo una Dispatch.
+
+```
+Dispatch led_ctrl           : ledCmd(CMD) 
+// CMD: "on", "off", "blink"
+```
+
+- In questa fase, il movimento del robot sarà simulato, ma il cargoservice deve comunque attendere la fine dell'operazione per poter procedere con la      
+successiva fase del ciclo operativo (ossia richiedere al *markerdevice*  l'etichettatura in *slot5*, confermare lo stoccaggio e tornare allo stato *disengaged* ). Usiamo quindi la Request/Reply per assicurarci che il cargoservice attenda la fine del task.
+
+```
+//  CargoService <-> Robot 
+Request robot_move : robotMove(TARGET)
+Reply   robot_done : robotDone(none) for robot_move
+```
+
+- In modo analogo, il cargoservice deve interrogare il markerdevice per sapere quando l'operazione di etichettatura è terminata, non potendo procedere finché il markerdevice non ha risposto. Usiamo quindi la Request/Reply.
+
+```
+//  CargoService <-> MarkerDevice 
+Request mark_container : markContainer(none)
+Reply   marking_done   : markingDone(none) for mark_container
+```
+
+*Analisi del Blocco 1:* 
+La prima sezione del modello definisce i confini di interazione e l'infrastruttura di comunicazione. 
+- *Distinzione semantica dei messaggi:* In accordo con le buone pratiche di ingegneria dei protocolli, si distingue rigorosamente tra comunicazioni binarie sincrone/correlate (`Request`/`Reply`), comandi asincroni diretti (`Dispatch`, utilizzati ad esempio per liberare lo slot con `free_slot` o per accendere/spegnere il LED con `led_ctrl`) e notifiche broadcast ambientali (`Event`, impiegato dal sonar per diffondere la misura della distanza `sonardata`).
+- *Contesto Unico:* La dichiarazione di `ctxprototype` sulla porta `8050` vincola tutti i 7 attori del sistema a eseguire nella stessa JVM. Come argomentato nell'analisi, ciò elimina il rumore infrastrutturale e le latenze TCP durante i test di correttezza della business logic.
+
+
 
 == Vocabolario delle Interazioni 
 
@@ -158,14 +217,6 @@ Dispatch free_slot      : freeSlot(SLOTID)
 Event sonardata : distance(D)  // Emesso dal sonar nell'ambiente
 ``` 
 
-- Per gestire il ledmock o per forzare lo stato interno del servizio (utile in fase di testing), non è necessario attendere una risposta. Pertanto, utilizziamo il pattern Dispatch, che implementa una logica *"fire-and-forget"* verso un destinatario esplicito
-
-```
-Dispatch led_ctrl           : ledCmd(CMD) 
-// CMD: "on", "off", "blink"
-Dispatch set_service_status : setServiceStatus(STATUS) 
-// STATUS: "working" o "outofservice"
-```
 
 == Rappresentazione dell'attore cargoservice come Macchina a Stati Finiti
 

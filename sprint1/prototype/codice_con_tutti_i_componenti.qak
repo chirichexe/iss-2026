@@ -16,7 +16,6 @@ Dispatch free_slot      : freeSlot(SLOTID)
 
 //  Aggiornamenti Sensori e Stato 
 Event    sonardata          : distance(D)  // Emesso dal sonar
-Dispatch set_service_status : setServiceStatus(STATUS) 
 Dispatch led_ctrl           : ledCmd(CMD)         
 
 //  CargoService <-> Robot 
@@ -116,17 +115,21 @@ QActor cargoservice context ctxprototype {
             } else {
                 [# IOPortOccupied = false #]
             }
+
+            // D > DFREE (es. > 150) per un intervallo prolungato indica condizione OUT OF SERVICE
+            if [# Dist > 150 #] {
+                [# ServiceWorking = false #]
+                println("cargoservice | Sonar D > DFREE ($Dist) -> System OUT OF SERVICE!") color red
+            } else {
+                if [# !ServiceWorking #] {
+                    println("cargoservice | Sonar D <= DFREE ($Dist) -> System WORKING again!") color green
+                }
+                [# ServiceWorking = true #]
+            }
         }
     }
-    // Se il container viene posato durante lo stato engaged, il robot può iniziare
-    Goto do_robot_job if [# IOPortOccupied && CargoState == "engaged" #] else returnToState
-    
-    State update_service {
-        onMsg(set_service_status : setServiceStatus(S)) {
-            [# ServiceWorking = (payloadArg(0) == "working") #]
-        }
-    }
-    Goto returnToState
+    // Se il container viene posato durante lo stato engaged e il sistema è operativo, il robot può iniziare
+    Goto do_robot_job if [# IOPortOccupied && CargoState == "engaged" && ServiceWorking #] else returnToState
 
     State returnToState {}
     Goto engaged if [# CargoState == "engaged" #] else disengaged
@@ -228,15 +231,15 @@ QActor sonarmock context ctxprototype {
         println("sonarmock | Container placed -> Emitting sonardata(30)") color cyan
         emit sonardata : distance(30)
         
-        // Simulazione di un guasto al sonar dopo il primo ciclo (D > DFREE per 3s)
+        // Simulazione di una distanza D > DFREE (es. 200 per > 3s) -> Innesca Out of service
         delay 8000
-        println("sonarmock | Sonar measures D > DFREE for > 3s. System OUT OF SERVICE!") color red
-        forward cargoservice -m set_service_status : setServiceStatus(outofservice)
+        println("sonarmock | Sonar measures D > DFREE (200). Emitting sonardata(200)") color cyan
+        emit sonardata : distance(200)
         
-        // Simulazione del ripristino (D <= DFREE)
+        // Simulazione del ripristino D <= DFREE (es. 100) -> System working
         delay 5000
-        println("sonarmock | Sonar measures D <= DFREE. System WORKING again!") color green
-        forward cargoservice -m set_service_status : setServiceStatus(working)
+        println("sonarmock | Sonar measures D <= DFREE (100). Emitting sonardata(100)") color green
+        emit sonardata : distance(100)
     }
 }
 
