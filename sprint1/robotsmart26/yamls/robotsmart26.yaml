@@ -1,0 +1,62 @@
+services:
+  mosquitto:
+    image: eclipse-mosquitto:1.6.15
+    container_name: mosquitto
+#    volumes:
+#        - ./mosquitto.conf:/mosquitto/config/mosquitto.conf	
+#    environment:
+#        - MQTT_ALLOW_ANONYMOUS=true   # Permette connessioni anonime
+    ports:
+        - 1883:1883
+#- 9001:9001                   # Optional:Utilizzata per WebSocket MQTT
+    restart: always		
+    networks:
+        - iss-network
+
+  wenv:
+    container_name: wenv
+    image: docker.io/natbodocker/virtualrobotdisi26:1.0
+    #image: virtualrobotdisi26:1.0
+    ports:
+      - 8090:8090 
+      - 8091:8091/tcp
+      - 8091:8091/udp
+    networks:
+      - iss-network
+
+  robotoutgui25:
+    container_name: robotoutgui25
+    image: docker.io/natbodocker/robotoutgui25:1.0
+    #image: robotoutgui25:1.0
+    ports:
+     - 8085:8085/tcp
+    networks:
+     - iss-network
+
+  robotsmart26:
+    container_name: robotsmart26
+    image: docker.io/natbodocker/robotsmart26:1.0
+    #image: robotsmart26:1.0
+    mem_limit: 512m
+    ports:
+      - "8020:8020/tcp"
+      - "8020:8020/udp"
+    environment:
+      - VIRTUAL_ENV=wenv       #Used by VRObj26 connect
+      - MQTTBROKER=mosquitto
+    depends_on:
+      - wenv  
+    networks:
+      - iss-network
+
+networks:
+    iss-network:
+     external: true
+
+## docker-compose -f robotsmart26.yaml up
+## docker-compose down
+## docker-compose run --service-ports wenv    starts wenv
+
+## docker network ls
+## docker network create iss-network
+## docker network rm x
