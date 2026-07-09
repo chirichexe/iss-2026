@@ -113,10 +113,10 @@ tra loro tramite scambio di messaggi.
 == Rappresentazione dello stato interno della stiva
 
 In questa fase la gestione della stiva non viene ancora implementata completamente. Tuttavia, per rispettare il principio di singola 
-responsabilità, la logica non viene inclusa nel cargoservice, ma viene delegata a un *attore mock autonomo* posizionato nel context ctxdevices
+responsabilità, la logica non viene inclusa nel cargoservice, ma viene delegata a un *attore mock autonomo* posizionato nel context ctxprototype (recuperabile al seguente #link("https://github.com/chirichexe/iss-2026/blob/main/sprint1/prototype/codice_con_tutti_i_componenti.qak")[LINK DA CAMBIARE DAL MASSIMO ESPERTO])
 
 ```qak
-QActor hold context ctxdevices {
+QActor hold context ctxprototype {
     [#
         var Slots = intArrayOf(0, 0, 0, 0)
         
@@ -127,7 +127,37 @@ QActor hold context ctxdevices {
             return -1
         }
     #]
-    // ...
+
+    State s0 initial {
+        println("hold | STARTED") color green
+    }
+    Goto work
+
+    State work {}
+    Transition t0
+        whenRequest get_slot  -> handle_get_slot
+        whenMsg     free_slot -> handle_free_slot
+
+    State handle_get_slot {
+        [# val SlotId = getFreeSlot() #]
+        
+        if [# SlotId != -1 #] {
+            [# Slots[SlotId - 1] = 1 #]
+            replyTo get_slot with slot_reserved : slotReserved($SlotId)
+        } else {
+            replyTo get_slot with hold_full : holdFull(none)
+        }
+    }
+    Goto work
+
+    State handle_free_slot {
+        onMsg(free_slot : freeSlot(ID)) {
+            [# val id = payloadArg(0).toInt() #]
+            [# Slots[id - 1] = 0 #]
+            println("hold | Freed slot$id") color green
+        }
+    }
+    Goto work
 }
 ```
 
@@ -371,6 +401,13 @@ Al termine dell'elaborazione dell'evento il cargoserivce valuta se siano contemp
 ```
 
 == cargorobot 
+
+Come concordato con il committente si è scelto di utilizzare il simulatore di ambiente virtuale VirtualRobot26.
+Come descritto nella documentazione di smartrobot26, per poter pianificare la ricerca
+del percorso occorre che sia definita una mappa di contesto. Per costruirla si utilizza
+una stringa che poi andrà a denotare tale matrice.
+Conformemente all’immagine fornitaci dal committente, la mappa di contesto avrà la
+seguente forma:
 
 #link("https://anatali.github.io/issLab2026/_static/docs/Protobook.pdf#chapter.30")[link]
 

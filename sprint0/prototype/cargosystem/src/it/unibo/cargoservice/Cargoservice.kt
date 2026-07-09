@@ -29,6 +29,8 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 	override fun getBody() : (ActorBasicFsm.() -> Unit){
 		//val interruptedStateTransitions = mutableListOf<Transition>()
 		//IF actor.withobj !== null val actor.withobj.name� = actor.withobj.method�ENDIF
+		
+		        var hold = it.unibo.hold.Hold()
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
