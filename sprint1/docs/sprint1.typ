@@ -150,27 +150,7 @@ La documentazione di riferimento per *robotsmart26* è disponibile al seguente l
 La specifica Qak del componente *robotsmart26* è disponibile al seguente link:
 #link("https://github.com/chirichexe/iss-2026/blob/main/sprint1/robotsmart26/src/robotsmart26.qak")[robotsmart26]
 
-Per consentire lo spostamento del robot da una posizione a un'altra, l'attore `robotsmart` espone una *Request* dedicata, attraverso la quale è possibile specificare la destinazione e il tempo di esecuzione del singolo passo.
 
-```qak
-Request moverobot : moverobot(TARGETX, TARGETY, STEPTIME)
-```
-
-Alla ricezione della richiesta, `robotsmart` calcola il percorso verso la destinazione ed esegue il movimento del robot.
-
-Al termine dell'operazione può rispondere con uno dei seguenti messaggi:
-
-```qak
-Reply moverobotdone : moverobotok(ARG) for moverobot
-```
-
-che indica il completamento corretto del movimento, oppure
-
-```qak
-Reply moverobotfailed : moverobotfailed(PLANDONE, PLANTODO) for moverobot
-```
-
-che segnala l'impossibilità di completare il percorso, restituendo la parte già eseguita (`PLANDONE`) e quella ancora da percorrere (`PLANTODO`).
 
 == Analisi delle Interazioni
 
@@ -189,22 +169,25 @@ Dispatch led_ctrl           : ledCmd(CMD)
 // CMD: "on", "off", "blink"
 ```
 
-CHE TI FRULLA IL CERVELLO???? BR....
-- In questa fase, il movimento del robot sarà simulato, ma il cargoservice deve comunque attendere la fine dell'operazione per poter procedere con la      
-successiva fase del ciclo operativo (ossia richiedere al *markerdevice*  l'etichettatura in *slot5*, confermare lo stoccaggio e tornare allo stato *disengaged* ). Usiamo quindi la Request/Reply per assicurarci che il cargoservice attenda la fine del task.
-
-```
-//  CargoService <-> Robot 
-Request robot_move : robotMove(TARGET)
-Reply   robot_done : robotDone(none) for robot_move
-```
-
-- In modo analogo, il cargoservice deve interrogare il markerdevice per sapere quando l'operazione di etichettatura è terminata, non potendo procedere finché il markerdevice non ha risposto. Usiamo quindi la Request/Reply.
+- Il cargoservice deve interrogare il markerdevice per sapere quando l'operazione di etichettatura è terminata, non potendo procedere finché il markerdevice non ha risposto. Usiamo quindi la Request/Reply.
 
 ```
 //  CargoService <-> MarkerDevice 
 Request mark_container : markContainer(none)
 Reply   marking_done   : markingDone(none) for mark_container
+```
+
+- Per consentire lo spostamento del robot da una posizione a un'altra, cargoservice invia all'attore `robotsmart` una *request*, attraverso la quale è possibile specificare la destinazione (tramite coordinate) e il tempo di esecuzione. Alla ricezione della richiesta, `robotsmart` calcola il percorso verso la destinazione ed esegue il movimento del robot.
+
+```qak
+Request moverobot : moverobot(TARGETX, TARGETY, STEPTIME)
+```
+
+Al termine dell'operazione può rispondere con due possibili messaggi, uno per confermare l'avvenuto completamento del percorso e l'altro per segnalare eventuali problemi durante l'esecuzione del movimento. In quest'ultimo caso, il messaggio di risposta conterrà due parametri che indicano la parte di percorso già eseguita (`PLANDONE`) e quella ancora da percorrere (`PLANTODO`).
+
+```qak
+Reply moverobotdone : moverobotok(ARG) for moverobot
+Reply moverobotfailed : moverobotfailed(PLANDONE, PLANTODO) for moverobot
 ```
 
 == Rappresentazione dell'attore cargoservice come Macchina a Stati Finiti
@@ -214,6 +197,7 @@ L'attore cargoservice è, già da Sprint 0, inteso come una Macchina a Stati Fin
 - se il servizio è attualmente operativo (ServiceWorking)
 - lo stato logico del servizio (CargoState) 
 - l'identificativo dello slot eventualmente riservato (ReservedSlotId).
+- durata del passo (in ms) di avanzamento di una singola cella da parte del robot (StepTime)
 
 Per quanto riguarda le transizioni della FSM, si estende il comportamento già realizzato in Sprint0.
 
