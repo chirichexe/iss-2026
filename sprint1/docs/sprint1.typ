@@ -110,62 +110,31 @@ tra loro tramite scambio di messaggi.
 
 // avrebbe senso non rappresentare la hold come actor ma come stato interno del cargoservice??
 
-== Rappresentazione dello stato interno della stiva
+== Rappresentazione dello stato interno della hold
 
-In questa fase la gestione della stiva non viene ancora implementata completamente. Tuttavia, per rispettare il principio di singola 
-responsabilità, la logica non viene inclusa nel cargoservice, ma viene delegata a un *attore mock autonomo* posizionato nel context ctxprototype (recuperabile al seguente #link("https://github.com/chirichexe/iss-2026/blob/main/sprint1/prototype/codice_con_tutti_i_componenti.qak")[LINK DA CAMBIARE DAL MASSIMO ESPERTO])
+In questa fase la gestione della hold viene rappresentata tramite un *POJO*.
 
-```qak
-QActor hold context ctxprototype {
-    [#
-        var Slots = intArrayOf(0, 0, 0, 0)
-        
-        fun getFreeSlot(): Int {
-            for (i in 0..3) {
-                if (Slots[i] == 0) return i + 1
-            }
-            return -1
-        }
-    #]
+La scelta è motivata dal fatto che la hold non rappresenta un'entità attiva del sistema, ma una struttura dati che descrive lo stato interno dell'ambiente: posizione degli slot, ostacoli, IOPort, home del robot e stato di occupazione degli slot.
 
-    State s0 initial {
-        println("hold | STARTED") color green
-    }
-    Goto work
+L'interfaccia `IHold` definisce le operazioni necessarie per la gestione della hold, indipendentemente dalla loro implementazione. La classe `Hold` ne costituisce l'implementazione concreta, occupandosi della rappresentazione dello stato della hold e della logica di assegnazione degli slot.
 
-    State work {}
-    Transition t0
-        whenRequest get_slot  -> handle_get_slot
-        whenMsg     free_slot -> handle_free_slot
+Le motivazioni che hanno portato all'introduzione di un'interfaccia sono legate alla possibilità di estendere il sistema in futuro.
 
-    State handle_get_slot {
-        [# val SlotId = getFreeSlot() #]
-        
-        if [# SlotId != -1 #] {
-            [# Slots[SlotId - 1] = 1 #]
-            replyTo get_slot with slot_reserved : slotReserved($SlotId)
-        } else {
-            replyTo get_slot with hold_full : holdFull(none)
-        }
-    }
-    Goto work
+Inoltre, lo stato iniziale della hold viene caricato da un file di configurazione JSON, così da evitare valori hard-coded nel codice e rendere più semplice modificare la disposizione dell'ambiente senza cambiare la logica applicativa.
 
-    State handle_free_slot {
-        onMsg(free_slot : freeSlot(ID)) {
-            [# val id = payloadArg(0).toInt() #]
-            [# Slots[id - 1] = 0 #]
-            println("hold | Freed slot$id") color green
-        }
-    }
-    Goto work
-}
+Il file di configurazione è disponibile al seguente link:
+#link("https://github.com/chirichexe/iss-2026/blob/main/sprint1/prototype/src/configuration.json")[configurazione hold]
+
+Il codice della classe `Hold` è disponibile al seguente link:
+#link("https://github.com/chirichexe/iss-2026/blob/main/sprint1/prototype/src/Hold.java")[codice Hold]
+
+Il codice dell'interfaccia `IHold` è disponibile al seguente link:
+#link("https://github.com/chirichexe/iss-2026/blob/main/sprint1/prototype/src/IHold.java")[codice Hold]
+
+```java
+CODICE INTERFACCIA
+IN ATTESA DEL MASSIMO ESPERTO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ```
-
-Ogni posizione dell'array rappresenta uno slot della stiva. Il valore `0` indica uno slot libero, mentre un valore diverso da `0` 
-indica uno slot occupato o riservato.
-
-Questa scelta permette al *cargoservice* di verificare dinamicamente se la stiva è piena interrogando l'attore hold tramite Request / Reply, 
-senza conoscerne i dettagli interni
 
 == Analisi delle Interazioni
 
