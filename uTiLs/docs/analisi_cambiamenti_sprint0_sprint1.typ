@@ -318,36 +318,27 @@ QActor cargoservice context ctxprototype {
         if [# CargoState == "engaged" || !ServiceWorking || IOPortOccupied #] {
             replyTo load_request with load_retrylater : loadRetryLater(none)
         } else {
-            // Interroga la Hold per uno slot libero
-            request hold -m get_slot : getSlot(none)
+            // Interroga il POJO Hold per uno slot libero
+            [# val SlotId = main.kotlin.Hold.reserveSlot() #]
+            if [# SlotId > 0 #] {
+                [# 
+                    ReservedSlotId = SlotId
+                    CargoState     = "engaged" 
+                #]
+                forward ledmock -m led_ctrl : ledCmd(blink)
+                [# val SlotName = "slot$ReservedSlotId" #]
+                replyTo load_request with load_accepted : loadAccepted($SlotName)
+            } else {
+                replyTo load_request with load_refused : loadRefused(none)
+            }
         }
     }
-    Transition t0
-        whenReply slot_reserved -> accept_request
-        whenReply hold_full     -> refuse_request
-
-    State accept_request {
-        onMsg(slot_reserved : slotReserved(ID)) {
-            [# 
-                ReservedSlotId = payloadArg(0).toInt()
-                CargoState     = "engaged" 
-            #]
-            forward ledmock -m led_ctrl : ledCmd(blink)
-            [# val SlotName = "slot$ReservedSlotId" #]
-    		replyTo load_request with load_accepted : loadAccepted($SlotName)
-        }
-    }
-    Goto engaged
-
-    State refuse_request {
-        replyTo load_request with load_refused : loadRefused(none)
-    }
-    Goto disengaged
+    Goto engaged if [# CargoState == "engaged" #] else disengaged
 ```
 
 *Analisi del Blocco 3:*
 - *Guardia Booleana di Ammissione:* Lo stato `handle_load_request` implementa la logica di filtro critico dell'intero sistema. La condizione `if [# CargoState == "engaged" || !ServiceWorking || IOPortOccupied #]` valuta simultaneamente la logica di business, la sicurezza hardware e lo stato fisico della pedana. In caso negativo, il servizio emette immediatamente la risposta `load_retrylater` senza bloccare la propria esecuzione.
-- *Transazione a due fasi con la Stiva:* Se le precondizioni sono soddisfatte, l'orchestratore non accetta ciecamente la richiesta, ma inoltra una richiesta `get_slot` all'attore `hold`. Solo alla ricezione della risposta asincrona `slot_reserved` (transizione verso `accept_request`), l'orchestratore alloca il `ReservedSlotId`, commuta lo stato in `engaged`, comanda all'attuatore LED di lampeggiare (`ledCmd(blink)`) e invia la conferma `load_accepted(slotX)` al cliente.
+- *Adozione della Stiva come Struttura Dati (POJO `Hold.kt`):* Conformemente alla formalizzazione del dominio maturata nello Sprint 0, la stiva non è modellata come un attore asincrono separato ma come un *POJO Kotlin thread-safe (`Hold.kt`)*. Se le precondizioni sono soddisfatte, l'orchestratore interroga direttamente la struttura dati (`Hold.reserveSlot()`). Se viene restituito uno `SlotId > 0`, l'orchestratore alloca il `ReservedSlotId`, commuta lo stato in `engaged`, comanda all'attuatore LED di lampeggiare (`ledCmd(blink)`) e invia la conferma `load_accepted(slotX)` al cliente; se la stiva è satura (`SlotId == 0`), restituisce `load_refused`. Questa transizione atomica elimina ogni overhead di messaging su dati puramente locali al servizio.
 
 == Orchestratore (`cargoservice`): Gestione Sonar, Allarmi e Routing Asincrono
 ```qak
@@ -393,11 +384,12 @@ QActor cargoservice context ctxprototype {
     // GESTIONE ROBOT E MARKER
 
     State do_robot_job {
-        println("cargoservice | Container deposited! Moving to slot5...") color magenta
-        request cargorobotmock -m robot_move : robotMove(slot5)
+        println("cargoservice | Container deposited! Moving robot to slot5 (5,2) for marking via robotsmart26...") color magenta
+        request robotsmart -m moverobot : moverobot(5, 2, $StepTime)
     }
     Transition t0
-        whenReply robot_done -> mark_container
+        whenReply moverobotdone   -> mark_container
+        whenReply moverobotfailed -> handle_robot_fail
         
     State mark_container {
         println("cargoservice | At slot5. Asking markerdevice to mark...") color magenta
@@ -407,12 +399,24 @@ QActor cargoservice context ctxprototype {
         whenReply marking_done -> move_to_reserved_slot
         
     State move_to_reserved_slot {
-        println("cargoservice | Marked! Moving to slot$ReservedSlotId...") color magenta
-        [# val TargetSlot = "slot$ReservedSlotId" #]
-    	request cargorobotmock -m robot_move : robotMove($TargetSlot)
+        [# 
+            val DestX = Hold.getSlotX(ReservedSlotId)
+            val DestY = Hold.getSlotY(ReservedSlotId)
+        #]
+        println("cargoservice | Marked! Moving container to slot$ReservedSlotId ($DestX, $DestY) via robotsmart26...") color magenta
+    	request robotsmart -m moverobot : moverobot($DestX, $DestY, $StepTime)
     }
     Transition t0
-        whenReply robot_done -> finish_job
+        whenReply moverobotdone   -> return_home
+        whenReply moverobotfailed -> handle_robot_fail
+
+    State return_home {
+        println("cargoservice | Container stored! Returning robot to HOME (1,0) via robotsmart26...") color magenta
+        request robotsmart -m moverobot : moverobot(1, 0, $StepTime)
+    }
+    Transition t0
+        whenReply moverobotdone   -> finish_job
+        whenReply moverobotfailed -> handle_robot_fail
         
     State finish_job {
         println("cargoservice | Job completed!") color green
@@ -424,8 +428,10 @@ QActor cargoservice context ctxprototype {
     State handle_deposit_timeout {
         println("cargoservice | Deposit timeout! Freeing slot.") color red
         
-        [# CargoState = "disengaged" #]
-        forward hold -m free_slot : freeSlot($ReservedSlotId)
+        [# 
+            CargoState = "disengaged" 
+            Hold.freeSlot(ReservedSlotId)
+        #]
         forward ledmock -m led_ctrl : ledCmd(off)
     }
     Goto disengaged
@@ -433,62 +439,42 @@ QActor cargoservice context ctxprototype {
 ```
 
 *Analisi del Blocco 5:*
-- *Srotolamento Asincrono (Unrolling):* Questo gruppo di stati incarna il superamento del commento monolitico dello Sprint 0. L'orchestratore governa la sequenza operativa inviando richieste asincrone ai collaboratori (`cargorobotmock` e `markerdevice`). Ogni transizione di avanzamento è strettamente subordinata alla ricezione della risposta di completamento (`whenReply robot_done`, `whenReply marking_done`), garantendo che il robot e il laser operino in sincronia rigorosa senza bloccare il thread dell'orchestratore.
-- *Chiusura del Ciclo (`finish_job`):* Una volta deposto il container nello slot finale, l'attore reimposta `CargoState = "disengaged"` e invia il dispatch di spegnimento al LED (`ledCmd(off)`), riportando il sistema allo stato di riposo iniziale.
-- *Gestione del Caso Limite (Timeout):* Lo stato di recovery `handle_deposit_timeout` entra in azione allo scadere dei 30 secondi nello stato `engaged` in assenza del container. Per garantire che le risorse non rimangano bloccate a causa dell'inadempienza del cliente, l'orchestratore invia un messaggio di compensazione alla stiva (`freeSlot($ReservedSlotId)`), spegne il LED e risistema l'infrastruttura per nuove richieste.
+- *Integrazione con `robotsmart26` (`moverobot`):* La movimentazione non ricorre più a comandi astratti ma adotta le primitive di navigazione del sottosistema `robotsmart26` (`Request moverobot : moverobot(TARGETX, TARGETY, STEPTIME)`). L'orchestratore comanda al robot di raggiungere le coordinate cartesiane della griglia: dapprima `(5, 2)` per lo `slot5` di marcatura, successivamente `(DestX, DestY)` corrispondenti allo slot di stiva allocato dal POJO, ed infine la cella di `HOME (1, 0)`.
+- *Srotolamento Asincrono (Unrolling):* Ogni transizione di avanzamento è strettamente subordinata alla ricezione della risposta di completamento (`whenReply moverobotdone`, `whenReply marking_done`), garantendo che il robot e il laser operino in sincronia rigorosa e gestendo esplicitamente eventuali fallimenti (`moverobotfailed`).
+- *Chiusura del Ciclo e Timeout:* Al termine del deposito (`finish_job`) o allo scadere dei 30 secondi d'attesa (`handle_deposit_timeout`), l'orchestratore reimposta `CargoState = "disengaged"`, invia lo spegnimento al LED (`ledCmd(off)`) e, nel caso del timeout, libera lo slot direttamente nel POJO (`Hold.freeSlot(ReservedSlotId)`).
 
-== Collaboratore Simulato di Stiva (`hold`)
-```qak
-//HOLD MOCK
+== Struttura Dati POJO Java della Stiva (`Hold.java` e `CellType.java`)
+```java
+public enum CellType {
+    FREE, OBSTACLE, HOME, SONAR, IOPORT, SLOT1, SLOT2, SLOT3, SLOT4, SLOT5
+}
 
-QActor hold context ctxprototype {
-    [#
-        var Slots = intArrayOf(0, 0, 0, 0)
-        
-        fun getFreeSlot(): Int {
-            for (i in 0..3) {
-                if (Slots[i] == 0) return i + 1
-            }
-            return -1
-        }
-    #]
+public class Hold {
+    private static Hold INSTANCE = new Hold();
+    private final CellType[][] cells = {
+        { CellType.FREE,   CellType.HOME,   CellType.FREE,     CellType.FREE,     CellType.FREE,     CellType.FREE,  CellType.FREE },
+        { CellType.SONAR,  CellType.FREE,   CellType.SLOT1,    CellType.OBSTACLE, CellType.SLOT2,    CellType.FREE,  CellType.FREE }, 
+        { CellType.FREE,   CellType.FREE,   CellType.FREE,     CellType.FREE,     CellType.FREE,     CellType.SLOT5, CellType.FREE },
+        { CellType.FREE,   CellType.FREE,   CellType.SLOT3,    CellType.OBSTACLE, CellType.SLOT4,    CellType.FREE,  CellType.FREE },
+        { CellType.FREE,   CellType.FREE,   CellType.FREE,     CellType.FREE,     CellType.FREE,     CellType.FREE,  CellType.FREE },
+        { CellType.FREE,   CellType.FREE,   CellType.FREE,     CellType.FREE,     CellType.FREE,     CellType.FREE,  CellType.FREE },
+        { CellType.IOPORT, CellType.FREE,   CellType.FREE,     CellType.FREE,     CellType.FREE,     CellType.FREE,  CellType.FREE } 
+    };
+    private final boolean[] occupiedSlots = new boolean[5];
 
-    State s0 initial {
-        println("hold | STARTED") color green
-    }
-    Goto work
-
-    State work {}
-    Transition t0
-        whenRequest get_slot  -> handle_get_slot
-        whenMsg     free_slot -> handle_free_slot
-
-    State handle_get_slot {
-        [# val SlotId = getFreeSlot() #]
-        
-        if [# SlotId != -1 #] {
-            [# Slots[SlotId - 1] = 1 #]
-            replyTo get_slot with slot_reserved : slotReserved($SlotId)
-        } else {
-            replyTo get_slot with hold_full : holdFull(none)
-        }
-    }
-    Goto work
-
-    State handle_free_slot {
-        onMsg(free_slot : freeSlot(ID)) {
-            [# val id = payloadArg(0).toInt() #]
-            [# Slots[id - 1] = 0 #]
-            println("hold | Freed slot$id") color green
-        }
-    }
-    Goto work
+    public Hold() { ... }
+    public Hold(String jsonFilePath) { /* Caricamento configurazione da file JSON senza import esterni */ }
+    public static synchronized int reserveSlot() { ... }
+    public static synchronized void freeSlot(int slotId) { ... }
+    public static int getSlotX(int slotId) { ... }
+    public static int getSlotY(int slotId) { ... }
 }
 ```
 
 *Analisi del Blocco 6:*
-- *Memoria Volatile Mappata:* In accordo con le considerazioni sui requisiti ad alta priorità, l'attore `hold` modella la stiva navale tramite una struttura dati in memoria ad alta efficienza (`Slots = intArrayOf(0,0,0,0)`).
-- *Atomicità di Allocazione e Rilascio:* Alla ricezione della richiesta `get_slot`, l'attore esegue l'algoritmo lineare di ricerca `getFreeSlot()`. Se individua una cella vuota, ne marca lo stato a `1` e risponde con l'identificativo 1-indexed (`slotReserved`); se tutti i 4 slot sono pieni, risponde immediatamente con `holdFull`. Parallelamente, la gestione del dispatch `free_slot` permette di resettare la cella a `0` (indispensabile sia per il timeout di deposito che per futuri cicli di scarico).
+- *Dominio come Struttura Dati Java (`Hold.java`):* In stretta continuità e conformità con il modello dello Sprint 0 (`/sprint0/prototype/hold/Hold.java`), la stiva è strutturata come un POJO Java puro privo di qualsiasi importazione esterna (`import`), avvalendosi dell'enum `CellType` per rappresentare la matrice 7x7 della griglia navale.
+- *Configurazione Flessibile via JSON:* Il costruttore `Hold(String jsonFilePath)` consente di inizializzare lo stato di occupazione degli slot leggendo un file di configurazione JSON all'avvio, mantenendo al tempo stesso l'assenza totale di dipendenze da librerie esterne.
+- *Accesso Diretto Senza Import in QAK:* Posizionando `Hold.java` e `CellType.java` direttamente nella directory `src/` (senza package né import), l'orchestratore QAK invoca le primitive transazionali (`Hold.reserveSlot()`, `Hold.freeSlot()`, `Hold.getSlotX/Y()`) direttamente nel proprio blocco d'esecuzione senza necessità di dichiarazioni `import`.
 
 == Sensori e Attuatori Simulati (`sonarmock`, `markerdevice`, `ledmock`)
 ```qak
@@ -604,19 +590,29 @@ QActor ioportmock context ctxprototype {
 }
 
 
-//CARGOROBOT MOCK
+//CARGOROBOT MOCK / SIMULATORE MOVIMENTO (compatibile con robotsmart26)
 
 QActor cargorobotmock context ctxprototype {
-    State s0 initial { }
+    State s0 initial {
+        println("cargorobotmock | STARTED (Simulating robotsmart26 movement)") color blue
+    }
     Goto work
     
     State work {}
     Transition t0 
-        whenRequest robot_move -> handle_move
+        whenRequest moverobot -> handle_move
         
     State handle_move {
-        delay 1500
-        replyTo robot_move with robot_done : robotDone(none)
+        onMsg(moverobot : moverobot(X, Y, TIME)) {
+            [# 
+                val Tx = payloadArg(0)
+                val Ty = payloadArg(1)
+                val StepTime = payloadArg(2)
+            #]
+            println("cargorobotmock | Executing simulated movement to ($Tx, $Ty)...") color cyan
+            delay 1500
+            replyTo moverobot with moverobotdone : moverobotok(done)
+        }
     }
     Goto work
 }
@@ -624,7 +620,7 @@ QActor cargorobotmock context ctxprototype {
 
 *Analisi del Blocco 8:*
 - *Scripting di Collaudo Integrato (`ioportmock`):* Questo attore rappresenta un client intelligente che esegue uno script di collaudo end-to-end all'avvio del sistema. Invia 3 richieste in momenti strategici del ciclo di vita del prototipo: la prima trova il sistema libero ed operante (ricevendo `load_accepted`); la seconda viene inviata al millisecondo 12000, esattamente durante la simulazione di guasto del sonar (certificando che l'orchestratore risponda correttamente con `load_retrylater`); la terza avviene dopo il ripristino, confermando che il sistema è pienamente resiliente ed in grado di accogliere nuove richieste una volta risolta l'anomalia.
-- *Astrazione delle Movimentazioni (`cargorobotmock`):* Il robot simulato risponde al contratto di movimentazione (`robotMove`) con un tempo d'attesa parametrico (`delay 1500`), separando in modo netto le responsabilità tra chi decide dove deve andare il container (l'orchestratore) e chi esegue materialmente il moto (il robot, la cui navigazione su mappa verrà approfondita con il `basicrobot` nello Sprint successivo).
+- *Simulazione e Ponte verso `robotsmart26` (`cargorobotmock`):* Il robot simulato accoglie la richiesta standard di navigazione su griglia A\* (`moverobot(X, Y, TIME)`), estrae le coordinate del target ed esegue una simulazione temporizzata dell'attraversamento celle prima di emettere `moverobotok(done)`. Questo design consente la commutazione trasparente tra l'esecuzione di collaudo locale unitario in `ctxprototype` e la delega al vero pianificatore `ExternalQActor robotsmart` del progetto `robotsmart26`.
 
 = Piano di Test e Collaudo Automatizzato
 
