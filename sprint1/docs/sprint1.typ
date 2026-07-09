@@ -391,11 +391,15 @@ seguente forma:
 
 Per procedere al deployment del prototipo è necessario eseguire i seguenti passaggi:
 
-1. Clonare il repository del progetto da GitHub:
+1. Clonare il repository del progetto da GitHub
 
-2. Eseguire all'interno della directory del progetto il comando `./gradlew build`
+2. Nella directory robosmart26/yamls eseguire il comando 'docker compose -f unibobasic26.yaml up'
 
-3. Avviare il prototipo eseguendo il comando `./gradlew run`
+3. Aprire un broswer e andare su http://localhost:8090/
+
+4. Eseguire all'interno della directory del progetto robosmart26 il comando `./gradlew run`
+
+5. Eseguire all'interno della directory del progetto robosmart26 il comando `./gradlew run`
 
 
 // = Maintenance
