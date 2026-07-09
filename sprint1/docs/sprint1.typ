@@ -110,21 +110,31 @@ tra loro tramite scambio di messaggi.
 
 // avrebbe senso non rappresentare la hold come actor ma come stato interno del cargoservice??
 
-== Rappresentazione dello stato interno della stiva
+== Rappresentazione dello stato interno della hold
 
-In questa fase la gestione della stiva viene rappresentata tramite un *POJO*, invece che come attore autonomo.
+In questa fase la gestione della hold viene rappresentata tramite un *POJO*.
 
-La scelta è motivata dal fatto che la stiva non rappresenta un'entità attiva del sistema, ma una struttura dati che descrive lo stato interno dell'ambiente: posizione degli slot, ostacoli, IOPort, home del robot e stato di occupazione degli slot.
+La scelta è motivata dal fatto che la hold non rappresenta un'entità attiva del sistema, ma una struttura dati che descrive lo stato interno dell'ambiente: posizione degli slot, ostacoli, IOPort, home del robot e stato di occupazione degli slot.
 
-Separare questa logica dal `cargoservice` permette di rispettare il principio di singola responsabilità: il `cargoservice` coordina il servizio, mentre la classe `Hold` gestisce esclusivamente le informazioni relative alla stiva.
+L'interfaccia `IHold` definisce le operazioni necessarie per la gestione della hold, indipendentemente dalla loro implementazione. La classe `Hold` ne costituisce l'implementazione concreta, occupandosi della rappresentazione dello stato della hold e della logica di assegnazione degli slot.
 
-Inoltre, lo stato iniziale della stiva viene caricato da un file di configurazione JSON, così da evitare valori hard-coded nel codice e rendere più semplice modificare la disposizione dell'ambiente senza cambiare la logica applicativa.
+Le motivazioni che hanno portato all'introduzione di un'interfaccia sono legate alla possibilità di estendere il sistema in futuro.
+
+Inoltre, lo stato iniziale della hold viene caricato da un file di configurazione JSON, così da evitare valori hard-coded nel codice e rendere più semplice modificare la disposizione dell'ambiente senza cambiare la logica applicativa.
 
 Il file di configurazione è disponibile al seguente link:
-#link("LINK_FILE_CONFIGURAZIONE_JSON")[configurazione hold]
+#link("https://github.com/chirichexe/iss-2026/blob/main/sprint1/prototype/src/configuration.json")[configurazione hold]
 
 Il codice della classe `Hold` è disponibile al seguente link:
-#link("LINK_CODICE_HOLD")[codice Hold]
+#link("https://github.com/chirichexe/iss-2026/blob/main/sprint1/prototype/src/Hold.java")[codice Hold]
+
+Il codice dell'interfaccia `IHold` è disponibile al seguente link:
+#link("https://github.com/chirichexe/iss-2026/blob/main/sprint1/prototype/src/IHold.java")[codice Hold]
+
+```java
+CODICE INTERFACCIA
+IN ATTESA DEL MASSIMO ESPERTO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+```
 
 == Analisi delle Interazioni
 
