@@ -324,7 +324,19 @@ Al termine dell'elaborazione dell'evento il cargoserivce valuta se siano contemp
 
 ```
 
--Analisi
+Il completamento della procedura di deposito è affidato al CargoService, che assume il ruolo di coordinatore dell'intero flusso operativo. Una volta verificata la presenza del container presso la porta di ingresso, il componente avvia una sequenza di operazioni che coinvolge il robot e il dispositivo di marcatura, sincronizzando l'esecuzione delle diverse attività mediante comunicazioni Request/Reply.
+
+Come prima operazione il robot viene incaricato di trasportare il container presso la postazione dedicata alla marcatura. La destinazione viene espressa tramite coordinate della mappa e il tempo di avanzamento per ogni singolo passo viene fissato mediante il parametro StepTime, definito come costante del componente. La scelta di parametrizzare il tempo di movimento consente di separare la logica applicativa dalle caratteristiche fisiche del robot, rendendo più semplice l'adattamento del sistema a differenti configurazioni.
+
+Una volta raggiunta la postazione di marcatura, il CargoService richiede al MarkerDevice l'identificazione del container. L'utilizzo di una comunicazione sincrona garantisce che la procedura di deposito possa proseguire esclusivamente dopo la conferma dell'avvenuta marcatura, evitando situazioni in cui un container venga depositato senza essere stato correttamente identificato.
+
+Terminata questa fase, il componente recupera dalla Hold le coordinate associate allo slot precedentemente riservato e richiede al robot di effettuare il trasporto verso la destinazione definitiva. Questa scelta progettuale evita di codificare staticamente la posizione degli slot all'interno del CargoService, mantenendo la responsabilità della gestione della struttura del magazzino confinata nella Hold.
+
+Dopo il deposito del container, il robot viene automaticamente riportato nella posizione Home. Questa ulteriore fase è stata introdotta per garantire che ogni nuova operazione inizi da una configurazione nota del sistema, semplificando la pianificazione dei movimenti successivi e rendendo il comportamento complessivo maggiormente deterministico.
+
+Al termine dell'intera sequenza il CargoService ripristina il proprio stato iniziale, spegne il LED di segnalazione e ritorna nello stato disengaged, rendendosi immediatamente disponibile alla gestione di nuove richieste.
+
+Particolare attenzione è stata dedicata anche alla gestione degli errori durante gli spostamenti del robot. Qualora il componente RobotSmart segnali l'impossibilità di completare un movimento, il CargoService interrompe la procedura corrente e ritorna nello stato engaged, mantenendo invariata la prenotazione dello slot e consentendo una successiva gestione del guasto senza compromettere la consistenza dello stato del sistema.
 
 ```qak
     // GESTIONE ROBOT E MARKER
