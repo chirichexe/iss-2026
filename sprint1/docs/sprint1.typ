@@ -112,7 +112,7 @@ tra loro tramite scambio di messaggi.
 
 == Rappresentazione dello stato interno della stiva
 
-In questa fase la gestione della stiva viene rappresentata tramite un *POJO* Java, invece che come attore autonomo.
+In questa fase la gestione della stiva viene rappresentata tramite un *POJO*, invece che come attore autonomo.
 
 La scelta è motivata dal fatto che la stiva non rappresenta un'entità attiva del sistema, ma una struttura dati che descrive lo stato interno dell'ambiente: posizione degli slot, ostacoli, IOPort, home del robot e stato di occupazione degli slot.
 
