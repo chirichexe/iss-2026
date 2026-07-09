@@ -14,6 +14,11 @@ Context ctxdevices      ip [host="localhost" port=8053]
 
 QActor cargoservice context ctxcargoservice {
 
+    [#
+        var hold = it.unibo.hold.Hold()
+    #]
+
+
     State s0 initial {
         println("cargoservice | started") color blue
     }
