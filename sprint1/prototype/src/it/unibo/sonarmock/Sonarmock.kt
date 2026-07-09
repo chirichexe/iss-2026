@@ -32,12 +32,18 @@ class Sonarmock ( name: String, scope: CoroutineScope, isconfined: Boolean=false
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
+						// TEST 3: simulate container deposit after an accepted load request.
+						// Expected: cargoservice detects IOPortOccupied and starts the robot job.
 						delay(4000) 
 						CommUtils.outcyan("sonarmock | Container placed -> Emitting sonardata(30)")
 						emit("sonardata", "distance(30)" ) 
+						// TEST 4: simulate D > DFREE.
+						// Expected: cargoservice switches to OUT OF SERVICE.
 						delay(8000) 
 						CommUtils.outcyan("sonarmock | Sonar measures D > DFREE (200). Emitting sonardata(200)")
 						emit("sonardata", "distance(200)" ) 
+						// TEST 5: simulate D <= DFREE after out of service.
+						// Expected: cargoservice switches back to WORKING.
 						delay(5000) 
 						CommUtils.outgreen("sonarmock | Sonar measures D <= DFREE (100). Emitting sonardata(100)")
 						emit("sonardata", "distance(100)" ) 

@@ -408,7 +408,99 @@ Particolare attenzione è stata dedicata anche alla gestione degli errori durant
 
 = Test plans <testplan>
 
-// = Testing
+Il testplan dello Sprint1 non è realizzato come test JUnit separato, ma come *scenario di test eseguibile* interno al modello QAK.
+Gli attori mock avviano automaticamente le interazioni necessarie a verificare il comportamento essenziale del `cargoservice`.
+
+I test previsti sono:
+
+- *TEST 1 - richiesta accettata* \
+  Eseguito da `ioportmock`: invia una prima `load_request` quando il servizio è libero. \
+  Risultato atteso: `cargoservice` risponde con `load_accepted(slotN)` e invia `ledCmd(blink)` a `ledmock`.
+
+- *TEST 2 - nessun accodamento* \
+  Eseguito da `ioportmock`: invia subito una seconda `load_request` mentre il servizio è `engaged`. \
+  Risultato atteso: `cargoservice` risponde con `load_retrylater`, quindi la richiesta non viene accodata.
+
+- *TEST 3 - deposito del container* \
+  Eseguito da `sonarmock`: emette `sonardata: distance(30)`. \
+  Risultato atteso: `cargoservice` rileva l'IOPort occupato e avvia la procedura di movimentazione del robot.
+
+- *TEST 4 - sonar out of service* \
+  Eseguito da `sonarmock`: emette `sonardata: distance(200)`. \
+  Risultato atteso: `cargoservice` imposta il sistema in stato *Out of service*.
+
+- *TEST 5 - ripristino sonar* \
+  Eseguito da `sonarmock`: emette `sonardata: distance(100)`. \
+  Risultato atteso: `cargoservice` riporta il sistema in stato *Working*.
+
+- *TEST 6 - marcatura container* \
+  Eseguito da `markerdevice`: riceve `mark_container` e risponde `marking_done`. \
+  Risultato atteso: `cargoservice` prosegue verso il trasferimento allo slot riservato.
+
+Il seguente estratto mostra la parte principale del testplan codificata nel modello QAK:
+
+```qak
+QActor ioportmock context ctxprototype {
+    State s0 initial {
+        // TEST 1: send the first load request while the service should be free.
+        // Expected: cargoservice replies load_accepted(slotN) and ledmock receives blink.
+        delay 1000
+        println("ioportmock | TEST 1 - Sending 1st load_request (expected load_accepted)") color cyan
+        request cargoservice -m load_request : loadRequest(none)
+    }
+    Transition t0
+        whenReply load_accepted   -> handle_accept
+        whenReply load_retrylater -> handle_retry
+        whenReply load_refused    -> handle_refuse
+
+    State handle_accept {
+        printCurrentMessage color green
+
+        // TEST 2: immediately send another request while cargoservice is engaged.
+        // Expected: no queue is created and cargoservice replies load_retrylater.
+        delay 500
+        println("ioportmock | TEST 2 - Sending 2nd load_request while engaged (expected load_retrylater)") color cyan
+        request cargoservice -m load_request : loadRequest(none)
+    }
+    Transition t0
+        whenReply load_retrylater -> handle_no_queue_ok
+        whenReply load_accepted   -> handle_unexpected_accept
+        whenReply load_refused    -> handle_refuse
+}
+
+QActor sonarmock context ctxprototype {
+    State s0 initial {
+        // TEST 3: simulate container deposit after an accepted load request.
+        delay 4000
+        emit sonardata : distance(30)
+
+        // TEST 4: simulate D > DFREE.
+        delay 8000
+        emit sonardata : distance(200)
+
+        // TEST 5: simulate D <= DFREE after out of service.
+        delay 5000
+        emit sonardata : distance(100)
+    }
+}
+
+QActor markerdevice context ctxprototype {
+    State handle_mark {
+        // TEST 6: verify the marking phase in the nominal workflow.
+        delay 1500
+        replyTo mark_container with marking_done : markingDone(none)
+    }
+}
+```
+
+L'esecuzione del testplan avviene avviando il prototipo:
+
+```bash
+cd sprint1/prototype
+./gradlew run
+```
+
+Le evidenze dei test sono visibili direttamente nel log prodotto dagli attori mock e dal `cargoservice`.
 
 = Deployment <deployment>
 

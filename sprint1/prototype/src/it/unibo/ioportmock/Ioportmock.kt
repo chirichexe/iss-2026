@@ -32,8 +32,10 @@ class Ioportmock ( name: String, scope: CoroutineScope, isconfined: Boolean=fals
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
+						// TEST 1: send the first load request while the service should be free.
+						// Expected: cargoservice replies load_accepted(slotN) and ledmock receives blink.
 						delay(1000) 
-						CommUtils.outcyan("ioportmock | Sending 1st load_request (should be accepted)")
+						CommUtils.outcyan("ioportmock | TEST 1 - Sending 1st load_request (expected load_accepted)")
 						request("load_request", "loadRequest(none)" ,"cargoservice" )  
 						//genTimer( actor, state )
 					}
@@ -47,39 +49,35 @@ class Ioportmock ( name: String, scope: CoroutineScope, isconfined: Boolean=fals
 				state("handle_accept") { //this:State
 					action { //it:State
 						CommUtils.outgreen("$name in ${currentState.stateName} | $currentMsg | ${Thread.currentThread().getName()} n=${Thread.activeCount()}")
-						 	   
-						delay(12000) 
-						CommUtils.outcyan("ioportmock | Sending 2nd load_request (should retrylater due to outofservice)")
+						 	
+						// TEST 2: immediately send another request while cargoservice is engaged.
+						// Expected: no queue is created and cargoservice replies load_retrylater.
+						delay(500) 
+						CommUtils.outcyan("ioportmock | TEST 2 - Sending 2nd load_request while engaged (expected load_retrylater)")
 						request("load_request", "loadRequest(none)" ,"cargoservice" )  
 						//genTimer( actor, state )
 					}
 					//After Lenzi Aug2002
 					sysaction { //it:State
 					}	 	 
-					 transition(edgeName="t017",targetState="wait_and_retry",cond=whenReply("load_retrylater"))
-					transition(edgeName="t018",targetState="handle_final_accept",cond=whenReply("load_accepted"))
+					 transition(edgeName="t017",targetState="handle_no_queue_ok",cond=whenReply("load_retrylater"))
+					transition(edgeName="t018",targetState="handle_unexpected_accept",cond=whenReply("load_accepted"))
 					transition(edgeName="t019",targetState="handle_refuse",cond=whenReply("load_refused"))
 				}	 
-				state("wait_and_retry") { //this:State
+				state("handle_no_queue_ok") { //this:State
 					action { //it:State
 						CommUtils.outyellow("$name in ${currentState.stateName} | $currentMsg | ${Thread.currentThread().getName()} n=${Thread.activeCount()}")
-						 	   
-						delay(6000) 
-						CommUtils.outcyan("ioportmock | Sending 3rd load_request (should be accepted, system recovered)")
-						request("load_request", "loadRequest(none)" ,"cargoservice" )  
+						CommUtils.outgreen("ioportmock | TEST 2 OK - request rejected with retrylater while service is engaged")
 						//genTimer( actor, state )
 					}
 					//After Lenzi Aug2002
 					sysaction { //it:State
 					}	 	 
-					 transition(edgeName="t020",targetState="handle_final_accept",cond=whenReply("load_accepted"))
-					transition(edgeName="t021",targetState="handle_retry",cond=whenReply("load_retrylater"))
-					transition(edgeName="t022",targetState="handle_refuse",cond=whenReply("load_refused"))
 				}	 
-				state("handle_final_accept") { //this:State
+				state("handle_unexpected_accept") { //this:State
 					action { //it:State
-						CommUtils.outgreen("$name in ${currentState.stateName} | $currentMsg | ${Thread.currentThread().getName()} n=${Thread.activeCount()}")
-						 	   
+						CommUtils.outred("$name in ${currentState.stateName} | $currentMsg | ${Thread.currentThread().getName()} n=${Thread.activeCount()}")
+						CommUtils.outred("ioportmock | TEST 2 FAILED - request was accepted while service was already engaged")
 						//genTimer( actor, state )
 					}
 					//After Lenzi Aug2002
