@@ -143,7 +143,7 @@ columns: (auto, 1fr),
 [*ctxIOPort*],
 [Raggruppa le entità dedicate all'interazione con l'utente. Contiene l'IOPort (con display e pushbutton)],
 [*ctxDevices*],
-[Raggruppa i dispositivi presenti nella hold: sonar, LED, hold e markerdevice.],
+[Raggruppa i dispositivi presenti nella hold: sonar, LED, e markerdevice.],
 [*ctxRobot*],
 [Raggruppa le entità legate al cargorobot e alla movimentazione richiesta.],
 )
