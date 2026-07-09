@@ -154,7 +154,7 @@ La specifica Qak del componente *robotsmart26* è disponibile al seguente link:
 
 == Analisi delle Interazioni
 
-Di seguito si riporta una formalizzazione delle interazioni tra gli attori modellate interpretando e applicando opportune scelte progettuali sui requisiti del sistema.
+Di seguito si riporta una formalizzazione delle interazioni tra gli attori modellate interpretando e applicando opportune scelte progettuali sui requisiti del sistema. Il codice è disponibile al seguente #link("https://github.com/chirichexe/iss-2026/blob/main/sprint1/prototype/src/Prototype_Sprint1.qak")[link].
 
 - Da requisiti, sappiamo che il sonar deve misurare continuamente la distanza del container dal sonar stesso. Nasce quindi la necessità di dover trasmettere queste misurazioni al cargoservice. Per isolare la responsabilità del sonar a semplice "misuratore e trasmettitore" di informazione, viene naturale formalizzare tale comunicazione come un Event, ovvero un messaggio broadcast che verrà ascoltato da chi interessato (in questo caso *cargoservice*)
 
@@ -324,19 +324,14 @@ Al termine dell'elaborazione dell'evento il cargoserivce valuta se siano contemp
 
 ```
 
-Il completamento della procedura di deposito è affidato al CargoService, che assume il ruolo di coordinatore dell'intero flusso operativo. Una volta verificata la presenza del container presso la porta di ingresso, il componente avvia una sequenza di operazioni che coinvolge il robot e il dispositivo di marcatura, sincronizzando l'esecuzione delle diverse attività mediante comunicazioni Request/Reply.
+La procedura di deposito è centralizzata nel *cargoservice*, mentre le operazioni di movimentazione del robot e di marcatura sono modellate tramite comunicazioni Request/Reply. In questo modo è garantita una sincronizzazione esplicita tra le fasi della procedura, impedendo che il deposito nello slot definitivo avvenga prima del completamento della marcatura.
 
-Come prima operazione il robot viene incaricato di trasportare il container presso la postazione dedicata alla marcatura. La destinazione viene espressa tramite coordinate della mappa e il tempo di avanzamento per ogni singolo passo viene fissato mediante il parametro StepTime, definito come costante del componente. La scelta di parametrizzare il tempo di movimento consente di separare la logica applicativa dalle caratteristiche fisiche del robot, rendendo più semplice l'adattamento del sistema a differenti configurazioni.
+Le coordinate delle destinazioni, invece, vengono recuperate dalla Hold.
 
-Una volta raggiunta la postazione di marcatura, il CargoService richiede al MarkerDevice l'identificazione del container. L'utilizzo di una comunicazione sincrona garantisce che la procedura di deposito possa proseguire esclusivamente dopo la conferma dell'avvenuta marcatura, evitando situazioni in cui un container venga depositato senza essere stato correttamente identificato.
+Affinchè ogni nuova operazione inizi da una configurazione nota, al termine della procedura il robot viene riportato automaticamente nella posizione *Home*. 
 
-Terminata questa fase, il componente recupera dalla Hold le coordinate associate allo slot precedentemente riservato e richiede al robot di effettuare il trasporto verso la destinazione definitiva. Questa scelta progettuale evita di codificare staticamente la posizione degli slot all'interno del CargoService, mantenendo la responsabilità della gestione della struttura del magazzino confinata nella Hold.
+Per consentire una successiva gestione del guasto, in caso di fallimento di uno spostamento, il cargoservice mantiene il sistema nello stato engaged e conserva la prenotazione dello slot. Si è scelto di non annullare automaticamente la procedura.
 
-Dopo il deposito del container, il robot viene automaticamente riportato nella posizione Home. Questa ulteriore fase è stata introdotta per garantire che ogni nuova operazione inizi da una configurazione nota del sistema, semplificando la pianificazione dei movimenti successivi e rendendo il comportamento complessivo maggiormente deterministico.
-
-Al termine dell'intera sequenza il CargoService ripristina il proprio stato iniziale, spegne il LED di segnalazione e ritorna nello stato disengaged, rendendosi immediatamente disponibile alla gestione di nuove richieste.
-
-Particolare attenzione è stata dedicata anche alla gestione degli errori durante gli spostamenti del robot. Qualora il componente RobotSmart segnali l'impossibilità di completare un movimento, il CargoService interrompe la procedura corrente e ritorna nello stato engaged, mantenendo invariata la prenotazione dello slot e consentendo una successiva gestione del guasto senza compromettere la consistenza dello stato del sistema.
 
 ```qak
     // GESTIONE ROBOT E MARKER
@@ -403,6 +398,46 @@ Particolare attenzione è stata dedicata anche alla gestione degli errori durant
     }
     Goto disengaged
 }
+```
+
+== Attori QAK di supporto
+
+Gli attori QAK che rappresentano i dispositivi simulati sono riportati separando il comportamento di supporto al prototipo dalle parti usate esclusivamente come testplan.
+
+```qak
+QActor markerdevice context ctxprototype {
+    State s0 initial {
+        println("markerdevice | STARTED") color green
+    }
+    Goto work
+    
+    State work {}
+    Transition t0
+        whenRequest mark_container -> handle_mark
+        
+    State handle_mark {
+        println("markerdevice | Marking container...") color cyan
+        delay 1500
+        println("markerdevice | Container marked!") color cyan
+        replyTo mark_container with marking_done : markingDone(none)
+    }
+    Goto work
+}
+
+QActor ledmock context ctxprototype {
+    State s0 initial { }
+    Goto work
+    
+    State work {}
+    Transition t0 
+        whenMsg led_ctrl -> handle_cmd
+        
+    State handle_cmd {
+        onMsg(led_ctrl : ledCmd(CMD)) {
+            println("ledmock | LED is now ${payloadArg(0)}") color green
+        }
+    }
+    Goto work
 }
 ```
 
@@ -420,24 +455,6 @@ I test previsti sono:
 - *TEST 2 - nessun accodamento* \
   Eseguito da `ioportmock`: invia subito una seconda `load_request` mentre il servizio è `engaged`. \
   Risultato atteso: `cargoservice` risponde con `load_retrylater`, quindi la richiesta non viene accodata.
-
-- *TEST 3 - deposito del container* \
-  Eseguito da `sonarmock`: emette `sonardata: distance(30)`. \
-  Risultato atteso: `cargoservice` rileva l'IOPort occupato e avvia la procedura di movimentazione del robot.
-
-- *TEST 4 - sonar out of service* \
-  Eseguito da `sonarmock`: emette `sonardata: distance(200)`. \
-  Risultato atteso: `cargoservice` imposta il sistema in stato *Out of service*.
-
-- *TEST 5 - ripristino sonar* \
-  Eseguito da `sonarmock`: emette `sonardata: distance(100)`. \
-  Risultato atteso: `cargoservice` riporta il sistema in stato *Working*.
-
-- *TEST 6 - marcatura container* \
-  Eseguito da `markerdevice`: riceve `mark_container` e risponde `marking_done`. \
-  Risultato atteso: `cargoservice` prosegue verso il trasferimento allo slot riservato.
-
-Il seguente estratto mostra la parte principale del testplan codificata nel modello QAK:
 
 ```qak
 QActor ioportmock context ctxprototype {
@@ -467,7 +484,21 @@ QActor ioportmock context ctxprototype {
         whenReply load_accepted   -> handle_unexpected_accept
         whenReply load_refused    -> handle_refuse
 }
+```
 
+- *TEST 3 - deposito del container* \
+  Eseguito da `sonarmock`: emette `sonardata: distance(30)`. \
+  Risultato atteso: `cargoservice` rileva l'IOPort occupato e avvia la procedura di movimentazione del robot.
+
+- *TEST 4 - sonar out of service* \
+  Eseguito da `sonarmock`: emette `sonardata: distance(200)`. \
+  Risultato atteso: `cargoservice` imposta il sistema in stato *Out of service*.
+
+- *TEST 5 - ripristino sonar* \
+  Eseguito da `sonarmock`: emette `sonardata: distance(100)`. \
+  Risultato atteso: `cargoservice` riporta il sistema in stato *Working*.
+
+```
 QActor sonarmock context ctxprototype {
     State s0 initial {
         // TEST 3: simulate container deposit after an accepted load request.
@@ -483,7 +514,15 @@ QActor sonarmock context ctxprototype {
         emit sonardata : distance(100)
     }
 }
+```
 
+- *TEST 6 - marcatura container* \
+  Eseguito da `markerdevice`: riceve `mark_container` e risponde `marking_done`. \
+  Risultato atteso: `cargoservice` prosegue verso il trasferimento allo slot riservato.
+
+Il seguente estratto mostra la parte principale del testplan codificata nel modello QAK:
+
+```
 QActor markerdevice context ctxprototype {
     State handle_mark {
         // TEST 6: verify the marking phase in the nominal workflow.
