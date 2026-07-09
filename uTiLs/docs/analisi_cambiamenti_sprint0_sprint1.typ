@@ -447,13 +447,24 @@ QActor cargoservice context ctxprototype {
 - *Srotolamento Asincrono (Unrolling):* Ogni transizione di avanzamento è strettamente subordinata alla ricezione della risposta di completamento (`whenReply moverobotdone`, `whenReply marking_done`), garantendo che il robot e il laser operino in sincronia rigorosa e gestendo esplicitamente eventuali fallimenti (`moverobotfailed`).
 - *Chiusura del Ciclo e Timeout:* Al termine del deposito (`finish_job`) o allo scadere dei 30 secondi d'attesa (`handle_deposit_timeout`), l'orchestratore reimposta `CargoState = "disengaged"`, invia lo spegnimento al LED (`ledCmd(off)`) e, nel caso del timeout, libera lo slot direttamente nel POJO (`Hold.freeSlot(ReservedSlotId)`).
 
-== Struttura Dati POJO Java della Stiva (`Hold.java` e `CellType.java`)
+== Struttura Dati POJO Java della Stiva (`IHold.java`, `Hold.java` e `CellType.java`)
 ```java
 public enum CellType {
     FREE, OBSTACLE, HOME, SONAR, IOPORT, SLOT1, SLOT2, SLOT3, SLOT4, SLOT5
 }
 
-public class Hold {
+public interface IHold {
+    int doReserveSlot();
+    void doFreeSlot(int slotId);
+    int doGetSlotX(int slotId);
+    int doGetSlotY(int slotId);
+    int doGetHomeX();
+    int doGetHomeY();
+    CellType getCell(int x, int y);
+    boolean isOccupied(int slotId);
+}
+
+public class Hold implements IHold {
     private static Hold INSTANCE = new Hold();
     private final CellType[][] cells = {
         { CellType.FREE,   CellType.HOME,   CellType.FREE,     CellType.FREE,     CellType.FREE,     CellType.FREE,  CellType.FREE },
