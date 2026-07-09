@@ -370,6 +370,9 @@ Al termine dell'elaborazione dell'evento il cargoserivce valuta se siano contemp
 }
 ```
 
+== cargorobot 
+
+#link("https://anatali.github.io/issLab2026/_static/docs/Protobook.pdf#chapter.30")[link]
 
 
 = Test plans <testplan>
