@@ -92,15 +92,13 @@ L'azienda richiede di realizzare un servizio denominato *cargoservice* con il se
 = Requirement analysis
 // =============================================================================
 
-// Non analizziamo nessun requisito nuovo: ha senso che la chiamiamo analisi dei requisiti?
-
 L'analisi dettagliata del dominio e dei requisiti è già stata affrontata nello Sprint 0, in questa fase ci concentriamo esclusivamente 
 sul ciclo di gestione delle richieste di carico (*core business*) del sistema.
 
-Lo svolgimento corretto di tali azioni presuppone tuttavia dell'esistenza di altri componenti del sistema fisici o in forma simulata (*sonar*, *LED*, *cargorobot*, *markerdevice*, *IOPort* come web GUI) non ancora sviluppati. 
-La loro realizzazione concreta è pianificata per gli sprint successivi. I componenti "mock" che replicheranno, per test, il comportamento di quelli mancanti verranno evoluti rispetto alla formalizzazione QAK già avvenuta in fase di Sprint0 (recuperabile al seguente #link("https://github.com/chirichexe/iss-2026/blob/main/sprint0/prototype/cargosystem/src/cargosystem.qak")[link]). 
-
 = Problem analysis <model>
+
+L'implementazione completa del sistema presuppone dell'esistenza di altri componenti del sistema fisici o in forma simulata (*sonar*, *LED*, *markerdevice*, *IOPort* come web GUI) non ancora sviluppati. 
+La loro realizzazione concreta è pianificata per gli sprint successivi. I componenti "mock" che replicheranno, per test, il comportamento di quelli mancanti verranno evoluti rispetto alla formalizzazione QAK già avvenuta in fase di Sprint0 (recuperabile al seguente #link("https://github.com/chirichexe/iss-2026/blob/main/sprint0/prototype/cargosystem/src/cargosystem.qak")[link]). 
 
 Come emerso dall'analisi dei requisiti, questo componente funge da *orchestratore*: coordina le operazioni degli altri componenti del sistema al 
 fine di eseguire le procedure di carico. 
@@ -114,16 +112,16 @@ tra loro tramite scambio di messaggi.
 
 In questa fase la gestione della hold viene rappresentata tramite un *POJO*.
 
-La scelta è motivata dal fatto che la hold non rappresenta un'entità attiva del sistema, ma una struttura dati che descrive lo stato interno dell'ambiente: posizione degli slot, ostacoli, IOPort, home del robot e stato di occupazione degli slot.
+La scelta è motivata dal fatto che la hold non rappresenta un'entità attiva del sistema, ma una struttura dati (già definita in fase di sprint0) che descrive lo stato interno dell'ambiente: posizione degli slot, ostacoli, IOPort, home del robot e stato di occupazione degli slot.
 
-L'interfaccia `IHold` definisce le operazioni necessarie per la gestione della hold, indipendentemente dalla loro implementazione. La classe `Hold` ne costituisce l'implementazione concreta, occupandosi della rappresentazione dello stato della hold e della logica di assegnazione degli slot.
+L'interfaccia `IHold` definisce le operazioni necessarie per la gestione della hold, indipendentemente dalla loro implementazione. La classe `Hold` ne costituisce l'implementazione concreta, occupandosi della rappresentazione del suo stato e della logica di assegnazione degli slot.
 
 Le motivazioni che hanno portato all'introduzione di un'interfaccia sono legate alla possibilità di estendere il sistema in futuro.
 
 Inoltre, lo stato iniziale della hold viene caricato da un file di configurazione JSON, così da evitare valori hard-coded nel codice e rendere più semplice modificare la disposizione dell'ambiente senza cambiare la logica applicativa.
 
 Il file di configurazione è disponibile al seguente link:
-#link("https://github.com/chirichexe/iss-2026/blob/main/sprint1/prototype/src/configuration.json")[configurazione hold]
+#link("https://github.com/chirichexe/iss-2026/blob/main/sprint1/prototype/src/hold_config.json")[configurazione hold]
 
 Il codice della classe `Hold` è disponibile al seguente link:
 #link("https://github.com/chirichexe/iss-2026/blob/main/sprint1/prototype/src/Hold.java")[codice Hold]
@@ -138,20 +136,7 @@ IN ATTESA DEL MASSIMO ESPERTO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 == Analisi delle Interazioni
 
-Di seguito si riporta una formalizzazione delle altre interazioni modellate interpretando e applicando opportune scelte progettuali 
-sui requisiti del sistema.
-
-- Sappiamo che il cargoservice deve interrogare la hold per sapere se c'è un posto libero ed eventualmente riservarlo. Il cargoservice non può quindi procedere finché la hold non ha risposto in modo affermativo (in caso di slot libero) o negativo (in caso di stiva piena). Scegliamo quindi una comunicazione di tipo Request/Reply. 
-
-- Sarà anche necessario fornire un meccanismo per liberare lo slot una volta che il timeout di 30 secondi sarà scaduto. In questo caso, non è necessario attendere una risposta, quindi si utilizza una Dispatch.
-
-```
-//  CargoService <-> Hold 
-Request get_slot        : getSlot(none)
-Reply   slot_reserved   : slotReserved(SLOTID) for get_slot
-Reply   hold_full       : holdFull(none) for get_slot
-Dispatch free_slot      : freeSlot(SLOTID) // NON NECESSARIO, guarda risposta committente sprint0
-```
+Di seguito si riporta una formalizzazione delle interazioni tra gli attori modellate interpretando e applicando opportune scelte progettuali sui requisiti del sistema.
 
 - Da requisiti, sappiamo che il sonar deve misurare continuamente la distanza del container dal sonar stesso. Nasce quindi la necessità di dover trasmettere queste misurazioni al cargoservice. Per isolare la responsabilità del sonar a semplice "misuratore e trasmettitore" di informazione, viene naturale formalizzare tale comunicazione come un Event, ovvero un messaggio broadcast che verrà ascoltato da chi interessato (in questo caso *cargoservice*)
 
@@ -166,6 +151,7 @@ Dispatch led_ctrl           : ledCmd(CMD)
 // CMD: "on", "off", "blink"
 ```
 
+CHE TI FRULLA IL CERVELLO???? BR....
 - In questa fase, il movimento del robot sarà simulato, ma il cargoservice deve comunque attendere la fine dell'operazione per poter procedere con la      
 successiva fase del ciclo operativo (ossia richiedere al *markerdevice*  l'etichettatura in *slot5*, confermare lo stoccaggio e tornare allo stato *disengaged* ). Usiamo quindi la Request/Reply per assicurarci che il cargoservice attenda la fine del task.
 
@@ -182,9 +168,6 @@ Reply   robot_done : robotDone(none) for robot_move
 Request mark_container : markContainer(none)
 Reply   marking_done   : markingDone(none) for mark_container
 ```
-
-
-
 
 == Rappresentazione dell'attore cargoservice come Macchina a Stati Finiti
 
