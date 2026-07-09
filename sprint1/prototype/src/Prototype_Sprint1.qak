@@ -294,30 +294,4 @@ QActor ioportmock context ctxprototype {
 }
 
 
-//CARGOROBOT MOCK 
 
-QActor cargorobotmock context ctxprototype {
-    State s0 initial {
-        println("cargorobotmock | STARTED (Simulating robotsmart26 movement)") color blue
-    }
-    Goto work
-    
-    State work {}
-    Transition t0 
-        whenRequest moverobot -> handle_move
-        
-    State handle_move {
-        onMsg(moverobot : moverobot(X, Y, TIME)) {
-            [# 
-                val Tx = payloadArg(0)
-                val Ty = payloadArg(1)
-                val StepTime = payloadArg(2)
-            #]
-            println("cargorobotmock | Executing simulated movement to ($Tx, $Ty) with stepTime $StepTime ms...") color cyan
-            delay 1500
-            println("cargorobotmock | Reached target position ($Tx, $Ty) successfully!") color cyan
-            replyTo moverobot with moverobotdone : moverobotok(done)
-        }
-    }
-    Goto work
-}
