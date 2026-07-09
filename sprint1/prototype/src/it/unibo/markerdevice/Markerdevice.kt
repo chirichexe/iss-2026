@@ -51,6 +51,8 @@ class Markerdevice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 				}	 
 				state("handle_mark") { //this:State
 					action { //it:State
+						// TEST 6: verify the marking phase in the nominal workflow.
+						// Expected: markerdevice replies marking_done and cargoservice continues toward the reserved slot.
 						CommUtils.outcyan("markerdevice | Marking container...")
 						delay(1500) 
 						CommUtils.outcyan("markerdevice | Container marked!")

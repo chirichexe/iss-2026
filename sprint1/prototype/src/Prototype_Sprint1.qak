@@ -192,16 +192,31 @@ QActor cargoservice context ctxprototype {
 
 QActor sonarmock context ctxprototype {
     State s0 initial {
+
+        // ---------------------------------------------------------------------
+        // TEST 3: simulate container deposit after an accepted load request.
+        // Expected: cargoservice detects IOPortOccupied and starts the robot job.
+        // ---------------------------------------------------------------------
+        
         delay 4000
         println("sonarmock | Container placed -> Emitting sonardata(30)") color cyan
         emit sonardata : distance(30)
         
-        // Simulazione di una distanza D > DFREE (es. 200 per > 3s) -> Innesca Out of service
+        // ---------------------------------------------------------------------
+        // TEST 4: simulate D > DFREE.
+        // Expected: cargoservice switches to OUT OF SERVICE.
+        // ---------------------------------------------------------------------
+
+
         delay 8000
         println("sonarmock | Sonar measures D > DFREE (200). Emitting sonardata(200)") color cyan
         emit sonardata : distance(200)
         
-        // Simulazione del ripristino D <= DFREE (es. 100) -> System working
+        // ---------------------------------------------------------------------
+        // TEST 5: simulate D <= DFREE after out of service.
+        // Expected: cargoservice switches back to WORKING.
+        // ---------------------------------------------------------------------
+
         delay 5000
         println("sonarmock | Sonar measures D <= DFREE (100). Emitting sonardata(100)") color green
         emit sonardata : distance(100)
@@ -221,6 +236,12 @@ QActor markerdevice context ctxprototype {
         whenRequest mark_container -> handle_mark
         
     State handle_mark {
+
+        // ---------------------------------------------------------------------
+        // TEST 6: verify the marking phase in the nominal workflow.
+        // Expected: markerdevice replies marking_done and cargoservice continues toward the reserved slot.
+        // ---------------------------------------------------------------------
+
         println("markerdevice | Marking container...") color cyan
         delay 1500
         println("markerdevice | Container marked!") color cyan
@@ -253,8 +274,15 @@ QActor ledmock context ctxprototype {
 
 QActor ioportmock context ctxprototype {
     State s0 initial {
+        
+        // ---------------------------------------------------------------------
+        // TEST 1: send the first load request while the service should be free.
+        // Expected: cargoservice replies load_accepted(slotN) and ledmock receives blink.
+        // ---------------------------------------------------------------------
+
+
         delay 1000
-        println("ioportmock | Sending 1st load_request (should be accepted)") color cyan
+        println("ioportmock | TEST 1 - Sending 1st load_request (expected load_accepted)") color cyan
         request cargoservice -m load_request : loadRequest(none)
     }
     Transition t0
@@ -264,34 +292,32 @@ QActor ioportmock context ctxprototype {
 
     State handle_accept { 
         printCurrentMessage color green 
-        
-        // Aspettiamo che il sonarmock vada in outofservice (circa al ms 12000)
-        delay 12000
-        println("ioportmock | Sending 2nd load_request (should retrylater due to outofservice)") color cyan
+
+        // ---------------------------------------------------------------------
+        // TEST 2: immediately send another request while cargoservice is engaged.
+        // Expected: no queue is created and cargoservice replies load_retrylater.
+        // ---------------------------------------------------------------------
+
+        delay 500
+        println("ioportmock | TEST 2 - Sending 2nd load_request while engaged (expected load_retrylater)") color cyan
         request cargoservice -m load_request : loadRequest(none)
     }
     Transition t0
-        whenReply load_retrylater -> wait_and_retry
-        whenReply load_accepted   -> handle_final_accept
+        whenReply load_retrylater -> handle_no_queue_ok
+        whenReply load_accepted   -> handle_unexpected_accept
         whenReply load_refused    -> handle_refuse
 
-    State wait_and_retry {
+    State handle_no_queue_ok {
         printCurrentMessage color yellow
-        
-        // Aspettiamo il ripristino del sonarmock (circa al ms 17000)
-        delay 6000
-        println("ioportmock | Sending 3rd load_request (should be accepted, system recovered)") color cyan
-        request cargoservice -m load_request : loadRequest(none)
+        println("ioportmock | TEST 2 OK - request rejected with retrylater while service is engaged") color green
     }
-    Transition t0
-        whenReply load_accepted   -> handle_final_accept
-        whenReply load_retrylater -> handle_retry
-        whenReply load_refused    -> handle_refuse
 
-    State handle_final_accept { printCurrentMessage color green }
+    State handle_unexpected_accept {
+        printCurrentMessage color red
+        println("ioportmock | TEST 2 FAILED - request was accepted while service was already engaged") color red
+    }
     State handle_retry  { printCurrentMessage color yellow }
     State handle_refuse { printCurrentMessage color red }
 }
-
 
 
