@@ -102,11 +102,9 @@ La loro realizzazione concreta è pianificata per gli sprint successivi. I compo
 
 Come emerso dall'analisi dei requisiti, questo componente funge da *orchestratore*: coordina le operazioni degli altri componenti del sistema al 
 fine di eseguire le procedure di carico. 
-Inoltre, le entità sono distribuite su quattro nodi separati ma, per non rallentare la prototipazione, tutti i componenti 
+Inoltre, le entità sono distribuite su quattro nodi separati ma, per non rallentare la prototipazione, tutti i componenti (ad eccezione del cargorobot) 
 verranno rappresentati nello stesso nodo (rappresentato da un Context), tenendo in considerazione che gli attori non condividono memoria, e comunicano
 tra loro tramite scambio di messaggi.
-
-// avrebbe senso non rappresentare la hold come actor ma come stato interno del cargoservice??
 
 == Rappresentazione dello stato interno della hold
 
@@ -130,9 +128,49 @@ Il codice dell'interfaccia `IHold` è disponibile al seguente link:
 #link("https://github.com/chirichexe/iss-2026/blob/main/sprint1/prototype/src/IHold.java")[codice Hold]
 
 ```java
-CODICE INTERFACCIA
-IN ATTESA DEL MASSIMO ESPERTO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+public interface IHold {
+    int doReserveSlot();
+    void doFreeSlot(int slotId);
+    int doGetSlotX(int slotId);
+    int doGetSlotY(int slotId);
+    int doGetHomeX();
+    int doGetHomeY();
+    CellType getCell(int x, int y);
+    boolean isOccupied(int slotId);
+}
 ```
+
+== cargorobot
+
+Come concordato con il committente, si è scelto di utilizzare il simulatore di ambiente virtuale *VirtualRobot26* e di riutilizzare il componente *robotsmart26* per la gestione della navigazione del robot. Tale scelta consente di sfruttare un software già disponibile e collaudato, evitando di implementare da zero le funzionalità di movimento e pianificazione del percorso e concentrando lo sviluppo sulla logica applicativa del sistema.
+
+La documentazione di riferimento per *robotsmart26* è disponibile al seguente link:
+#link("https://anatali.github.io/issLab2026/_static/docs/Protobook.pdf#chapter.30")[robotsmart26]
+
+La specifica Qak del componente *robotsmart26* è disponibile al seguente link:
+#link("https://github.com/chirichexe/iss-2026/blob/main/sprint1/robotsmart26/src/robotsmart26.qak")[robotsmart26]
+
+Per consentire lo spostamento del robot da una posizione a un'altra, l'attore `robotsmart` espone una *Request* dedicata, attraverso la quale è possibile specificare la destinazione e il tempo di esecuzione del singolo passo.
+
+```qak
+Request moverobot : moverobot(TARGETX, TARGETY, STEPTIME)
+```
+
+Alla ricezione della richiesta, `robotsmart` calcola il percorso verso la destinazione ed esegue il movimento del robot.
+
+Al termine dell'operazione può rispondere con uno dei seguenti messaggi:
+
+```qak
+Reply moverobotdone : moverobotok(ARG) for moverobot
+```
+
+che indica il completamento corretto del movimento, oppure
+
+```qak
+Reply moverobotfailed : moverobotfailed(PLANDONE, PLANTODO) for moverobot
+```
+
+che segnala l'impossibilità di completare il percorso, restituendo la parte già eseguita (`PLANDONE`) e quella ancora da percorrere (`PLANTODO`).
 
 == Analisi delle Interazioni
 
@@ -352,21 +390,7 @@ Al termine dell'elaborazione dell'evento il cargoserivce valuta se siano contemp
 }
 ```
 
-== cargorobot 
-
-Come concordato con il committente si è scelto di utilizzare il simulatore di ambiente virtuale VirtualRobot26.
-Come descritto nella documentazione di smartrobot26, per poter pianificare la ricerca
-del percorso occorre che sia definita una mappa di contesto. Per costruirla si utilizza
-una stringa che poi andrà a denotare tale matrice.
-Conformemente all’immagine fornitaci dal committente, la mappa di contesto avrà la
-seguente forma:
-
-#link("https://anatali.github.io/issLab2026/_static/docs/Protobook.pdf#chapter.30")[link]
-
-
 = Test plans <testplan>
-
-
 
 // = Testing
 
