@@ -112,60 +112,19 @@ tra loro tramite scambio di messaggi.
 
 == Rappresentazione dello stato interno della stiva
 
-In questa fase la gestione della stiva non viene ancora implementata completamente. Tuttavia, per rispettare il principio di singola 
-responsabilità, la logica non viene inclusa nel cargoservice, ma viene delegata a un *attore mock autonomo* posizionato nel context ctxprototype (recuperabile al seguente #link("https://github.com/chirichexe/iss-2026/blob/main/sprint1/prototype/codice_con_tutti_i_componenti.qak")[LINK DA CAMBIARE DAL MASSIMO ESPERTO])
+In questa fase la gestione della stiva viene rappresentata tramite un *POJO* Java, invece che come attore autonomo.
 
-```qak
-QActor hold context ctxprototype {
-    [#
-        var Slots = intArrayOf(0, 0, 0, 0)
-        
-        fun getFreeSlot(): Int {
-            for (i in 0..3) {
-                if (Slots[i] == 0) return i + 1
-            }
-            return -1
-        }
-    #]
+La scelta è motivata dal fatto che la stiva non rappresenta un'entità attiva del sistema, ma una struttura dati che descrive lo stato interno dell'ambiente: posizione degli slot, ostacoli, IOPort, home del robot e stato di occupazione degli slot.
 
-    State s0 initial {
-        println("hold | STARTED") color green
-    }
-    Goto work
+Separare questa logica dal `cargoservice` permette di rispettare il principio di singola responsabilità: il `cargoservice` coordina il servizio, mentre la classe `Hold` gestisce esclusivamente le informazioni relative alla stiva.
 
-    State work {}
-    Transition t0
-        whenRequest get_slot  -> handle_get_slot
-        whenMsg     free_slot -> handle_free_slot
+Inoltre, lo stato iniziale della stiva viene caricato da un file di configurazione JSON, così da evitare valori hard-coded nel codice e rendere più semplice modificare la disposizione dell'ambiente senza cambiare la logica applicativa.
 
-    State handle_get_slot {
-        [# val SlotId = getFreeSlot() #]
-        
-        if [# SlotId != -1 #] {
-            [# Slots[SlotId - 1] = 1 #]
-            replyTo get_slot with slot_reserved : slotReserved($SlotId)
-        } else {
-            replyTo get_slot with hold_full : holdFull(none)
-        }
-    }
-    Goto work
+Il file di configurazione è disponibile al seguente link:
+#link("LINK_FILE_CONFIGURAZIONE_JSON")[configurazione hold]
 
-    State handle_free_slot {
-        onMsg(free_slot : freeSlot(ID)) {
-            [# val id = payloadArg(0).toInt() #]
-            [# Slots[id - 1] = 0 #]
-            println("hold | Freed slot$id") color green
-        }
-    }
-    Goto work
-}
-```
-
-Ogni posizione dell'array rappresenta uno slot della stiva. Il valore `0` indica uno slot libero, mentre un valore diverso da `0` 
-indica uno slot occupato o riservato.
-
-Questa scelta permette al *cargoservice* di verificare dinamicamente se la stiva è piena interrogando l'attore hold tramite Request / Reply, 
-senza conoscerne i dettagli interni
+Il codice della classe `Hold` è disponibile al seguente link:
+#link("LINK_CODICE_HOLD")[codice Hold]
 
 == Analisi delle Interazioni
 
