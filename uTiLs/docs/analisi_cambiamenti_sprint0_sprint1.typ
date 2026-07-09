@@ -291,18 +291,16 @@ QActor cargoservice context ctxprototype {
         println("cargoservice | DISENGAGED: waiting for requests...") color blue
     }
     Transition t0
-        whenRequest load_request       -> handle_load_request
-        whenEvent   sonardata          -> handle_sonar
-        whenMsg     set_service_status -> update_service
+        whenRequest load_request -> handle_load_request
+        whenEvent   sonardata    -> handle_sonar
 
     State engaged {
         println("cargoservice | ENGAGED: waiting for container deposit...") color blue
     }
     Transition t0
-        whenTime    30000              -> handle_deposit_timeout
-        whenRequest load_request       -> handle_load_request
-        whenEvent   sonardata          -> handle_sonar
-        whenMsg     set_service_status -> update_service
+        whenTime    30000        -> handle_deposit_timeout
+        whenRequest load_request -> handle_load_request
+        whenEvent   sonardata    -> handle_sonar
 ```
 
 *Analisi del Blocco 2:*

@@ -64,17 +64,30 @@ I requisiti del progetto sono riportati nel documento disponibile al seguente #l
 
 L'azienda richiede di realizzare un servizio denominato *cargoservice* con il seguente funzionamento:
 
+- Gli slot1-4 rappresentano le aree della stiva riservate per immagazzinare ciascuno un container.
+
+- Lo slot5 rappresenta un'area in cui il cargorobot deve temporaneamente depositare un container, prima di posizionarlo in uno degli slot1-4. Durante la sosta temporanea, un dispositivo 'marker' etichetta il container con un codice a barre identificativo e segnala quando l'attività di marcatura è completata.
+
+- L'IOPort è un dispositivo dotato di un pulsante e di un display. Il pulsante viene premuto dal cliente per inviare una richiesta di carico di un container sulla nave. Il display viene utilizzato per mostrare la risposta alla richiesta e lo stato attuale della stiva.
+
+- Il sensore associato all'IOPort è un dispositivo (un sonar) utilizzato per rilevare la presenza di un container, quando misura una distanza D, tale che D < D#sub[FREE]/2, per un tempo ragionevole (ad esempio 3 secondi).
+
 - Il cargoservice è in grado di ricevere una richiesta di carico di un container inviata da un cliente tramite il pulsante dell'IOPort.
+
 - Invia la risposta *retrylater* se l'IOPort è attualmente occupato da un container oppure se il sistema è *Out of service*.
+
 - Rifiuta la richiesta quando la hold è già piena, ovvero gli slot1-4 sono già tutti occupati.
+
 - Altrimenti, considera il sistema come *engaged*, rileva uno slot libero e restituisce come risposta il nome dello slot riservato. Mentre il sistema è engaged, il LED deve lampeggiare.
+
 - Quando la richiesta di carico viene accettata, il cliente deve spostare il container nell'area del sensore entro un tempo prefissato (ad esempio 30 secondi), altrimenti il sistema diventa *disengaged*.
+
 - Successivamente, il cargoservice utilizza il cargorobot per spostare il container dall'IOPort a slot5 (per l'etichettatura del container) e poi allo slot riservato.
+
 - Il servizio deve inoltre mostrare sul display dell'IOPort:
   - lo stato attuale della hold
   - il messaggio *"Service working"* quando tutto sta procedendo correttamente
-  - il messaggio *"Out of service"* se il sensore sonar misura una distanza D > D#sub[FREE] per almeno 3 secondi (possibile guasto del sonar)
-
+  - il messaggio *"Out of service"* se il sensore sonar misura la distanza (del container dal sonar stesso) D > D#sub[FREE] per almeno 3 secondi (possibile guasto del sonar)
 // =============================================================================
 = Requirement analysis
 // =============================================================================
@@ -171,234 +184,210 @@ Request mark_container : markContainer(none)
 Reply   marking_done   : markingDone(none) for mark_container
 ```
 
-*Analisi del Blocco 1:* 
-La prima sezione del modello definisce i confini di interazione e l'infrastruttura di comunicazione. 
-- *Distinzione semantica dei messaggi:* In accordo con le buone pratiche di ingegneria dei protocolli, si distingue rigorosamente tra comunicazioni binarie sincrone/correlate (`Request`/`Reply`), comandi asincroni diretti (`Dispatch`, utilizzati ad esempio per liberare lo slot con `free_slot` o per accendere/spegnere il LED con `led_ctrl`) e notifiche broadcast ambientali (`Event`, impiegato dal sonar per diffondere la misura della distanza `sonardata`).
-- *Contesto Unico:* La dichiarazione di `ctxprototype` sulla porta `8050` vincola tutti i 7 attori del sistema a eseguire nella stessa JVM. Come argomentato nell'analisi, ciò elimina il rumore infrastrutturale e le latenze TCP durante i test di correttezza della business logic.
 
-
-
-== Vocabolario delle Interazioni 
-
- - Per quanto riguarda l'interazione tra *ioportmock* e *cargoservice* si utilizzano i messaggi già
-definiti in fase di Sprint 0:
-
-```
-Request load_request      : loadRequest(none)
-Reply load_accepted       : loadAccepted(slotID) for load_request
-Reply load_retrylater     : loadRetryLater(none) for load_request
-Reply load_refused        : loadRefused(none) for load_request
-```
-
- - Per quanto riguarda l'interazione tra Cargoservice e Cargorobot e Markerdevice (simulati rispettivamente da *cargorobotmock* e *markerdevice*)  si considera che, una volta accettato il carico, il cargoservice deve delegare le operazioni fisiche di pesatura/etichettatura al *markerdevice* e di trasporto al *cargorobotmock*. L'orchestratore deve sapere esattamente quando queste operazioni asincrone terminano per poter aggiornare lo stato del sistema. Usiamo la Request/Reply per assicurarci che il cargoservice attenda la fine del task
-
-```
-// Gestione Marker
-Request mark_container : markContainer(none)
-Reply   marking_done   : markingDone(none) for mark_container
-
-// Gestione Robot
-Request robot_move : robotMove(TARGET) // TARGET: "slot5", "slot1", ecc.
-Reply   robot_done : robotDone(none) for robot_move
-```
-
-- Il *cargoservice* deve interrogare la *hold* per sapere se c'è un posto libero ed, eventualmente, riservarlo. Anche in questo caso, il cargoservice non può procedere finché la stiva non ha risposto. Scegliamo quindi il pattern Request/Reply:
-
-```
-Request get_slot        : getSlot(none)
-Reply   slot_reserved   : slotReserved(SLOTID) for get_slot
-Reply   hold_full       : holdFull(none) for get_slot
-Dispatch free_slot      : freeSlot(SLOTID)
-```
-
-- Il sensore fisico (simulato dal *sonarmock*) rileva continuamente la distanza e non conosce a priori quali componenti del sistema siano interessati a questo dato. Il Sonar emette un Event, ovvero un messaggio broadcast (con destinatario implicito):
-
-```
-Event sonardata : distance(D)  // Emesso dal sonar nell'ambiente
-``` 
 
 
 == Rappresentazione dell'attore cargoservice come Macchina a Stati Finiti
 
-L'attore cargoservice è, già da Sprint 0, inteso come una Macchina a Stati Finiti che utilizza variabili interne per mantenere 
-la conoscenza dello stato applicativo:
+L'attore cargoservice è, già da Sprint 0, inteso come una Macchina a Stati Finiti che utilizza variabili interne per:
+- memorizzare se la porta di ingresso risulta occupata (IOPortOccupied)
+- se il servizio è attualmente operativo (ServiceWorking)
+- lo stato logico del servizio (CargoState) 
+- l'identificativo dello slot eventualmente riservato (ReservedSlotId).
+
+Per quanto riguarda le transizioni della FSM, si estende il comportamento già realizzato in Sprint0.
 
 ```qak
-[# 
-   var IOPortOccupied = false 
-   var ServiceWorking = true 
-   var CargoState     = "disengaged" 
-   var ReservedSlotId = -1 
-#]
+Context ctxprototype ip [host="localhost" port=8050] // CONTESTO UNICO
+
+QActor cargoservice context ctxprototype {
+    [# // VARIABILI INTERNE
+        var IOPortOccupied = false
+        var ServiceWorking = true
+        var CargoState     = "disengaged"
+        var ReservedSlotId = -1
+    #]
 ```
 
-Si gestisce quindi il ciclo di vita della richiesta seguendo le transizioni principali:
+- Quando viene ricevuta una richiesta *load_request*, il cargoservice  prima di prenotare uno slot verifica che:
+ 1. il servizio non sia già impegnato nella gestione di un altro container
+ 2. il sistema risulti funzionante
+ 3. che la porta di ingresso sia libera.
 
+Se tutte le condizioni risultino soddisfatte viene interrogata la Hold per richiedere la prenotazione di uno slot libero, il cargoservice memorizza l'identificativo dello slot riservato, passa allo stato engaged e informa il client dell'avvenuta accettazione della richiesta. 
 
-/*
-- handle_load_request: Se il sistema è occupato o guasto, risponde immediatamente con load_retrylater. 
-Altrimenti, l'attore interroga la hold tramite Request get_slot. Attende la risposta: se riceve hold_full risponde load_refused, 
-mentre se riceve slot_reserved salva l'ID, risponde load_accepted(ID) e comanda al ledmock di lampeggiare e si mette in stato "engaged".
+Viene inoltre attivato il LED in modalità *blink* e viene comunicato l'ID dello slot (da mostrare in futuro sul display).
+Nel caso in cui il magazzino risulti completamente occupato cargoservice comunicherà il rifiuto della richiesta, rimanendo disponibile per eventuali.
 
-- engaged: Il sistema non accetta altre richieste e attende che venga depositato il container.
-
-- moving_cargo: Non appena rileva la presenza del container, cargoservice comanda al cargorobotmock di prelevare il carico inviando la Request robot_move verso slot5. Dopo aver interrogato il markerdevice con Request mark_container, comanda un robot_move verso lo slot prenotato. Al termine di tutte le Reply, riporta le variabili allo stato originario, spegne il LED e torna nello stato "disengaged".
-*/
-
-Proposta di aggiunta:
-descrizione dettagliata in linguaggio naturale del funzionamento del codice QAK
-
+Il timer di 30 secondi viene avviato quando il sistema entra nello stato *engaged*. Se il container non viene posizionato nell'area del sensore entro tale intervallo, il sistema passa allo stato *disengaged*, libera lo slot precedentemente riservato e spegne il LED.
 
 
 ```qak
-QActor cargoservice context ctxcargoservice {
-  // ... inizializzazione variabili ...
 
-  State disengaged { }
-  Transition t0
-    whenRequest load_request       -> handle_load_request
-    whenEvent   sonardata          -> handle_sonar
-    whenMsg     set_service_status -> update_service
-
-  State handle_load_request {
-    if [# CargoState == "engaged" || !ServiceWorking || IOPortOccupied #] {
-        replyTo load_request with load_retrylater : loadRetryLater(none)
-    } else {
-        request hold -m get_slot : getSlot(none)
+    State s0 initial {
+        println("cargoservice | STARTED") color magenta
     }
-  }
-  Goto returnToState if [# CargoState == "engaged" || !ServiceWorking || IOPortOccupied #] else wait_for_slot
+    Goto disengaged
     
-  State wait_for_slot {}
-  Transition t0
-      whenReply slot_reserved -> accept_request
-      whenReply hold_full     -> refuse_request
-
-  State accept_request {
-    onMsg(slot_reserved : slotReserved(ID)) {
-        [# ReservedSlotId = payloadArg(0).toInt(); CargoState = "engaged" #]
-        forward ledmock -m led_ctrl : ledCmd(blink)
-        [# val SlotName = "slot$ReservedSlotId" #]
-        replyTo load_request with load_accepted : loadAccepted($SlotName)
+    State disengaged {
+        println("cargoservice | DISENGAGED: waiting for requests...") color blue
     }
-  }
-  Goto engaged
+    Transition t0
+        whenRequest load_request -> handle_load_request
+        whenEvent   sonardata    -> handle_sonar
 
-  State handle_sonar {
-    onMsg(sonardata : distance(D)) {
-        [# IOPortOccupied = (payloadArg(0).toInt() < 50) #]
+    State engaged {
+        println("cargoservice | ENGAGED: waiting for container deposit...") color blue
     }
-  }
-  Goto do_robot_job if [# IOPortOccupied && CargoState == "engaged" #] else returnToState
+    Transition t0
+        whenTime    30000        -> handle_deposit_timeout
+        whenRequest load_request -> handle_load_request
+        whenEvent   sonardata    -> handle_sonar
 
-  // ... logica robot_job e timeout ...
+    //GESTIONE RICHIESTE
+    
+    State handle_load_request {
+        printCurrentMessage color yellow
+        
+        // Verifica precondizioni per accettare la richiesta
+        if [# CargoState == "engaged" || !ServiceWorking || IOPortOccupied #] {
+            replyTo load_request with load_retrylater : loadRetryLater(none)
+        } else {
+            // Interroga la Hold per uno slot libero
+            request hold -m get_slot : getSlot(none)
+        }
+    }
+    Transition t0
+        whenReply slot_reserved -> accept_request
+        whenReply hold_full     -> refuse_request
+
+    State accept_request {
+        onMsg(slot_reserved : slotReserved(ID)) {
+            [# 
+                ReservedSlotId = payloadArg(0).toInt()
+                CargoState     = "engaged" 
+            #]
+            forward ledmock -m led_ctrl : ledCmd(blink)
+            [# val SlotName = "slot$ReservedSlotId" #]
+    		replyTo load_request with load_accepted : loadAccepted($SlotName)
+        }
+    }
+    Goto engaged
+
+    State refuse_request {
+        replyTo load_request with load_refused : loadRefused(none)
+    }
+    Goto disengaged
+```
+
+- Il cargoservic interpreta gli eventi emessi dal sonar in tre modi principali:
+
+1. Viene rilevata la presenza di un container entro una certa distanza dal sensore (per almeno 3s) e viene impostata a true la variabile interna *IOPortOccupied* per indicare che l'IOPort è occupata.
+
+2. Viene rilevata una distanza superiore a DFREE (per almeno 3s). Il sistema viene in questo caso messo nello stato *Out of service*. Viene quindi aggiornata la variabile interna *ServiceWorking*.
+
+3. La distanza misurata non implica nessun cambiamento di stato. In questo caso il sistema continua a funzionare normalmente.
+
+
+Al termine dell'elaborazione dell'evento il cargoserivce valuta se siano contemporaneamente soddisfatte tutte le condizioni necessarie per iniziare la movimentazione del container. Il robot viene attivato solamente quando il servizio si trova nello stato engaged, il container è stato effettivamente depositato e il sistema risulta operativo. 
+
+
+```qak
+    //GESTIONE SONAR
+    
+    State handle_sonar {
+        onMsg(sonardata : distance(D)) {
+            [# val Dist = payloadArg(0).toInt() #]
+            
+            // D < 50 indica presenza del container (IOPort occupata)
+            if [# Dist < 50 #] { 
+                [# IOPortOccupied = true #]
+            } else {
+                [# IOPortOccupied = false #]
+            }
+
+            // D > DFREE (es. > 150) per un intervallo prolungato indica condizione OUT OF SERVICE
+            if [# Dist > 150 #] {
+                [# ServiceWorking = false #]
+                println("cargoservice | Sonar D > DFREE ($Dist) -> System OUT OF SERVICE!") color red
+            } else {
+                if [# !ServiceWorking #] {
+                    println("cargoservice | Sonar D <= DFREE ($Dist) -> System WORKING again!") color green
+                }
+                [# ServiceWorking = true #]
+            }
+        }
+    }
+    // Se il container viene posato durante lo stato engaged e il sistema è operativo, il robot può iniziare
+    Goto do_robot_job if [# IOPortOccupied && CargoState == "engaged" && ServiceWorking #] else returnToState
+
+    State returnToState {}
+    Goto engaged if [# CargoState == "engaged" #] else disengaged
+```
+
+-Analisi
+
+```qak
+    // GESTIONE ROBOT E MARKER
+
+    State do_robot_job {
+        println("cargoservice | Container deposited! Moving to slot5...") color magenta
+        request cargorobotmock -m robot_move : robotMove(slot5)
+    }
+    Transition t0
+        whenReply robot_done -> mark_container
+        
+    State mark_container {
+        println("cargoservice | At slot5. Asking markerdevice to mark...") color magenta
+        request markerdevice -m mark_container : markContainer(none)
+    }
+    Transition t0
+        whenReply marking_done -> move_to_reserved_slot
+        
+    State move_to_reserved_slot {
+        println("cargoservice | Marked! Moving to slot$ReservedSlotId...") color magenta
+        [# val TargetSlot = "slot$ReservedSlotId" #]
+    	request cargorobotmock -m robot_move : robotMove($TargetSlot)
+    }
+    Transition t0
+        whenReply robot_done -> finish_job
+        
+    State finish_job {
+        println("cargoservice | Job completed!") color green
+        [# CargoState = "disengaged" #]
+        forward ledmock -m led_ctrl : ledCmd(off)
+    }
+    Goto disengaged
+
+    State handle_deposit_timeout {
+        println("cargoservice | Deposit timeout! Freeing slot.") color red
+        
+        [# CargoState = "disengaged" #]
+        forward hold -m free_slot : freeSlot($ReservedSlotId)
+        forward ledmock -m led_ctrl : ledCmd(off)
+    }
+    Goto disengaged
 }
 ```
+
+
 
 = Test plans <testplan>
 
-Al fine di validare il core-business implementato in questo Sprint, il piano di testing automatizzato (sviluppato in JUnit e Kotlin) si concentra sul verificare che il `cargoservice` rispetti il protocollo di Request/Reply e aggiorni correttamente il suo stato interno al variare delle condizioni simulate. 
 
-I test operano instradando messaggi `TCP` in formato stringa-Prolog sulla porta `8050` (dove è in ascolto il `cargoservice`) e verificandone le risposte.
-
-Di seguito il codice sorgente del Test Plan implementato:
-
-```kotlin
-package it.unibo.cargoservice
-
-import org.junit.Assert.assertTrue
-import org.junit.Assert.fail
-import org.junit.After
-import org.junit.Before
-import org.junit.Test
-import unibo.basicomm23.interfaces.Interaction
-import unibo.basicomm23.tcp.TcpClientSupport
-import unibo.basicomm23.utils.CommUtils
-
-class TestCargoServiceCore {
-    private var conn: Interaction? = null
-
-    @Before
-    fun setup() {
-        CommUtils.outcyan(" === [TestCargoServiceCore] SETUP: Connecting to CargoService === ")
-        try {
-            // Connessione al contesto del cargoservice sulla porta 8050
-            conn = TcpClientSupport.connect("127.0.0.1", 8050, 10)
-        } catch (e: Exception) {
-            fail("Connessione TCP fallita.")
-        }
-    }
-
-    @After
-    fun teardown() {
-        conn?.close()
-    }
-
-    @Test
-    fun test01_LoadAccepted() {
-        CommUtils.outmagenta(" --- test01_LoadAccepted --- ")
-        try {
-            // Formato msg: msg(MSGID, MSGTYPE, SENDER, RECEIVER, CONTENT, SEQNUM)
-            val req = "msg(load_request, request, testunit, cargoservice, loadRequest(none), 1)"
-            
-            // Invio request e attesa sincrona della reply
-            val reply = conn?.request(req)
-            
-            // Verifica: il sistema doveva accettare la richiesta
-            assertTrue(reply != null && reply.contains("load_accepted"))
-        } catch (e: Exception) {
-            fail("Test fallito: ${e.message}")
-        }
-    }
-
-    @Test
-    fun test02_LoadRetryLater_OutOfService() {
-        CommUtils.outmagenta(" --- test02_LoadRetryLater_OutOfService --- ")
-        try {
-            // 1. Forzatura del sistema in Out Of Service (simulazione sonar guasto)
-            val dispatchFault = "msg(set_service_status, dispatch, testunit, cargoservice, setServiceStatus(outofservice), 2)"
-            conn?.forward(dispatchFault)
-            Thread.sleep(500)
-
-            // 2. Invio request mentre il sistema è in guasto
-            val req = "msg(load_request, request, testunit, cargoservice, loadRequest(none), 3)"
-            val reply = conn?.request(req)
-            
-            // 3. Verifica: il sistema doveva rifiutare temporaneamente la richiesta
-            assertTrue(reply != null && reply.contains("load_retrylater"))
-            
-            // 4. Ripristino del sistema
-            val dispatchRecover = "msg(set_service_status, dispatch, testunit, cargoservice, setServiceStatus(working), 4)"
-            conn?.forward(dispatchRecover)
-            Thread.sleep(500)
-        } catch (e: Exception) {
-            fail("Test fallito: ${e.message}")
-        }
-    }
-}
-```
 
 // = Testing
 
 = Deployment <deployment>
 
-Il deployment del prototipo di Sprint 1 consiste nell'avvio dei singoli progetti che compongono l'architettura distribuita del sistema.
+Per procedere al deployment del prototipo è necessario eseguire i seguenti passaggi:
 
-La directory `prototype` contiene i seguenti progetti:
+1. Clonare il repository del progetto da GitHub:
 
-- #link("https://github.com/chirichexe/iss-2026/tree/main/sprint1/prototype/cargoservice")[`cargoservice`]
-- #link("https://github.com/chirichexe/iss-2026/tree/main/sprint1/prototype/customer")[`customer`]
-- #link("https://github.com/chirichexe/iss-2026/tree/main/sprint1/prototype/devices")[`devices`]
-- #link("https://github.com/chirichexe/iss-2026/tree/main/sprint1/prototype/robot")[`robot`]
+2. Eseguire all'interno della directory del progetto il comando `./gradlew build`
 
-Ogni progetto deve essere compilato e avviato separatamente tramite Gradle.
+3. Avviare il prototipo eseguendo il comando `./gradlew run`
 
-Per ciascuna directory è sufficiente eseguire:
-
-```bash
-./gradlew build
-./gradlew run
-```
 
 // = Maintenance
 

@@ -9,3 +9,6 @@
                                                                                                                                                                                 
   - Per devices:                                                                                                                                                          
     ./run.sh d  
+
+
+Eseguire ogni comando in terminali diversi per avviare i singoli "contesti"

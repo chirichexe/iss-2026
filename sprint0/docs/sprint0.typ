@@ -35,12 +35,26 @@ I requisiti del progetto sono riportati nel documento disponibile al seguente #l
 
 L'azienda richiede di realizzare un servizio denominato *cargoservice* con il seguente funzionamento:
 
+- Gli slot1-4 rappresentano le aree della stiva riservate per immagazzinare ciascuno un container.
+
+- Lo slot5 rappresenta un'area in cui il cargorobot deve temporaneamente depositare un container, prima di posizionarlo in uno degli slot1-4. Durante la sosta temporanea, un dispositivo 'marker' etichetta il container con un codice a barre identificativo e segnala quando l'attività di marcatura è completata.
+
+- L'IOPort è un dispositivo dotato di un pulsante e di un display. Il pulsante viene premuto dal cliente per inviare una richiesta di carico di un container sulla nave. Il display viene utilizzato per mostrare la risposta alla richiesta e lo stato attuale della stiva.
+
+- Il sensore associato all'IOPort è un dispositivo (un sonar) utilizzato per rilevare la presenza di un container, quando misura una distanza D, tale che D < D#sub[FREE]/2, per un tempo ragionevole (ad esempio 3 secondi).
+
 - Il cargoservice è in grado di ricevere una richiesta di carico di un container inviata da un cliente tramite il pulsante dell'IOPort.
+
 - Invia la risposta *retrylater* se l'IOPort è attualmente occupato da un container oppure se il sistema è *Out of service*.
+
 - Rifiuta la richiesta quando la hold è già piena, ovvero gli slot1-4 sono già tutti occupati.
+
 - Altrimenti, considera il sistema come *engaged*, rileva uno slot libero e restituisce come risposta il nome dello slot riservato. Mentre il sistema è engaged, il LED deve lampeggiare.
+
 - Quando la richiesta di carico viene accettata, il cliente deve spostare il container nell'area del sensore entro un tempo prefissato (ad esempio 30 secondi), altrimenti il sistema diventa *disengaged*.
+
 - Successivamente, il cargoservice utilizza il cargorobot per spostare il container dall'IOPort a slot5 (per l'etichettatura del container) e poi allo slot riservato.
+
 - Il servizio deve inoltre mostrare sul display dell'IOPort:
   - lo stato attuale della hold
   - il messaggio *"Service working"* quando tutto sta procedendo correttamente
