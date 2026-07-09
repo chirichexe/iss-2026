@@ -29,8 +29,7 @@ Context ctxrobotsmart      ip [host="127.0.0.1" port=8020]
 
 
 ExternalQActor robotsmart context ctxrobotsmart
-ExternalQActor robotmnemo context ctxrobotsmart
-ExternalQActor planexec context ctxrobotsmart
+
 
 //CARGOSERVICE 
 
