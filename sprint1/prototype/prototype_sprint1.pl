@@ -18,6 +18,8 @@ context(ctxrobotsmart, "127.0.0.1",  "TCP", "8020").
  qactor( robotsmart, ctxrobotsmart, "external").
   qactor( cargoservice, ctxprototype, "it.unibo.cargoservice.Cargoservice").
  static(cargoservice).
+  qactor( cargorobot, ctxprototype, "it.unibo.cargorobot.Cargorobot").
+ static(cargorobot).
   qactor( sonarmock, ctxprototype, "it.unibo.sonarmock.Sonarmock").
  static(sonarmock).
   qactor( markerdevice, ctxprototype, "it.unibo.markerdevice.Markerdevice").

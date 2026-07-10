@@ -27,6 +27,7 @@ with Diagram('prototype_sprint1Arch', show=False, outformat='png', graph_attr=gr
 ### see https://renenyffenegger.ch/notes/tools/Graphviz/attributes/label/HTML-like/index
      with Cluster('ctxprototype', graph_attr=nodeattr):
           cargoservice=Custom('cargoservice','./qakicons/symActorWithobjSmall.png')
+          cargorobot=Custom('cargorobot','./qakicons/symActorWithobjSmall.png')
           sonarmock=Custom('sonarmock','./qakicons/symActorWithobjSmall.png')
           markerdevice=Custom('markerdevice','./qakicons/symActorWithobjSmall.png')
           ledmock=Custom('ledmock','./qakicons/symActorWithobjSmall.png')
@@ -35,8 +36,9 @@ with Diagram('prototype_sprint1Arch', show=False, outformat='png', graph_attr=gr
           robotsmart=Custom('robotsmart(ext)','./qakicons/externalQActor.png')
      sys >> Edge( label='sonardata', **evattr, decorate='true', fontcolor='darkgreen') >> cargoservice
      sonarmock >> Edge( label='sonardata', **eventedgeattr, decorate='true', fontcolor='red') >> sys
-     cargoservice >> Edge(color='magenta', style='solid', decorate='true', label='<moverobot<font color="darkgreen"> moverobotdone moverobotfailed</font> &nbsp; >',  fontcolor='magenta') >> robotsmart
      cargoservice >> Edge(color='magenta', style='solid', decorate='true', label='<mark_container<font color="darkgreen"> marking_done</font> &nbsp; >',  fontcolor='magenta') >> markerdevice
      ioportmock >> Edge(color='magenta', style='solid', decorate='true', label='<load_request<font color="darkgreen"> load_accepted load_retrylater load_refused</font> &nbsp; >',  fontcolor='magenta') >> cargoservice
+     cargorobot >> Edge(color='magenta', style='solid', decorate='true', label='<moverobot<font color="darkgreen"> moverobotdone moverobotfailed</font> &nbsp; >',  fontcolor='magenta') >> robotsmart
+     cargoservice >> Edge(color='magenta', style='solid', decorate='true', label='<moverobot<font color="darkgreen"> moverobotdone moverobotfailed</font> &nbsp; >',  fontcolor='magenta') >> cargorobot
      cargoservice >> Edge(color='blue', style='solid',  decorate='true', label='<led_ctrl &nbsp; >',  fontcolor='blue') >> ledmock
 diag

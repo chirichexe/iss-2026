@@ -46,7 +46,7 @@ class Ledmock ( name: String, scope: CoroutineScope, isconfined: Boolean=false, 
 					//After Lenzi Aug2002
 					sysaction { //it:State
 					}	 	 
-					 transition(edgeName="t013",targetState="handle_cmd",cond=whenDispatch("led_ctrl"))
+					 transition(edgeName="t016",targetState="handle_cmd",cond=whenDispatch("led_ctrl"))
 				}	 
 				state("handle_cmd") { //this:State
 					action { //it:State

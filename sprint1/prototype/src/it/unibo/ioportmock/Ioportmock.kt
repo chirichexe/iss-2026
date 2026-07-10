@@ -40,9 +40,9 @@ class Ioportmock ( name: String, scope: CoroutineScope, isconfined: Boolean=fals
 					//After Lenzi Aug2002
 					sysaction { //it:State
 					}	 	 
-					 transition(edgeName="t014",targetState="handle_accept",cond=whenReply("load_accepted"))
-					transition(edgeName="t015",targetState="handle_retry",cond=whenReply("load_retrylater"))
-					transition(edgeName="t016",targetState="handle_refuse",cond=whenReply("load_refused"))
+					 transition(edgeName="t017",targetState="handle_accept",cond=whenReply("load_accepted"))
+					transition(edgeName="t018",targetState="handle_retry",cond=whenReply("load_retrylater"))
+					transition(edgeName="t019",targetState="handle_refuse",cond=whenReply("load_refused"))
 				}	 
 				state("handle_accept") { //this:State
 					action { //it:State
@@ -56,9 +56,9 @@ class Ioportmock ( name: String, scope: CoroutineScope, isconfined: Boolean=fals
 					//After Lenzi Aug2002
 					sysaction { //it:State
 					}	 	 
-					 transition(edgeName="t017",targetState="handle_no_queue_ok",cond=whenReply("load_retrylater"))
-					transition(edgeName="t018",targetState="handle_unexpected_accept",cond=whenReply("load_accepted"))
-					transition(edgeName="t019",targetState="handle_refuse",cond=whenReply("load_refused"))
+					 transition(edgeName="t020",targetState="handle_no_queue_ok",cond=whenReply("load_retrylater"))
+					transition(edgeName="t021",targetState="handle_unexpected_accept",cond=whenReply("load_accepted"))
+					transition(edgeName="t022",targetState="handle_refuse",cond=whenReply("load_refused"))
 				}	 
 				state("handle_no_queue_ok") { //this:State
 					action { //it:State

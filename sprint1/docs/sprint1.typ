@@ -121,10 +121,16 @@ La realizzazione del *cargorobot* richiede di stabilire la natura software più 
 - *VirtualRobot26*: È un ambiente virtuale che non fornisce un'interfaccia di programmazione diretta, ma interagisce ricevendo comandi di movimento 
 
 - *RobotObj26*: È un POJO che implementa un'interfaccia Java (`IRobotBasicMoves`). Essendo un oggetto passivo, è limitato e può essere utilizzato solo se il chiamante è scritto in Java.
+    - *Pro*: Fornisce comandi chiari e semplici da invocare via codice.
+    - *Contro*: Approccio passivo, sincrono e non reattivo; vincolato al linguaggio Java e inadatto per architetture  distribuite o a microservizi.
 
 - *RobotService26*: È un servizio reattivo che richiede che l'applicazione chiamante gestisca manualmente la logica di navigazione passo dopo passo.
+    - *Pro*: Architettura reattiva e orientata allo scambio di messaggi.
+    - *Contro*: Obbliga il chiamante a farsi carico di tutta la logica di routing e controllo ostacoli.
 
 - *RobotSmart26*: È un servizio avanzato, proattivo e reattivo. Strutturato su tre servizi (`robotmnemo`, `planexec`, `robotsmart`), è capace di ricevere coordinate, pianificare autonomamente il percorso tramite algoritmo A\*  ed elaborare interruzioni impreviste.
+    - *Pro*: Totale autonomia di navigazione, consapevolezza dello spazio (grazie alla mappa interna) e gestione autonoma delle interruzioni.
+    - *Contro*: Maggiore complessità architetturale interna dovuta al necessario coordinamento tra più attori.
 
 
 Per scegliere se vedere al *cargorobot* come un POJO o come un Servizio, il fattore principale  è la *reattività*. Da requisito, in caso di anomalia al sonar (*Out of service*) il robot deve essere in grado di fermarsi completamente. Questa esigenza di reattività e proattività ad eventi di sistema giustifica la modellazione del robot come *Servizio* e non come un semplice *POJO*.

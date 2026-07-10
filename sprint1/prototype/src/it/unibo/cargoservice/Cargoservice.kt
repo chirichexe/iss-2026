@@ -148,8 +148,8 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 				}	 
 				state("do_robot_job") { //this:State
 					action { //it:State
-						CommUtils.outmagenta("cargoservice | Container depositato! Spostamento del robot allo slot5 (2,5) [Riga,Colonna] per la marcatura tramite robotsmart26...")
-						request("moverobot", "moverobot(2,5,$StepTime)" ,"robotsmart" )  
+						CommUtils.outmagenta("cargoservice | Container depositato! Spostamento del robot allo slot5 (2,5) [Riga,Colonna] tramite cargorobot (wrapper robotsmart26)...")
+						request("moverobot", "moverobot(2,5,$StepTime)" ,"cargorobot" )  
 						//genTimer( actor, state )
 					}
 					//After Lenzi Aug2002
@@ -174,8 +174,8 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 						 
 						            val DestX = Hold.getSlotX(ReservedSlotId)
 						            val DestY = Hold.getSlotY(ReservedSlotId)
-						CommUtils.outmagenta("cargoservice | Marcato! Spostamento del container allo slot$ReservedSlotId ($DestY, $DestX) [Riga,Colonna] tramite robotsmart26...")
-						request("moverobot", "moverobot($DestY,$DestX,$StepTime)" ,"robotsmart" )  
+						CommUtils.outmagenta("cargoservice | Marcato! Spostamento del container allo slot$ReservedSlotId ($DestY, $DestX) [Riga,Colonna] tramite cargorobot...")
+						request("moverobot", "moverobot($DestY,$DestX,$StepTime)" ,"cargorobot" )  
 						//genTimer( actor, state )
 					}
 					//After Lenzi Aug2002
@@ -189,8 +189,8 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 						 
 						            val HomeX = Hold.getHomeX()
 						            val HomeY = Hold.getHomeY()
-						CommUtils.outmagenta("cargoservice | Container immagazzinato! Ritorno del robot alla HOME ($HomeY,$HomeX) [Riga,Colonna] tramite robotsmart26...")
-						request("moverobot", "moverobot($HomeY,$HomeX,$StepTime)" ,"robotsmart" )  
+						CommUtils.outmagenta("cargoservice | Container immagazzinato! Ritorno del robot alla HOME ($HomeY,$HomeX) [Riga,Colonna] tramite cargorobot...")
+						request("moverobot", "moverobot($HomeY,$HomeX,$StepTime)" ,"cargorobot" )  
 						//genTimer( actor, state )
 					}
 					//After Lenzi Aug2002
