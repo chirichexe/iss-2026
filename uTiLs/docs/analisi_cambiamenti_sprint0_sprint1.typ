@@ -31,21 +31,23 @@ Per isolare il collaudo della logica applicativa da incertezze tecnologiche e ri
 
 = Sottoinsieme di Requisiti Considerati
 
-In continuità con quanto stabilito nel piano di lavoro dello Sprint 0, il presente Sprint prende in esame il sottoinsieme di requisiti ad alta priorità che governano l'ammissione dei container, la gestione delle risorse di stiva e il coordinamento del ciclo di movimentazione:
+In questo Sprint ci concentriamo sulla realizzazione del *core business* del sistema, prendendo in esame i requisiti che regolano l'accettazione delle richieste, la gestione della stiva e il coordinamento del ciclo di lavoro.
 
-- *Requisiti `cargoservice` (Orchestratore di Dominio):*
-  - Deve essere in grado di ricevere e processare le richieste di carico (`load_request`) inviate dai clienti tramite il pulsante dell'interfaccia di ingresso (`ioport`).
-  - Deve rifiutare immediatamente la richiesta, inviando una risposta di rinvio temporaneo (`load_retrylater`), qualora l'area di ingresso (`IOPort`) sia attualmente ingombrata da un container oppure se il sistema si trovi in stato di allarme e fuori servizio (`Out of service`).
-  - Deve rifiutare definitivamente la richiesta (`load_refused`) quando la stiva (`hold`) risulta completamente satura (ovvero i 4 slot di stoccaggio `slot1`-`slot4` sono tutti occupati).
-  - In caso di esito positivo e risorse disponibili, deve commutare il proprio stato logico in *engaged*, riservare atomica una cella libera in stiva e restituire al cliente la risposta `load_accepted(slotID)` indicante il codice dello slot allocato.
-  - Per tutta la durata in cui il sistema permane nello stato *engaged*, deve comandare all'attuatore LED di lampeggiare in modo continuo.
-  - Al rilascio di `load_accepted`, deve attendere che il cliente posizioni fisicamente il container sulla pedana entro un intervallo temporale limite prestabilito (es. 30 secondi); scaduto tale termine senza rilevamento, deve sbloccare la riserva e retrocedere allo stato *disengaged*.
-  - Una volta rilevato il container, deve coordinare l'unità robotica per movimentare il carico dall'IOPort verso la postazione di etichettatura (`slot5`), comandare al dispositivo marker l'applicazione del codice identificativo e, a marcatura ultimata, ordinare al robot il deposito nello slot riservato, concludendo il ciclo e ripristinando lo stato *disengaged*.
+Di seguito sono riportati *parola per parola* i requisiti del committente affrontati in questo Sprint:
 
-- *Requisiti dei Collaboratori e Interfacce di Bordo:*
-  - *`ioport`*: Deve fungere da interfaccia verso l'utente, emettendo le richieste di carico e visualizzando sul display lo stato dell'impianto ("Service working" o "Out of service") nonché l'esito della prenotazione.
-  - *`sonar` e allarmi*: Il sensore deve misurare costantemente la distanza dalla pedana. Qualora rilevi una distanza $D > D_"FREE"$ per un tempo continuativo di almeno 3 secondi, deve segnalare una condizione di possibile guasto, forzando l'impianto in stato *Out of service* e bloccando l'ammissione di nuove richieste.
-  - *`markerdevice` e `led`*: Devono operare come attuatori passivi in grado di ricevere comandi di esecuzione e, nel caso del marker, notificare il completamento dell'etichettatura.
+- *"Il cargoservice è in grado di ricevere una richiesta di carico di un container inviata da un cliente tramite il pulsante dell'IOPort."*
+- *"Invia la risposta retrylater se l'IOPort è attualmente occupato da un container oppure se il sistema è Out of service."*
+- *"Rifiuta la richiesta quando la hold è già piena, ovvero gli slot1-4 sono già tutti occupati."*
+- *"Altrimenti, considera il sistema come engaged, rileva uno slot libero e restituisce come risposta il nome dello slot riservato. Mentre il sistema è engaged, il LED deve lampeggiare."*
+- *"Quando la richiesta di carico viene accettata, il cliente deve spostare il container nell'area del sensore entro un tempo prefissato (ad esempio 30 secondi), altrimenti il sistema diventa disengaged."*
+- *"Successivamente, il cargoservice utilizza il cargorobot per spostare il container dall'IOPort a slot5 (per l'etichettatura del container) e poi allo slot riservato."*
+
+== Breve Analisi dei Requisiti Considerati
+
+In parole semplici, l'analisi di questo sottoinsieme evidenzia tre compiti principali per il `cargoservice`:
+1. *Controllo di Ammissione:* All'arrivo di una richiesta, il sistema decide in modo immediato se accettarla (`load_accepted`), farla riprovare più tardi (`retrylater`) o rifiutarla definitivamente (`load_refused` se la stiva è piena).
+2. *Gestione della Riserva e Timeout (30s):* Quando una richiesta è accettata, lo slot libero viene riservato subito per evitare conflitti. Se il cliente non deposita il container entro 30 secondi, la prenotazione viene annullata e il sistema torna libero (*disengaged*).
+3. *Coordinamento del Flusso di Lavoro:* Appena il container viene posizionato, il `cargoservice` guida le fasi operative: attiva il LED lampeggiante, invia il robot a `slot5`, attende la fine dell'etichettatura dal marker e completa il deposito nello slot riservato.
 
 = Architettura dello Sprint 0 (Riferimento e Punto di Partenza)
 

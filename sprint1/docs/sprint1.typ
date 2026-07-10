@@ -24,37 +24,17 @@ Il punto di partenza di questo sprint è l'architettura logica (recuperabile al 
     caption: [Architettura definita nello Sprint0.]
 )
 
+- specificare nel goal dello sprint1 che vogliamo realizzare i mock e far muovere il robot
+- ⁠implementare il movimento del robot (integrare virtualrobot26) 
+- ⁠specificare che ogni componente e mock
+- ⁠includere la valutazione in ore del lavoro
 
-Si riporta di seguito il goal dello sprint 1:
 
-*DA AGGIORNARE*
+Si riporta di seguito il goal dello Sprint 1.
 
-Realizzare un primo prototipo eseguibile del *cargoservice* che ne implementi il 
-comportamento descritto dai requisiti mediante collaboratori simulati. Poiché l'obiettivo principale è validare la logica del servizio, 
-il movimento del robot viene astratto come collaborazione simulata, assumendo che l'operazione di deposito termini con esito positivo. 
-Questa scelta consente di verificare prima il coordinamento tra i componenti e rimandare a una fase successiva il controllo fisico del 
-robot e la gestione dei percorsi.
+L'obiettivo dello Sprint 1 è realizzare un prototipo eseguibile del cargoservice che implementi il comportamento descritto dai requisiti e ne verifichi il corretto funzionamento. Si prevede di realizzare i componenti non ancora pronti in forma simulata (come mock). Si prevede di implementare il resto delle funzionalità di cargoservice. Infine, andrà realizzato il movimento del cargorobot, delegando questo compito ad un componente esterno, fornito dalla nostra casa di produzione. 
 
-Al termine dello Sprint1 il sistema dovrà essere in grado di:
 
-- ricevere una *load_request* proveniente dall'IOPort;
-- verificare lo stato della hold, dell'IOPort e del servizio;
-- produrre una delle tre risposte previste:
-  - *load_accepted(slotID)*;
-  - *load_retrylater*;
-  - *load_refused*;
-- mantenere il modello logico della hold e la prenotazione dello slot;
-- gestire gli stati *engaged* e *disengaged*;
-- pilotare il LED in funzione dello stato del sistema;
-- superare i test funzionali definiti nello Sprint0.
-
-In questa fase il cargorobot, il sonar, il markerdevice e l'IOPort saranno rappresentati
-tramite collaboratori simulati.
-
-Proposta di aggiunta:
- =Evoluzione dal modello dello sprint 0
-
-Prendendo come punto di partenza il modello sviluppato alla fine dello sprint0, dobbiamo poi ecc.. ecc..
 
 // =============================================================================
 = Requirements
@@ -64,11 +44,11 @@ I requisiti del progetto sono riportati nel documento disponibile al seguente #l
 
 L'azienda richiede di realizzare un servizio denominato *cargoservice* con il seguente funzionamento:
 
-- Gli slot1-4 rappresentano le aree della stiva riservate per immagazzinare ciascuno un container.
+- Gli slot1-4 rappresentano le aree della hold riservate per immagazzinare ciascuno un container.
 
 - Lo slot5 rappresenta un'area in cui il cargorobot deve temporaneamente depositare un container, prima di posizionarlo in uno degli slot1-4. Durante la sosta temporanea, un dispositivo 'marker' etichetta il container con un codice a barre identificativo e segnala quando l'attività di marcatura è completata.
 
-- L'IOPort è un dispositivo dotato di un pulsante e di un display. Il pulsante viene premuto dal cliente per inviare una richiesta di carico di un container sulla nave. Il display viene utilizzato per mostrare la risposta alla richiesta e lo stato attuale della stiva.
+- L'IOPort è un dispositivo dotato di un pulsante e di un display. Il pulsante viene premuto dal cliente per inviare una richiesta di carico di un container sulla nave. Il display viene utilizzato per mostrare la risposta alla richiesta e lo stato attuale della hold.
 
 - Il sensore associato all'IOPort è un dispositivo (un sonar) utilizzato per rilevare la presenza di un container, quando misura una distanza D, tale che D < D#sub[FREE]/2, per un tempo ragionevole (ad esempio 3 secondi).
 
@@ -88,6 +68,25 @@ L'azienda richiede di realizzare un servizio denominato *cargoservice* con il se
   - lo stato attuale della hold
   - il messaggio *"Service working"* quando tutto sta procedendo correttamente
   - il messaggio *"Out of service"* se il sensore sonar misura la distanza (del container dal sonar stesso) D > D#sub[FREE] per almeno 3 secondi (possibile guasto del sonar)
+
+= Sottoinsieme di Requisiti Considerati $$
+
+In questo Sprint ci concentriamo sulla realizzazione del *core business* del sistema, prendendo in esame i requisiti che regolano l'accettazione delle richieste, la gestione della hold e il coordinamento del ciclo di lavoro.
+
+Di seguito sono riportati i requisiti del committente affrontati in questo Sprint:
+
+- "Il cargoservice è in grado di ricevere una richiesta di carico di un container inviata da un cliente tramite il pulsante dell'IOPort."
+- "Invia la risposta retrylater se l'IOPort è attualmente occupato da un container oppure se il sistema è Out of service."
+- "Rifiuta la richiesta quando la hold è già piena, ovvero gli slot1-4 sono già tutti occupati."
+- "Altrimenti, considera il sistema come engaged, rileva uno slot libero e restituisce come risposta il nome dello slot riservato. Mentre il sistema è engaged, il LED deve lampeggiare."
+- "Quando la richiesta di carico viene accettata, il cliente deve spostare il container nell'area del sensore entro un tempo prefissato (ad esempio 30 secondi), altrimenti il sistema diventa disengaged."
+- "Successivamente, il cargoservice utilizza il cargorobot per spostare il container dall'IOPort a slot5 (per l'etichettatura del container) e poi allo slot riservato."
+
+In parole semplici, l'analisi di questo sottoinsieme evidenzia tre compiti principali per il `cargoservice`:
+1. *Controllo di Ammissione:* All'arrivo di una richiesta, il sistema decide in modo immediato se accettarla (`load_accepted`), farla riprovare più tardi (`retrylater`) o rifiutarla definitivamente (`load_refused` se la hold è piena).
+2. *Gestione della Riserva e Timeout (30s):* Quando una richiesta è accettata, lo slot libero viene riservato subito per evitare conflitti. Se il cliente non deposita il container entro 30 secondi, la prenotazione viene annullata e il sistema torna libero (*disengaged*).
+3. *Coordinamento del Flusso di Lavoro:* Appena il container viene posizionato, il `cargoservice` guida le fasi operative: attiva il LED lampeggiante, invia il robot a `slot5`, attende la fine dell'etichettatura dal marker e completa il deposito nello slot riservato.
+    
 // =============================================================================
 = Requirement analysis
 // =============================================================================
@@ -568,10 +567,32 @@ Per maggiori dettagli sul modello implementato si rimanda a #link(<model>)[Probl
 
 Questa architettura rappresenta il risultato finale dello Sprint 1 e costituirà il punto di partenza per lo Sprint 2.
 
-// da verificare se è il caso di toglierla o meno
-== Verifica della pianificazione
+== Ripartizione del lavoro $$
 
-La pianificazione prevista per lo Sprint 1 è stata rispettata. Non si sono verificati scostamenti significativi rispetto agli obiettivi inizialmente prefissati.
+Durante lo Sprint 1 il gruppo ha lavorato in modo collaborativo, condividendo le principali decisioni progettuali e distribuendo in maniera uniforme le attività di sviluppo.
+
+Le principali aree di lavoro sono state:
+
+- analisi dei requisiti e progettazione dell'architettura;
+- implementazione del `CargoService`, della Hold e degli attori mock;
+- integrazione con `RobotSmart` per la movimentazione del robot;
+- definizione del testplan e verifica del corretto funzionamento del prototipo;
+- redazione della documentazione tecnica.
+
+
+== Goal dello Sprint 2 $$
+
+L'obiettivo dello Sprint 2 è incrementare il livello di realismo del prototipo sostituendo progressivamente i componenti simulati con le rispettive implementazioni reali.
+
+Le attività previste sono:
+
+- sostituire i mock con i componenti reali (IOPort Web GUI, sonar e LED);
+- completare l'integrazione con `VirtualRobot26` e `RobotSmart`;
+- mantenere invariata l'architettura del sistema;
+- aggiornare ed estendere il testplan.
+
+- Stima dell'impegno: circa *30 ore* complessive di lavoro (≈10 ore per ciascun componente del gruppo).
+
 
 == Goal dello Sprint 2
 
