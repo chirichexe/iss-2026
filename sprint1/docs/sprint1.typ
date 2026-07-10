@@ -75,7 +75,7 @@ Nel corso dello Sprint 1 è stato tuttavia effettuato un ulteriore approfondimen
 
 / *Risposta della committente*: Il robot deve fermarsi e, una volta terminato lo stato di out-of-service, deve riprendere il movimento se originariamente era in esecuzione.
 
-Da tale chiarimento si deduce che il *cargorobot* debba essere modellato come un servizio e che costituisca una componente reattiva del sistema. Non è invece specificato quale componente debba rilevare la condizione di guasto; tale aspetto viene pertanto rimandato alla successiva analisi del problema.
+Da tale chiarimento si deduce che il *cargorobot* debba essere modellato come un servizio in quanto costituisce una componente reattiva del sistema. Non è invece specificato quale componente debba rilevare la condizione di guasto; tale aspetto viene pertanto rimandato alla successiva analisi del problema.
 
 = Problem analysis <model>
 
@@ -148,25 +148,15 @@ La realizzazione del *cargorobot* richiede di stabilire la natura software più 
 
 Per scegliere se vedere al *cargorobot* come un POJO o come un Servizio, il fattore principale  è la *reattività*. Da requisito, in caso di anomalia al sonar (*Out of service*) il robot deve essere in grado di fermarsi completamente. Questa esigenza di reattività e proattività ad eventi di sistema giustifica la modellazione del robot come *Servizio* e non come un semplice *POJO*.
 
-Per i seguenti motivi è stato concordato l'utilizzo dell'ambiente  *VirtualRobot26* e dal servizio *RobotSmart26* :
+È stato concordato l'utilizzo del servizio *RobotSmart26* per garantire *reattività* in caso di allarmi (es. sonar guasto), poiché esso è progettato per interrompere i piani di movimento e mantenere una coerenza di stato. Inoltre possiede la Request `moverobot(TARGETX, TARGETY)`, che formalizza una richiesta di spostamento, calcolando ed eseguendo automaticamente il piano per raggiungere la cella.
 
-- *Reattività:* In caso di allarmi (es. sonar guasto o ostacoli imprevisti), *RobotSmart26* è progettato per interrompere i piani di movimento e mantenere una coerenza di stato, requisito essenziale per un software di automazione industriale resiliente.
-
-- *Pathfinding:* Il robot deve spostarsi dalla IOPort verso vari slot (Slot1-5). Utilizzare comandi base (`RobotService26` o `RobotObj26`) richiederebbe di implementare la logica di instradamento, il che risulterebbe complesso. *RobotSmart26* possiede nativamente la Request `moverobot(TARGETX, TARGETY)`, calcolando ed eseguendo automaticamente il piano per raggiungere la cella.
-
-- *Consapevolezza dell'ambiente* Tramite l'attore interno `robotmnemo`, il servizio mantiene e aggiorna una mappa spaziale dell'ambiente (matrice ostacoli/celle libere), rendendo il robot "consapevole" dello spazio logico in cui opera.
-
-/*    (% Toglierei quest'ultimo motivo 
-- *Architettura a Microservizi e Delega:* L'approccio supporta la delega trasparente (disaccoppiando pianificazione, esecuzione e memoria) e si interfaccia in modo nativo tramite messaggi Qak, sposandosi perfettamente con l'infrastruttura ad attori e microservizi del nostro *cargoservice*.
-*/
+Analizzando il codice di *RobotSmart26*, si osserva che il componente soddisfa i requisiti funzionali richiesti al cargorobot. In particolare, il robot mantiene internamente una rappresentazione della mappa dell'ambiente che coincide con la struttura della hold prevista dal sistema; l'unica informazione non gestita riguarda lo stato di occupazione degli slot, demandato al cargoservice. Per questo motivo, si è scelto di adottare RobotSmart26 come implementazione del cargorobot, riutilizzandone il comportamento senza introdurre modifiche sostanziali.
 
 La documentazione di riferimento per *robotsmart26* è disponibile al seguente link:
 #link("https://anatali.github.io/issLab2026/_static/docs/Protobook.pdf#chapter.30")[robotsmart26]
 
 La specifica Qak del componente *robotsmart26* è disponibile al seguente link:
 #link("https://github.com/chirichexe/iss-2026/blob/main/sprint1/robotsmart26/src/robotsmart26.qak")[robotsmart26]
-
-
 
 == Analisi delle Interazioni
 
