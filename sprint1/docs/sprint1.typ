@@ -28,11 +28,6 @@ Si riporta di seguito il goal dello Sprint 1.
 
 L'obiettivo dello Sprint 1 è realizzare un prototipo eseguibile del *cargoservice* che implementi il ciclo principale di carico di un container, dalla ricezione della `load_request` fino al deposito del container nello slot riservato. Si prevede di realizzare i componenti non ancora pronti in forma simulata (come mock) e di realizzare il movimento del cargorobot, delegando questo compito ad un componente esterno fornito dalla nostra casa di produzione. 
 
-/*
-In questo sprint si intende soddisfare il sottoinsieme di requisiti relativo al ciclo principale di carico di un container. In particolare, il sistema dovrà essere in grado di ricevere una richiesta di carico, verificare le condizioni per la sua accettazione, prenotare uno slot libero, gestire gli stati engaged e disengaged, attendere il deposito del container entro il tempo previsto, coordinare la movimentazione del robot verso slot5, richiedere la marcatura del container, completare il deposito nello slot riservato e riportare il robot nella posizione Home.
-
-*/
-
 // =============================================================================
 = Requirements
 // =============================================================================
@@ -89,7 +84,7 @@ La loro realizzazione concreta è pianificata per gli sprint successivi. I compo
 
 Come emerso dall'analisi dei requisiti, questo componente funge da *orchestratore*: coordina le operazioni degli altri componenti del sistema al 
 fine di eseguire le procedure di carico. 
-Inoltre, le entità sono distribuite su quattro nodi separati ma, per non rallentare la prototipazione, tutti i componenti //ad eccezione del robot
+Inoltre, le entità sono distribuite su quattro nodi separati ma, per non rallentare la prototipazione, tutti i componenti
 verranno rappresentati nello stesso nodo (rappresentato da un Context), tenendo in considerazione che gli attori non condividono memoria, e comunicano
 tra loro tramite scambio di messaggi.
 
