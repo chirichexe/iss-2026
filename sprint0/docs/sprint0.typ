@@ -215,8 +215,8 @@ Dopo una discussione con la committente, si conviene che la responsabilità di d
 la sequenza applicativa resta in capo al *cargoservice*, il quale movimenterà il cargorobot.
 
 Sarà successivamente opportuno analizzare quali software già disponibili nella software house
-o in rete siano adeguati al problema. In particolare, andrà valutato se riutilizzare software come *robosmart26* o
-*robotservice26*.
+o in rete siano adeguati al problema. In particolare, andrà valutato se riutilizzare software come *robosmart26*,
+*robotservice26* o *robotobj26*.
 
 Di seguito viene riportata una formalizzazione del suo comportamento, che si limita a ricevere comandi di spostamento e a eseguirli. La decisione sulla loro realizzazione concreta è rinviata all'analisi del problema.
 
