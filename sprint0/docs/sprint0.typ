@@ -117,6 +117,8 @@ prima ancora di scrivere una riga di logica applicativa.
 
 == Vocabolario
 
+Di seguito vengono disambiguati (in linguaggio naturale) alcuni termini ritrovati nei requisiti: 
+
 #iss-table(
 columns: (auto, 1fr),
 [*Termine*], [*Significato*],
@@ -134,23 +136,23 @@ columns: (auto, 1fr),
 
 == Contesti logici
 
-Dai requisiti emerge che il sistema non è naturalmente concentrato in un unico processo; le entità sono quindi state distribuite su context distinti, ciascuno dei quali rappresenta un nodo di elaborazione.
+Dai requisiti emerge che il sistema non è naturalmente concentrato in un unico processo; le entità sono quindi state distribuite su "context" distinti, ciascuno dei quali rappresenta un nodo di elaborazione.
 #iss-table(
 columns: (auto, 1fr),
 [*Contesto*], [*Componenti e responsabilità*],
-[*ctxCargoService*],
+[*ctxcargoservice*],
 [È il nucleo del comportamento richiesto e punto di orchestrazione del ciclo di carico. Contiene il cargoservice.],
-[*ctxIOPort*],
+[*ctxioport*],
 [Raggruppa le entità dedicate all'interazione con l'utente. Contiene l'IOPort (con display e pushbutton)],
-[*ctxDevices*],
+[*ctxdevices*],
 [Raggruppa i dispositivi presenti nella hold: sonar, LED, e markerdevice.],
-[*ctxRobot*],
+[*ctxrobot*],
 [Raggruppa le entità legate al cargorobot e alla movimentazione richiesta.],
 )
 
 == Formalizzazione dei messaggi QAK 
 
-Dai requisiti, l'unica richiesta che si evince è quella di carico, che viene modellata come request in qak.
+Dai requisiti, l'unica richiesta che si evince è quella di carico, che viene modellata come Request, con le 3 possibili Response (accepted, retrylater, refused).
 La richiesta viene inviata dal customer al cargoservice tramite l'IOPort.
 
 ```qak
@@ -239,12 +241,12 @@ Il codice è disponibile al seguente #link("https://github.com/chirichexe/iss-20
 === IOPort
 
 L'IOPort rappresenta l'interfaccia tra customer e sistema. 
-Dopo una discussione con la committente, si comprende che esso viene interpretato come una Web GUI composta da un pushbutton e 
+Dopo una discussione con la committente, si comprende che esso verrà rappresentato come una Web GUI composta da un pushbutton e 
 da un display. Dai requisiti si deduce che è IOPort ad emettere la richiesta *load_request* verso *cargoservice* e mostrare informazioni 
 di stato.
 
-Nel modello QAK può essere rappresentato come attore per modellarne il comportamento comunicativo,
-non perché la sua implementazione finale debba necessariamente essere QAK.
+Nel modello QAK può essere rappresentato come attore per modellarne il comportamento comunicativo (
+non perché la sua implementazione finale debba necessariamente essere QAK).
 
 ```qak
 Request load_request    : loadRequest(none)
@@ -333,11 +335,7 @@ QActor markerdevice context ctxdevices {
 
 === LED
 
-Il LED è un dispositivo fisico usato per rendere osservabile lo stato *engaged* del sistema.
-
-La frase dei requisiti _"while engaged, the system blink a Led"_ viene formalizzata
-nel seguente modo: quando il cargoservice entra nello stato *engaged*, il LED deve
-lampeggiare; quando il sistema torna nello stato *disengaged*, il LED deve essere spento.
+Il LED è un dispositivo fisico che verrà usato per rendere osservabile lo stato *engaged* del sistema.
 
 Dopo una consultazione con la committente, si è definito che il LED è considerato un dispositivo 
 fisico integrato nel PicoW che gestisce anche il sonar. Il software di controllo del LED è quindi 
@@ -363,9 +361,9 @@ La hold è l'entità che rappresenta logicamente la stiva e lo stato di occupazi
 
 Il componente è da sviluppare.
 
-Può essere formalizzata come una struttura dati composta da Celle, ovvero una matrice bidimensionale. Ogni Cella può indicare uno spazio libero, un ostacolo, la HOME, il SONAR, l'IOPORT o uno slot (*slot1*--*slot4* e lo *slot5* usato per la marcatura).
+Può essere formalizzata semplicemente come una struttura dati composta da Celle, ovvero una matrice bidimensionale. Ogni Cella può indicare uno spazio libero, un ostacolo, la HOME, il SONAR, l'IOPORT o uno slot (*slot1*--*slot4* e lo *slot5* usato per la marcatura).
 
-La formalizzazione della Hold come *POJO* può essere trovato al seguente #link("https://github.com/chirichexe/iss-2026/blob/main/sprint0/prototype/cargosystem/src/it/unibo/hold/Hold.java")[link]
+La formalizzazione della Hold può essere trovato al seguente #link("https://github.com/chirichexe/iss-2026/blob/main/sprint0/prototype/cargosystem/src/it/unibo/hold/Hold.java")[link]
 
 ```java
 public enum CellType {
