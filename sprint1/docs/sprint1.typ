@@ -90,8 +90,6 @@ La scelta è motivata dal fatto che la hold non rappresenta un'entità attiva de
 
 L'interfaccia `IHold` definisce le operazioni necessarie per la gestione della hold, indipendentemente dalla loro implementazione. La classe `Hold` ne costituisce l'implementazione concreta, occupandosi della rappresentazione del suo stato e della logica di assegnazione degli slot.
 
-Le motivazioni che hanno portato all'introduzione di un'interfaccia sono legate alla possibilità di estendere il sistema in futuro.
-
 Inoltre, lo stato iniziale della hold viene caricato da un file di configurazione JSON, così da evitare valori hard-coded nel codice e rendere più semplice modificare la disposizione dell'ambiente senza cambiare la logica applicativa.
 
 Il file di configurazione è disponibile al seguente link:
@@ -267,6 +265,7 @@ State s0 initial {
 
 Al termine dell'elaborazione dell'evento il cargoserivce valuta se siano contemporaneamente soddisfatte tutte le condizioni necessarie per iniziare la movimentazione del container. Il robot viene attivato solamente quando il servizio si trova nello stato engaged, il container è stato effettivamente depositato e il sistema risulta operativo. 
 
+Per semplicità, nello Sprint 1 non viene implementata la verifica della persistenza della misura per almeno 3 secondi richiesta dalla traccia. Il prototipo assume che ogni evento sonardata rappresenti una misura già validata dal sonar. La gestione completa del vincolo temporale verrà introdotta negli sprint successivi.
 
 ```qak
     State handle_sonar {
@@ -419,24 +418,23 @@ QActor ledmock context ctxprototype {
 
 = Test plans <testplan>
 
-Il testplan dello Sprint1 non è realizzato come test JUnit separato, ma come *scenario di test eseguibile* interno al modello QAK.
+Il testplan dello Sprint1 viene realizzato come scenario eseguibile interno al modello QAK (recuperabile al seguente #link("https://github.com/chirichexe/iss-2026/blob/main/sprint1/prototype/src/Prototype_Sprint1.qak")[link]).
 Gli attori mock avviano automaticamente le interazioni necessarie a verificare il comportamento essenziale del `cargoservice`.
 
 I test previsti sono:
 
-- *TEST 1 - richiesta accettata* \
+- *TEST 1: richiesta accettata* \
   Eseguito da `ioportmock`: invia una prima `load_request` quando il servizio è libero. \
   Risultato atteso: `cargoservice` risponde con `load_accepted(slotN)` e invia `ledCmd(blink)` a `ledmock`.
 
-- *TEST 2 - nessun accodamento* \
+- *TEST 2: nessun accodamento* \
   Eseguito da `ioportmock`: invia subito una seconda `load_request` mentre il servizio è `engaged`. \
   Risultato atteso: `cargoservice` risponde con `load_retrylater`, quindi la richiesta non viene accodata.
 
 ```qak
 QActor ioportmock context ctxprototype {
     State s0 initial {
-        // TEST 1: send the first load request while the service should be free.
-        // Expected: cargoservice replies load_accepted(slotN) and ledmock receives blink.
+        // TEST 1: 
         delay 1000
         println("ioportmock | TEST 1 - Sending 1st load_request (expected load_accepted)") color cyan
         request cargoservice -m load_request : loadRequest(none)
@@ -449,8 +447,7 @@ QActor ioportmock context ctxprototype {
     State handle_accept {
         printCurrentMessage color green
 
-        // TEST 2: immediately send another request while cargoservice is engaged.
-        // Expected: no queue is created and cargoservice replies load_retrylater.
+        // TEST 2:
         delay 500
         println("ioportmock | TEST 2 - Sending 2nd load_request while engaged (expected load_retrylater)") color cyan
         request cargoservice -m load_request : loadRequest(none)
@@ -462,46 +459,45 @@ QActor ioportmock context ctxprototype {
 }
 ```
 
-- *TEST 3 - deposito del container* \
+- *TEST 3: deposito del container* \
   Eseguito da `sonarmock`: emette `sonardata: distance(30)`. \
   Risultato atteso: `cargoservice` rileva l'IOPort occupato e avvia la procedura di movimentazione del robot.
 
-- *TEST 4 - sonar out of service* \
+- *TEST 4: sonar out of service* \
   Eseguito da `sonarmock`: emette `sonardata: distance(200)`. \
   Risultato atteso: `cargoservice` imposta il sistema in stato *Out of service*.
 
-- *TEST 5 - ripristino sonar* \
+- *TEST 5: ripristino sonar* \
   Eseguito da `sonarmock`: emette `sonardata: distance(100)`. \
   Risultato atteso: `cargoservice` riporta il sistema in stato *Working*.
 
 ```
 QActor sonarmock context ctxprototype {
     State s0 initial {
-        // TEST 3: simulate container deposit after an accepted load request.
+        // TEST 3:
         delay 4000
         emit sonardata : distance(30)
 
-        // TEST 4: simulate D > DFREE.
+        // TEST 4:
         delay 8000
         emit sonardata : distance(200)
 
-        // TEST 5: simulate D <= DFREE after out of service.
+        // TEST 5:
         delay 5000
         emit sonardata : distance(100)
     }
 }
 ```
 
-- *TEST 6 - marcatura container* \
+- *TEST 6: marcatura container* \
   Eseguito da `markerdevice`: riceve `mark_container` e risponde `marking_done`. \
   Risultato atteso: `cargoservice` prosegue verso il trasferimento allo slot riservato.
-
-Il seguente estratto mostra la parte principale del testplan codificata nel modello QAK:
 
 ```
 QActor markerdevice context ctxprototype {
     State handle_mark {
-        // TEST 6: verify the marking phase in the nominal workflow.
+        // TEST 6:
+
         delay 1500
         replyTo mark_container with marking_done : markingDone(none)
     }
@@ -523,13 +519,13 @@ Per procedere al deployment del prototipo è necessario eseguire i seguenti pass
 
 1. Clonare il repository del progetto da GitHub
 
-2. Nella directory robosmart26/yamls eseguire il comando 'docker compose -f unibobasic26.yaml up'
+2. Nella directory robotsmart26/yamls eseguire il comando 'docker compose -f unibobasic26.yaml up'
 
 3. Aprire un broswer e andare su http://localhost:8090/
 
-4. Eseguire all'interno della directory del progetto robosmart26 il comando `./gradlew run`
+4. Eseguire all'interno della directory del progetto "robotsmart26" il comando `./gradlew run`
 
-5. Eseguire all'interno della directory del progetto robosmart26 il comando `./gradlew run`
+5. Eseguire all'interno della directory del progetto "prototype" il comando `./gradlew run`
 
 
 // = Maintenance
@@ -537,12 +533,13 @@ Per procedere al deployment del prototipo è necessario eseguire i seguenti pass
 = Pagina di sintesi
 == Architettura finale del prototipo
 
-L'architettura finale del prototipo sviluppato durante questo Sprint è riportata nella figura seguente.
+L'architettura finale del prototipo sviluppato durante questo Sprint è riportata nella figura seguente, che costituirà il punto di partenza per lo Sprint 2.
 
+#figure(
+    image("../prototype/prototype_sprint1arch.png"),
+    caption: [Architettura definita nello Sprint1.]
+)
 
-Per maggiori dettagli sul modello implementato si rimanda a #link(<model>)[ProblemAnalysis], mentre i test sviluppati sono descritti in #link(<testplan>)[Test Plan].
-
-Questa architettura rappresenta il risultato finale dello Sprint 1 e costituirà il punto di partenza per lo Sprint 2.
 
 == Ripartizione del lavoro $$
 
@@ -557,18 +554,16 @@ Le principali aree di lavoro sono state:
 - redazione della documentazione tecnica.
 
 
-== Goal dello Sprint 2 $$
+== Goal dello Sprint 2
 
-L'obiettivo dello Sprint 2 è incrementare il livello di realismo del prototipo sostituendo progressivamente i componenti simulati con le rispettive implementazioni reali.
+L'obiettivo dello Sprint 2 è evolvere il prototipo sviluppato sostituendo progressivamente i componenti simulati con le rispettive implementazioni reali.
 
 Le attività previste sono:
 
-- sostituire i mock con i componenti reali (IOPort Web GUI, sonar e LED);
+- sostituire i mock con i componenti reali (IOPort come Web GUI, sonar e LED collegati al PicoW);
 - completare l'integrazione con `VirtualRobot26` e `RobotSmart`;
-- mantenere invariata l'architettura del sistema;
-- aggiornare ed estendere il testplan.
 
-- Stima dell'impegno: circa *30 ore* complessive di lavoro (≈10 ore per ciascun componente del gruppo).
+Si stima una durata di circa *30 ore* complessive di lavoro ( \u{2248} ore per ciascun componente del gruppo).
 
 
 == Goal dello Sprint 2
