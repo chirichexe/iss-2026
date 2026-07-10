@@ -577,26 +577,12 @@ Le principali aree di lavoro sono state:
 
 == Goal dello Sprint 2
 
-L'obiettivo dello Sprint 2 è evolvere il prototipo sviluppato sostituendo progressivamente i componenti simulati con le rispettive implementazioni reali.
+L'obiettivo dello Sprint 2 è evolvere il prototipo sviluppato sostituendo progressivamente i componenti simulati con le rispettive implementazioni reali:
 
-Le attività previste sono:
+- IOPort come Web GUI
+- sonar e LED collegati al PicoW;
 
-- sostituire i mock con i componenti reali (IOPort come Web GUI, sonar e LED collegati al PicoW);
-- completare l'integrazione con `VirtualRobot26` e `RobotSmart`;
-
-Si stima una durata di circa *30 ore* complessive di lavoro ( \u{2248} ore per ciascun componente del gruppo).
-
-
-== Goal dello Sprint 2
-
-L'obiettivo principale dello Sprint 2 sarà incrementare il livello di realismo del prototipo sostituendo i componenti simulati con le rispettive implementazioni reali.
-
-In particolare, le attività previste sono:
-
-- sostituire il *cargorobotmock* con l'attore reale interfacciato a *VirtualRobot26*;
-- realizzare l'*IOPort* come Web GUI, consentendo l'interazione dell'utente tramite browser;
-- integrare i nuovi componenti mantenendo invariata l'architettura ad attori del sistema;
-- verificare il corretto funzionamento del sistema mediante un aggiornamento dei test funzionali.
+Si stima una durata di circa *30 ore* complessive di lavoro ( \u{2248} 10 ore per ciascun componente del gruppo).
 
 // -----------------------------------------------------------------------------
 // Allegati - Team di lavoro
