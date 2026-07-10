@@ -123,7 +123,7 @@ public interface IHold {
 
 == Analisi e scelta del componente cargorobot
 
-La realizzazione del *cargorobot* richiede di stabilire la natura software più adeguata per il componente. Ci sono diversi componenti forniti dalla software house per la modellazione di un Differential Drive Robot (DDR):
+La realizzazione del *cargorobot* richiede di stabilire la natura software più adeguata per il componente. Ce ne sono diversi componenti forniti dalla software house per la modellazione di un Differential Drive Robot (DDR):
 
 - *RobotObj26*: È un POJO. Essendo un oggetto passivo, è limitato e può essere utilizzato solo se il chiamante è scritto in Java.
     - *Pro*: Fornisce comandi chiari e semplici da invocare via codice.
@@ -147,11 +147,61 @@ La realizzazione del *cargorobot* richiede di stabilire la natura software più 
 #link("https://github.com/anatali/issLab2026/tree/main/robotsmart26")[Documentazione RobotSmart26]
 #link("https://anatali.github.io/issLab2026/_static/docs/Protobook.pdf#page=319")[Codice RobotSmart26]
 
-Per scegliere se vedere al *cargorobot* come un POJO o come un Servizio, il fattore principale  è la *reattività*. Da requisito, in caso di anomalia al sonar (*Out of service*) il robot deve essere in grado di fermarsi completamente. Questa esigenza di reattività e proattività ad eventi di sistema giustifica la modellazione del robot come *Servizio* e non come un semplice *POJO*.
+Dall'analisi dei requisiti sappiamo che, in caso di anomalia al sonar il robot deve essere in grado di fermarsi completamente. Questa esigenza di reattività ad eventi di sistema giustifica la modellazione del robot come *Servizio* e non come un semplice *POJO*.
 
-È stato perciò concordato l'utilizzo del servizio *RobotSmart26* per garantire *reattività* in caso di allarmi (es. sonar guasto), poiché esso è progettato per interrompere i piani di movimento e mantenere una coerenza di stato. Inoltre possiede la Request `moverobot(TARGETX, TARGETY)`, che formalizza una richiesta di spostamento, calcolando ed eseguendo automaticamente il piano per raggiungere la cella.
+È stato perciò concordato l'utilizzo del servizio *RobotSmart26*, poiché esso è progettato per interrompere i piani di movimento e mantenere una coerenza di stato. 
 
-Analizzando il codice di *RobotSmart26*, si osserva che il componente soddisfa i requisiti funzionali richiesti al cargorobot. In particolare, il robot mantiene internamente una rappresentazione della mappa dell'ambiente che coincide con la struttura della hold prevista dal sistema; l'unica informazione non gestita riguarda lo stato di occupazione degli slot, demandato al cargoservice. Per questo motivo, si è scelto di adottare RobotSmart26 come implementazione del cargorobot, riutilizzandone il comportamento senza introdurre modifiche sostanziali.
+Analizzando il codice di *RobotSmart26*, si osserva che il componente soddisfa i requisiti funzionali richiesti al cargorobot. In particolare:
+- possiede la Request `moverobot(TARGETX, TARGETY)`, che formalizza una richiesta di spostamento, calcolando ed eseguendo automaticamente il piano per raggiungere la cella.
+- mantiene internamente una rappresentazione della mappa dell'ambiente equiparabile alla struttura della hold prevista dal sistema 
+
+L'unica informazione non gestita riguarda lo stato di occupazione degli slot, demandata al *cargoservice* e al POJO della *Hold*.
+
+VIENE MANTENUTO l'attore PERCHE???
+
+```
+QActor cargorobot context ctxprototype {
+    State s0 initial {
+        println("cargorobot | STARTED (Wrapper di robotsmart26)") color blue
+    }
+    Goto waiting
+    
+    State waiting {}
+    Transition t0 
+        whenRequest moverobot -> handle_move
+        
+    State handle_move {
+        onMsg(moverobot : moverobot(X, Y, TIME)) {
+            [# 
+                val Tx = payloadArg(0)
+                val Ty = payloadArg(1)
+                val StepTime = payloadArg(2)
+            #]
+            println("cargorobot | Inoltro comando moverobot($Tx, $Ty, $StepTime) a robotsmart26...") color cyan
+            request robotsmart -m moverobot : moverobot($Tx, $Ty, $StepTime)
+        }
+    }
+    Transition t0
+        whenReply moverobotdone   -> handle_move_done
+        whenReply moverobotfailed -> handle_move_failed
+        
+    State handle_move_done {
+        onMsg(moverobotdone : moverobotok(ARG)) {
+            println("cargorobot | Movimento completato da robotsmart26. Rispondo al cargoservice...") color cyan
+            replyTo moverobot with moverobotdone : moverobotok(done)
+        }
+    }
+    Goto waiting
+    
+    State handle_move_failed {
+        onMsg(moverobotfailed : moverobotfailed(PL, TIME)) {
+            println("cargorobot | Fallimento movimento in robotsmart26. Rispondo failure al cargoservice...") color red
+            replyTo moverobot with moverobotfailed : moverobotfailed(obstacle, 0)
+        }
+    }
+    Goto waiting
+}
+```
 
 La specifica Qak del componente *robotsmart26* è disponibile al seguente link:
 #link("https://github.com/chirichexe/iss-2026/blob/main/sprint1/robotsmart26/src/robotsmart26.qak")[robotsmart26]
@@ -406,47 +456,6 @@ Le coordinate delle destinazioni, invece, vengono recuperate dalla Hold. Affinch
 Gli attori QAK che rappresentano i dispositivi simulati sono riportati separando il comportamento di supporto al prototipo dalle parti usate esclusivamente come testplan. 
 
 ```qak
-QActor cargorobot context ctxprototype {
-    State s0 initial {
-        println("cargorobot | STARTED (Wrapper di robotsmart26)") color blue
-    }
-    Goto waiting
-    
-    State waiting {}
-    Transition t0 
-        whenRequest moverobot -> handle_move
-        
-    State handle_move {
-        onMsg(moverobot : moverobot(X, Y, TIME)) {
-            [# 
-                val Tx = payloadArg(0)
-                val Ty = payloadArg(1)
-                val StepTime = payloadArg(2)
-            #]
-            println("cargorobot | Inoltro comando moverobot($Tx, $Ty, $StepTime) a robotsmart26...") color cyan
-            request robotsmart -m moverobot : moverobot($Tx, $Ty, $StepTime)
-        }
-    }
-    Transition t0
-        whenReply moverobotdone   -> handle_move_done
-        whenReply moverobotfailed -> handle_move_failed
-        
-    State handle_move_done {
-        onMsg(moverobotdone : moverobotok(ARG)) {
-            println("cargorobot | Movimento completato da robotsmart26. Rispondo al cargoservice...") color cyan
-            replyTo moverobot with moverobotdone : moverobotok(done)
-        }
-    }
-    Goto waiting
-    
-    State handle_move_failed {
-        onMsg(moverobotfailed : moverobotfailed(PL, TIME)) {
-            println("cargorobot | Fallimento movimento in robotsmart26. Rispondo failure al cargoservice...") color red
-            replyTo moverobot with moverobotfailed : moverobotfailed(obstacle, 0)
-        }
-    }
-    Goto waiting
-}
 
 QActor markerdevice context ctxprototype {
     State s0 initial {
