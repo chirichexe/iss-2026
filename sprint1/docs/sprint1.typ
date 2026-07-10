@@ -114,9 +114,32 @@ public interface IHold {
 }
 ```
 
-== cargorobot
+== Analisi e scelta del componente cargorobot
 
-Come concordato con il committente, si è scelto di utilizzare il simulatore di ambiente virtuale *VirtualRobot26* e di riutilizzare il componente *robotsmart26* per la gestione della navigazione del robot. Tale scelta consente di sfruttare un software già disponibile e collaudato, evitando di implementare da zero le funzionalità di movimento e pianificazione del percorso e concentrando lo sviluppo sulla logica applicativa del sistema.
+La realizzazione del *cargorobot* richiede di stabilire la natura software più adeguata per il componente. A nostra disposizione abbiamo quattro componenti già pronti, forniti dalla casa di produzione, per la modellazione di un Differential Drive Robot (DDR):
+
+- *VirtualRobot26*: È un ambiente virtuale che non fornisce un'interfaccia di programmazione diretta, ma interagisce ricevendo comandi di movimento 
+
+- *RobotObj26*: È un POJO che implementa un'interfaccia Java (`IRobotBasicMoves`). Essendo un oggetto passivo, è limitato e può essere utilizzato solo se il chiamante è scritto in Java.
+
+- *RobotService26*: È un servizio reattivo che richiede che l'applicazione chiamante gestisca manualmente la logica di navigazione passo dopo passo.
+
+- *RobotSmart26*: È un servizio avanzato, proattivo e reattivo. Strutturato su tre servizi (`robotmnemo`, `planexec`, `robotsmart`), è capace di ricevere coordinate, pianificare autonomamente il percorso tramite algoritmo A\*  ed elaborare interruzioni impreviste.
+
+
+Per scegliere se vedere al *cargorobot* come un POJO o come un Servizio, il fattore principale  è la *reattività*. Da requisito, in caso di anomalia al sonar (*Out of service*) il robot deve essere in grado di fermarsi completamente. Questa esigenza di reattività e proattività ad eventi di sistema giustifica la modellazione del robot come *Servizio* e non come un semplice *POJO*.
+
+Per i seguenti motivi è stato concordato l'utilizzo dell'ambiente  *VirtualRobot26* e dal servizio *RobotSmart26* :
+
+- *Reattività:* In caso di allarmi (es. sonar guasto o ostacoli imprevisti), *RobotSmart26* è progettato per interrompere i piani di movimento e mantenere una coerenza di stato, requisito essenziale per un software di automazione industriale resiliente.
+
+- *Pathfinding:* Il robot deve spostarsi dalla IOPort verso vari slot (Slot1-5). Utilizzare comandi base (`RobotService26` o `RobotObj26`) richiederebbe di implementare la logica di instradamento, il che risulterebbe complesso. *RobotSmart26* possiede nativamente la Request `moverobot(TARGETX, TARGETY)`, calcolando ed eseguendo automaticamente il piano per raggiungere la cella.
+
+- *Consapevolezza dell'ambiente* Tramite l'attore interno `robotmnemo`, il servizio mantiene e aggiorna una mappa spaziale dell'ambiente (matrice ostacoli/celle libere), rendendo il robot "consapevole" dello spazio logico in cui opera.
+
+/*    (% Toglierei quest'ultimo motivo 
+- *Architettura a Microservizi e Delega:* L'approccio supporta la delega trasparente (disaccoppiando pianificazione, esecuzione e memoria) e si interfaccia in modo nativo tramite messaggi Qak, sposandosi perfettamente con l'infrastruttura ad attori e microservizi del nostro *cargoservice*.
+*/
 
 La documentazione di riferimento per *robotsmart26* è disponibile al seguente link:
 #link("https://anatali.github.io/issLab2026/_static/docs/Protobook.pdf#chapter.30")[robotsmart26]
