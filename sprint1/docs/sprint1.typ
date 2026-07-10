@@ -85,11 +85,11 @@ Da tale chiarimento si deduce che il *cargorobot* debba essere modellato come un
 = Problem analysis <model>
 
 L'implementazione completa del sistema presuppone dell'esistenza di altri componenti del sistema fisici o in forma simulata (*sonar*, *LED*, *markerdevice*, *IOPort* come web GUI) non ancora sviluppati. 
-La loro realizzazione concreta è pianificata per gli sprint successivi. I componenti "mock" che replicheranno, per test, il comportamento di quelli mancanti verranno evoluti rispetto alla formalizzazione QAK già avvenuta in fase di Sprint0 (recuperabile al seguente #link("https://github.com/chirichexe/iss-2026/blob/main/sprint0/prototype/cargosystem/src/cargosystem.qak")[link]). 
+La loro realizzazione concreta è pianificata per gli sprint successivi. I componenti "mock" che replicheranno il comportamento di quelli mancanti verranno evoluti rispetto alla formalizzazione QAK già avvenuta in fase di Sprint0 (recuperabile al seguente #link("https://github.com/chirichexe/iss-2026/blob/main/sprint0/prototype/cargosystem/src/cargosystem.qak")[link]). 
 
 Come emerso dall'analisi dei requisiti, questo componente funge da *orchestratore*: coordina le operazioni degli altri componenti del sistema al 
 fine di eseguire le procedure di carico. 
-Inoltre, le entità sono distribuite su quattro nodi separati ma, per non rallentare la prototipazione, tutti i componenti //(ad eccezione del cargorobot) 
+Inoltre, le entità sono distribuite su quattro nodi separati ma, per non rallentare la prototipazione, tutti i componenti //ad eccezione del robot
 verranno rappresentati nello stesso nodo (rappresentato da un Context), tenendo in considerazione che gli attori non condividono memoria, e comunicano
 tra loro tramite scambio di messaggi.
 
@@ -142,7 +142,6 @@ La realizzazione del *cargorobot* richiede di stabilire la natura software più 
 - *RobotSmart26*: È un servizio avanzato, proattivo e reattivo. Strutturato su tre servizi (`robotmnemo`, `planexec`, `robotsmart`), è capace di ricevere coordinate, pianificare autonomamente il percorso tramite algoritmo A\*  ed elaborare interruzioni impreviste.
     - *Pro*: Totale autonomia di navigazione, consapevolezza dello spazio (grazie alla mappa interna) e gestione autonoma delle interruzioni.
     - *Contro*: Maggiore complessità architetturale interna dovuta al necessario coordinamento tra più attori.
-
 
 Per scegliere se vedere al *cargorobot* come un POJO o come un Servizio, il fattore principale  è la *reattività*. Da requisito, in caso di anomalia al sonar (*Out of service*) il robot deve essere in grado di fermarsi completamente. Questa esigenza di reattività e proattività ad eventi di sistema giustifica la modellazione del robot come *Servizio* e non come un semplice *POJO*.
 
