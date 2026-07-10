@@ -28,6 +28,11 @@ Si riporta di seguito il goal dello Sprint 1.
 
 L'obiettivo dello Sprint 1 è realizzare un prototipo eseguibile del *cargoservice* che implementi il ciclo principale di carico di un container, dalla ricezione della `load_request` fino al deposito del container nello slot riservato. Si prevede di realizzare i componenti non ancora pronti in forma simulata (come mock) e di realizzare il movimento del cargorobot, delegando questo compito ad un componente esterno fornito dalla nostra casa di produzione. 
 
+/*
+In questo sprint si intende soddisfare il sottoinsieme di requisiti relativo al ciclo principale di carico di un container. In particolare, il sistema dovrà essere in grado di ricevere una richiesta di carico, verificare le condizioni per la sua accettazione, prenotare uno slot libero, gestire gli stati engaged e disengaged, attendere il deposito del container entro il tempo previsto, coordinare la movimentazione del robot verso slot5, richiedere la marcatura del container, completare il deposito nello slot riservato e riportare il robot nella posizione Home.
+
+*/
+
 // =============================================================================
 = Requirements
 // =============================================================================
@@ -67,9 +72,15 @@ L'azienda richiede di realizzare un servizio denominato *cargoservice* con il se
 
 Una analisi approfondita dei requisiti è stata svolta nello #link("https://github.com/chirichexe/iss-2026/blob/main/sprint0/docs/sprint0_v3.pdf")[Sprint0]. Tali risultati vengono assunti come validi anche per lo Sprint 1.
 
-In questo sprint si intende soddisfare il sottoinsieme di requisiti relativo al ciclo principale di carico di un container. In particolare, il sistema dovrà essere in grado di ricevere una richiesta di carico, verificare le condizioni per la sua accettazione, prenotare uno slot libero, gestire gli stati engaged e disengaged, attendere il deposito del container entro il tempo previsto, coordinare la movimentazione del robot verso slot5, richiedere la marcatura del container, completare il deposito nello slot riservato e riportare il robot nella posizione Home.
+Nel corso dello Sprint 1 è stato tuttavia effettuato un ulteriore approfondimento dei requisiti, a seguito di un chiarimento richiesto alla committente.
 
-Rispetto allo Sprint 0 non sono emerse ulteriori ambiguità sui requisiti funzionali.
+#domanda[
+  *Comportamento del robot*: Cosa succede se il sistema entra nello stato di out-of-service? Cosa succede al robot una volta che il sistema esce da tale stato?
+]
+
+/ *Risposta della committente*: Il robot deve fermarsi e, una volta terminato lo stato di out-of-service, deve riprendere il movimento se originariamente era in esecuzione.
+
+Da tale chiarimento si deduce che il *cargorobot* debba essere modellato come un servizio e che costituisca una componente reattiva del sistema. Non è invece specificato quale componente debba rilevare la condizione di guasto; tale aspetto viene pertanto rimandato alla successiva analisi del problema.
 
 = Problem analysis <model>
 
