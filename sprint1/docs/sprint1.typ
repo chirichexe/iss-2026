@@ -24,17 +24,9 @@ Il punto di partenza di questo sprint è l'architettura logica (recuperabile al 
     caption: [Architettura definita nello Sprint0.]
 )
 
-- specificare nel goal dello sprint1 che vogliamo realizzare i mock e far muovere il robot
-- ⁠implementare il movimento del robot (integrare virtualrobot26) 
-- ⁠specificare che ogni componente e mock
-- ⁠includere la valutazione in ore del lavoro
-
-
 Si riporta di seguito il goal dello Sprint 1.
 
-L'obiettivo dello Sprint 1 è realizzare un prototipo eseguibile del cargoservice che implementi il comportamento descritto dai requisiti e ne verifichi il corretto funzionamento. Si prevede di realizzare i componenti non ancora pronti in forma simulata (come mock). Si prevede di implementare il resto delle funzionalità di cargoservice. Infine, andrà realizzato il movimento del cargorobot, delegando questo compito ad un componente esterno, fornito dalla nostra casa di produzione. 
-
-
+L'obiettivo dello Sprint 1 è realizzare un prototipo eseguibile del *cargoservice* che implementi il ciclo principale di carico di un container, dalla ricezione della `load_request` fino al deposito del container nello slot riservato. Si prevede di realizzare i componenti non ancora pronti in forma simulata (come mock) e di realizzare il movimento del cargorobot, delegando questo compito ad un componente esterno fornito dalla nostra casa di produzione. 
 
 // =============================================================================
 = Requirements
@@ -69,30 +61,15 @@ L'azienda richiede di realizzare un servizio denominato *cargoservice* con il se
   - il messaggio *"Service working"* quando tutto sta procedendo correttamente
   - il messaggio *"Out of service"* se il sensore sonar misura la distanza (del container dal sonar stesso) D > D#sub[FREE] per almeno 3 secondi (possibile guasto del sonar)
 
-= Sottoinsieme di Requisiti Considerati $$
-
-In questo Sprint ci concentriamo sulla realizzazione del *core business* del sistema, prendendo in esame i requisiti che regolano l'accettazione delle richieste, la gestione della hold e il coordinamento del ciclo di lavoro.
-
-Di seguito sono riportati i requisiti del committente affrontati in questo Sprint:
-
-- "Il cargoservice è in grado di ricevere una richiesta di carico di un container inviata da un cliente tramite il pulsante dell'IOPort."
-- "Invia la risposta retrylater se l'IOPort è attualmente occupato da un container oppure se il sistema è Out of service."
-- "Rifiuta la richiesta quando la hold è già piena, ovvero gli slot1-4 sono già tutti occupati."
-- "Altrimenti, considera il sistema come engaged, rileva uno slot libero e restituisce come risposta il nome dello slot riservato. Mentre il sistema è engaged, il LED deve lampeggiare."
-- "Quando la richiesta di carico viene accettata, il cliente deve spostare il container nell'area del sensore entro un tempo prefissato (ad esempio 30 secondi), altrimenti il sistema diventa disengaged."
-- "Successivamente, il cargoservice utilizza il cargorobot per spostare il container dall'IOPort a slot5 (per l'etichettatura del container) e poi allo slot riservato."
-
-In parole semplici, l'analisi di questo sottoinsieme evidenzia tre compiti principali per il `cargoservice`:
-1. *Controllo di Ammissione:* All'arrivo di una richiesta, il sistema decide in modo immediato se accettarla (`load_accepted`), farla riprovare più tardi (`retrylater`) o rifiutarla definitivamente (`load_refused` se la hold è piena).
-2. *Gestione della Riserva e Timeout (30s):* Quando una richiesta è accettata, lo slot libero viene riservato subito per evitare conflitti. Se il cliente non deposita il container entro 30 secondi, la prenotazione viene annullata e il sistema torna libero (*disengaged*).
-3. *Coordinamento del Flusso di Lavoro:* Appena il container viene posizionato, il `cargoservice` guida le fasi operative: attiva il LED lampeggiante, invia il robot a `slot5`, attende la fine dell'etichettatura dal marker e completa il deposito nello slot riservato.
-    
 // =============================================================================
 = Requirement analysis
 // =============================================================================
 
-L'analisi dettagliata del dominio e dei requisiti è già stata affrontata nello Sprint 0, in questa fase ci concentriamo esclusivamente 
-sul ciclo di gestione delle richieste di carico (*core business*) del sistema.
+Una analisi approfondita dei requisiti è stata svolta nello #link("https://github.com/chirichexe/iss-2026/blob/main/sprint0/docs/sprint0_v3.pdf")[Sprint0]. Tali risultati vengono assunti come validi anche per lo Sprint 1.
+
+In questo sprint si intende soddisfare il sottoinsieme di requisiti relativo al ciclo principale di carico di un container. In particolare, il sistema dovrà essere in grado di ricevere una richiesta di carico, verificare le condizioni per la sua accettazione, prenotare uno slot libero, gestire gli stati engaged e disengaged, attendere il deposito del container entro il tempo previsto, coordinare la movimentazione del robot verso slot5, richiedere la marcatura del container, completare il deposito nello slot riservato e riportare il robot nella posizione Home.
+
+Rispetto allo Sprint 0 non sono emerse ulteriori ambiguità sui requisiti funzionali.
 
 = Problem analysis <model>
 
@@ -101,7 +78,7 @@ La loro realizzazione concreta è pianificata per gli sprint successivi. I compo
 
 Come emerso dall'analisi dei requisiti, questo componente funge da *orchestratore*: coordina le operazioni degli altri componenti del sistema al 
 fine di eseguire le procedure di carico. 
-Inoltre, le entità sono distribuite su quattro nodi separati ma, per non rallentare la prototipazione, tutti i componenti (ad eccezione del cargorobot) 
+Inoltre, le entità sono distribuite su quattro nodi separati ma, per non rallentare la prototipazione, tutti i componenti //(ad eccezione del cargorobot) 
 verranno rappresentati nello stesso nodo (rappresentato da un Context), tenendo in considerazione che gli attori non condividono memoria, e comunicano
 tra loro tramite scambio di messaggi.
 

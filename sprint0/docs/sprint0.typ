@@ -466,25 +466,10 @@ class TestPlanSprint0 {
     caption: [Architettura definita nello Sprint0.]
 )
 
-= Goal del successivo Sprint 1 (DA AGGIORNARE)
+= Goal del successivo Sprint 1
 
-*Goal:* realizzare un primo prototipo eseguibile del *cargoservice* che implementi il
-comportamento principale descritto dai requisiti mediante collaboratori simulati.
 
-Al termine dello Sprint1 il sistema dovrà essere in grado di:
-
-- ricevere una *load_request* proveniente dall'IOPort;
-- verificare lo stato della hold, dell'IOPort e del servizio;
-- produrre una delle tre risposte previste:
-  - *load_accepted(slotID)*;
-  - *load_retrylater*;
-  - *load_refused*;
-- tenere traccia dello stato della hold e delle prenotazioni degli slot;
-- gestire gli stati *engaged* e *disengaged*;
-- pilotare il LED in funzione dello stato del sistema;
-
-// In questa fase il cargorobot, il sonar, il markerdevice e l'IOPort saranno rappresentati
-tramite collaboratori simulati.
+L'obiettivo dello Sprint 1 è realizzare un prototipo eseguibile del *cargoservice* che implementi il ciclo principale di carico di un container, dalla ricezione della `load_request` fino al deposito del container nello slot riservato. Si prevede di realizzare i componenti non ancora pronti in forma simulata (come mock) e di realizzare il movimento del cargorobot, delegando questo compito ad un componente esterno fornito dalla nostra casa di produzione. 
 
 // -----------------------------------------------------------------------------
 // Allegati - Team di lavoro
