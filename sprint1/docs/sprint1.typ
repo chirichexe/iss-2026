@@ -128,7 +128,7 @@ La realizzazione del *cargorobot* richiede di stabilire la natura software più 
 #link("https://github.com/anatali/issLab2026/tree/main/it.unibo.virtualRobot2026")[Documentazione VirtualRobot26]
 #link("https://anatali.github.io/issLab2026/_static/docs/Protobook.pdf#page=289")[Codice VirtualRobot26]
 
-- *RobotObj26*: È un POJO che implementa un'interfaccia Java (`IRobotBasicMoves`). Essendo un oggetto passivo, è limitato e può essere utilizzato solo se il chiamante è scritto in Java.
+- *RobotObj26*: È un POJO. Essendo un oggetto passivo, è limitato e può essere utilizzato solo se il chiamante è scritto in Java.
     - *Pro*: Fornisce comandi chiari e semplici da invocare via codice.
     - *Contro*: Approccio passivo, sincrono e non reattivo; vincolato al linguaggio Java e inadatto per architetture  distribuite o a microservizi.
 #link("https://github.com/anatali/issLab2026/blob/main/vrUsage26/utils/robots/RobotObj26.java")[Documentazione RobotObj26]
