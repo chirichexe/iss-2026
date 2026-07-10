@@ -32,10 +32,8 @@ class Ioportmock ( name: String, scope: CoroutineScope, isconfined: Boolean=fals
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
-						// TEST 1: send the first load request while the service should be free.
-						// Expected: cargoservice replies load_accepted(slotN) and ledmock receives blink.
 						delay(1000) 
-						CommUtils.outcyan("ioportmock | TEST 1 - Sending 1st load_request (expected load_accepted)")
+						CommUtils.outcyan("ioportmock | TEST 1 - Invio della 1a load_request (atteso load_accepted)")
 						request("load_request", "loadRequest(none)" ,"cargoservice" )  
 						//genTimer( actor, state )
 					}
@@ -49,11 +47,9 @@ class Ioportmock ( name: String, scope: CoroutineScope, isconfined: Boolean=fals
 				state("handle_accept") { //this:State
 					action { //it:State
 						CommUtils.outgreen("$name in ${currentState.stateName} | $currentMsg | ${Thread.currentThread().getName()} n=${Thread.activeCount()}")
-						 	
-						// TEST 2: immediately send another request while cargoservice is engaged.
-						// Expected: no queue is created and cargoservice replies load_retrylater.
+						 	   
 						delay(500) 
-						CommUtils.outcyan("ioportmock | TEST 2 - Sending 2nd load_request while engaged (expected load_retrylater)")
+						CommUtils.outcyan("ioportmock | TEST 2 - Invio della 2a load_request mentre impegnato (atteso load_retrylater)")
 						request("load_request", "loadRequest(none)" ,"cargoservice" )  
 						//genTimer( actor, state )
 					}
@@ -67,7 +63,8 @@ class Ioportmock ( name: String, scope: CoroutineScope, isconfined: Boolean=fals
 				state("handle_no_queue_ok") { //this:State
 					action { //it:State
 						CommUtils.outyellow("$name in ${currentState.stateName} | $currentMsg | ${Thread.currentThread().getName()} n=${Thread.activeCount()}")
-						CommUtils.outgreen("ioportmock | TEST 2 OK - request rejected with retrylater while service is engaged")
+						 	   
+						CommUtils.outgreen("ioportmock | TEST 2 OK - richiesta rifiutata con retrylater mentre il servizio è impegnato")
 						//genTimer( actor, state )
 					}
 					//After Lenzi Aug2002
@@ -77,7 +74,8 @@ class Ioportmock ( name: String, scope: CoroutineScope, isconfined: Boolean=fals
 				state("handle_unexpected_accept") { //this:State
 					action { //it:State
 						CommUtils.outred("$name in ${currentState.stateName} | $currentMsg | ${Thread.currentThread().getName()} n=${Thread.activeCount()}")
-						CommUtils.outred("ioportmock | TEST 2 FAILED - request was accepted while service was already engaged")
+						 	   
+						CommUtils.outred("ioportmock | TEST 2 FALLITO - la richiesta è stata accettata mentre il servizio era già impegnato")
 						//genTimer( actor, state )
 					}
 					//After Lenzi Aug2002

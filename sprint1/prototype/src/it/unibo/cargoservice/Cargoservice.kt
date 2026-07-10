@@ -38,7 +38,7 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
-						CommUtils.outmagenta("cargoservice | STARTED")
+						CommUtils.outmagenta("cargoservice | AVVIATO")
 						//genTimer( actor, state )
 					}
 					//After Lenzi Aug2002
@@ -48,7 +48,7 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 				}	 
 				state("disengaged") { //this:State
 					action { //it:State
-						CommUtils.outblue("cargoservice | DISENGAGED: waiting for requests...")
+						CommUtils.outblue("cargoservice | LIBERO: in attesa di richieste...")
 						//genTimer( actor, state )
 					}
 					//After Lenzi Aug2002
@@ -59,7 +59,7 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 				}	 
 				state("engaged") { //this:State
 					action { //it:State
-						CommUtils.outblue("cargoservice | ENGAGED: waiting for container deposit...")
+						CommUtils.outblue("cargoservice | IMPEGNATO: in attesa del deposito del container...")
 						//genTimer( actor, state )
 					}
 					//After Lenzi Aug2002
@@ -115,11 +115,11 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 								 }
 								if(  Dist > 150  
 								 ){ ServiceWorking = false  
-								CommUtils.outred("cargoservice | Sonar D > DFREE ($Dist) -> System OUT OF SERVICE!")
+								CommUtils.outred("cargoservice | Sonar D > DFREE ($Dist) -> Sistema FUORI SERVIZIO!")
 								}
 								else
 								 {if(  !ServiceWorking  
-								  ){CommUtils.outgreen("cargoservice | Sonar D <= DFREE ($Dist) -> System WORKING again!")
+								  ){CommUtils.outgreen("cargoservice | Sonar D <= DFREE ($Dist) -> Sistema di nuovo FUNZIONANTE!")
 								 }
 								  ServiceWorking = true  
 								 }
@@ -148,7 +148,7 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 				}	 
 				state("do_robot_job") { //this:State
 					action { //it:State
-						CommUtils.outmagenta("cargoservice | Container deposited! Moving robot to slot5 (2,5) [Row,Col] for marking via robotsmart26...")
+						CommUtils.outmagenta("cargoservice | Container depositato! Spostamento del robot allo slot5 (2,5) [Riga,Colonna] per la marcatura tramite robotsmart26...")
 						request("moverobot", "moverobot(2,5,$StepTime)" ,"robotsmart" )  
 						//genTimer( actor, state )
 					}
@@ -160,7 +160,7 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 				}	 
 				state("mark_container") { //this:State
 					action { //it:State
-						CommUtils.outmagenta("cargoservice | At slot5. Asking markerdevice to mark...")
+						CommUtils.outmagenta("cargoservice | Allo slot5. Richiesta di marcatura al markerdevice...")
 						request("mark_container", "markContainer(none)" ,"markerdevice" )  
 						//genTimer( actor, state )
 					}
@@ -174,7 +174,7 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 						 
 						            val DestX = Hold.getSlotX(ReservedSlotId)
 						            val DestY = Hold.getSlotY(ReservedSlotId)
-						CommUtils.outmagenta("cargoservice | Marked! Moving container to slot$ReservedSlotId ($DestY, $DestX) [Row,Col] via robotsmart26...")
+						CommUtils.outmagenta("cargoservice | Marcato! Spostamento del container allo slot$ReservedSlotId ($DestY, $DestX) [Riga,Colonna] tramite robotsmart26...")
 						request("moverobot", "moverobot($DestY,$DestX,$StepTime)" ,"robotsmart" )  
 						//genTimer( actor, state )
 					}
@@ -189,7 +189,7 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 						 
 						            val HomeX = Hold.getHomeX()
 						            val HomeY = Hold.getHomeY()
-						CommUtils.outmagenta("cargoservice | Container stored! Returning robot to HOME ($HomeY,$HomeX) [Row,Col] via robotsmart26...")
+						CommUtils.outmagenta("cargoservice | Container immagazzinato! Ritorno del robot alla HOME ($HomeY,$HomeX) [Riga,Colonna] tramite robotsmart26...")
 						request("moverobot", "moverobot($HomeY,$HomeX,$StepTime)" ,"robotsmart" )  
 						//genTimer( actor, state )
 					}
@@ -201,7 +201,7 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 				}	 
 				state("finish_job") { //this:State
 					action { //it:State
-						CommUtils.outgreen("cargoservice | Job completed!")
+						CommUtils.outgreen("cargoservice | Lavoro completato!")
 						 CargoState = "disengaged"  
 						forward("led_ctrl", "ledCmd(off)" ,"ledmock" ) 
 						//genTimer( actor, state )
@@ -213,7 +213,7 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 				}	 
 				state("handle_robot_fail") { //this:State
 					action { //it:State
-						CommUtils.outred("cargoservice | Robot movement failed!")
+						CommUtils.outred("cargoservice | Movimento del robot fallito!")
 						//genTimer( actor, state )
 					}
 					//After Lenzi Aug2002
@@ -223,7 +223,7 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 				}	 
 				state("handle_deposit_timeout") { //this:State
 					action { //it:State
-						CommUtils.outred("cargoservice | Deposit timeout! Freeing slot.")
+						CommUtils.outred("cargoservice | Timeout del deposito! Liberazione dello slot.")
 						 
 						            CargoState = "disengaged" 
 						            Hold.freeSlot(ReservedSlotId)

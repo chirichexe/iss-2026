@@ -32,7 +32,7 @@ class Markerdevice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
-						CommUtils.outgreen("markerdevice | STARTED")
+						CommUtils.outgreen("markerdevice | AVVIATO")
 						//genTimer( actor, state )
 					}
 					//After Lenzi Aug2002
@@ -51,11 +51,9 @@ class Markerdevice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 				}	 
 				state("handle_mark") { //this:State
 					action { //it:State
-						// TEST 6: verify the marking phase in the nominal workflow.
-						// Expected: markerdevice replies marking_done and cargoservice continues toward the reserved slot.
-						CommUtils.outcyan("markerdevice | Marking container...")
+						CommUtils.outcyan("markerdevice | Marcatura del container in corso...")
 						delay(1500) 
-						CommUtils.outcyan("markerdevice | Container marked!")
+						CommUtils.outcyan("markerdevice | Container marcato!")
 						answer("mark_container", "marking_done", "markingDone(none)"   )  
 						//genTimer( actor, state )
 					}

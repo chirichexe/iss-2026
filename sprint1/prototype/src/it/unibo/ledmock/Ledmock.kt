@@ -52,7 +52,7 @@ class Ledmock ( name: String, scope: CoroutineScope, isconfined: Boolean=false, 
 					action { //it:State
 						if( checkMsgContent( Term.createTerm("ledCmd(CMD)"), Term.createTerm("ledCmd(CMD)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
-								CommUtils.outgreen("ledmock | LED is now ${payloadArg(0)}")
+								CommUtils.outgreen("ledmock | Il LED ora è ${payloadArg(0)}")
 						}
 						//genTimer( actor, state )
 					}

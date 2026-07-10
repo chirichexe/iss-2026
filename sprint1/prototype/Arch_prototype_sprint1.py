@@ -31,11 +31,8 @@ with Diagram('prototype_sprint1Arch', show=False, outformat='png', graph_attr=gr
           markerdevice=Custom('markerdevice','./qakicons/symActorWithobjSmall.png')
           ledmock=Custom('ledmock','./qakicons/symActorWithobjSmall.png')
           ioportmock=Custom('ioportmock','./qakicons/symActorWithobjSmall.png')
-          cargorobotmock=Custom('cargorobotmock','./qakicons/symActorWithobjSmall.png')
      with Cluster('ctxrobotsmart', graph_attr=nodeattr):
           robotsmart=Custom('robotsmart(ext)','./qakicons/externalQActor.png')
-          robotmnemo=Custom('robotmnemo(ext)','./qakicons/externalQActor.png')
-          planexec=Custom('planexec(ext)','./qakicons/externalQActor.png')
      sys >> Edge( label='sonardata', **evattr, decorate='true', fontcolor='darkgreen') >> cargoservice
      sonarmock >> Edge( label='sonardata', **eventedgeattr, decorate='true', fontcolor='red') >> sys
      cargoservice >> Edge(color='magenta', style='solid', decorate='true', label='<moverobot<font color="darkgreen"> moverobotdone moverobotfailed</font> &nbsp; >',  fontcolor='magenta') >> robotsmart

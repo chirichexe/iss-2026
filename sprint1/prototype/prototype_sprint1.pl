@@ -16,8 +16,6 @@ reply( marking_done, markingDone(none) ).  %%for mark_container
 context(ctxprototype, "localhost",  "TCP", "8050").
 context(ctxrobotsmart, "127.0.0.1",  "TCP", "8020").
  qactor( robotsmart, ctxrobotsmart, "external").
-  qactor( robotmnemo, ctxrobotsmart, "external").
-  qactor( planexec, ctxrobotsmart, "external").
   qactor( cargoservice, ctxprototype, "it.unibo.cargoservice.Cargoservice").
  static(cargoservice).
   qactor( sonarmock, ctxprototype, "it.unibo.sonarmock.Sonarmock").
@@ -28,5 +26,3 @@ context(ctxrobotsmart, "127.0.0.1",  "TCP", "8020").
  static(ledmock).
   qactor( ioportmock, ctxprototype, "it.unibo.ioportmock.Ioportmock").
  static(ioportmock).
-  qactor( cargorobotmock, ctxprototype, "it.unibo.cargorobotmock.Cargorobotmock").
- static(cargorobotmock).
