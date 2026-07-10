@@ -647,6 +647,7 @@ L'obiettivo dello Sprint 2 è evolvere il prototipo sviluppato sostituendo progr
 
 - IOPort come Web GUI
 - sonar e LED collegati al PicoW;
+- completare la gestione dello stato Out of service integrando il sonar reale, implementando la verifica della misura e l'interruzione/ripresa del movimento del cargorobot.
 
 Si stima una durata di circa *30 ore* complessive di lavoro ( \u{2248} 10 ore per ciascun componente del gruppo).
 
