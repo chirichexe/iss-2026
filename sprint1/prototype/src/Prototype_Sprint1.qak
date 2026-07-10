@@ -12,7 +12,7 @@ Reply   load_refused    : loadRefused(none) for load_request
 Event    sonardata          : distance(D)  // Emesso dal sonar
 Dispatch led_ctrl           : ledCmd(CMD)         
 
-//  CargoService <-> Robot (compatibile con architettura robotsmart26)
+//  CargoService <-> CargoRobot 
 Request  moverobot       : moverobot(TARGETX, TARGETY, STEPTIME)
 Reply    moverobotdone   : moverobotok(ARG)                    for moverobot
 Reply    moverobotfailed : moverobotfailed(PLANDONE, PLANTODO) for moverobot
@@ -188,11 +188,11 @@ QActor cargoservice context ctxprototype {
 }
 
 
-//CARGOROBOT (Wrapper di dominio per robotsmart26)
+//CARGOROBOT (Wrapper di  robotsmart26)
 
 QActor cargorobot context ctxprototype {
     State s0 initial {
-        println("cargorobot | STARTED (Wrapper di dominio per robotsmart26)") color blue
+        println("cargorobot | STARTED (Wrapper di robotsmart26)") color blue
     }
     Goto waiting
     

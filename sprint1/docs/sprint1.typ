@@ -180,7 +180,7 @@ Request mark_container : markContainer(none)
 Reply   marking_done   : markingDone(none) for mark_container
 ```
 
-- Per consentire lo spostamento del robot da una posizione a un'altra, cargoservice invia all'attore `robotsmart` una *request*, attraverso la quale è possibile specificare la destinazione (tramite coordinate) e il tempo di esecuzione. Alla ricezione della richiesta, `robotsmart` calcola il percorso verso la destinazione ed esegue il movimento del robot.
+- Per consentire lo spostamento del robot da una posizione a un'altra, cargoservice invia all'attore `cargorobot` (che funge da wrapper di robosmart26) una *request*, attraverso la quale è possibile specificare la destinazione (tramite coordinate) e il tempo di esecuzione. Alla ricezione della richiesta, `cargorobot` calcola il percorso verso la destinazione ed esegue il movimento del robot.
 
 ```qak
 Request moverobot : moverobot(TARGETX, TARGETY, STEPTIME)
@@ -235,28 +235,25 @@ Il timer di 30 secondi viene avviato quando il sistema entra nello stato *engage
 
 ```qak
 State s0 initial {
-        println("cargoservice | STARTED") color magenta
+        println("cargoservice | AVVIATO") color magenta
     }
     Goto disengaged
     
     State disengaged {
-        println("cargoservice | DISENGAGED: waiting for requests...") color blue
+        println("cargoservice | LIBERO: in attesa di richieste...") color blue
     }
     Transition t0
         whenRequest load_request -> handle_load_request
         whenEvent   sonardata    -> handle_sonar
 
     State engaged {
-        println("cargoservice | ENGAGED: waiting for container deposit...") color blue
+        println("cargoservice | IMPEGNATO: in attesa del deposito del container...") color blue
     }
     Transition t0
         whenTime    30000        -> handle_deposit_timeout
         whenRequest load_request -> handle_load_request
         whenEvent   sonardata    -> handle_sonar
 
-
-    //GESTIONE RICHIESTE
-    
     State handle_load_request {
         printCurrentMessage color yellow
         
@@ -280,7 +277,6 @@ State s0 initial {
         }
     }
     Goto engaged if [# CargoState == "engaged" #] else disengaged
-
 ```
 
 - Il cargoservic interpreta gli eventi emessi dal sonar in tre modi principali:
@@ -311,10 +307,10 @@ Per semplicità, nello Sprint 1 non viene implementata la verifica della persist
             // D > DFREE (es. > 150) per un intervallo prolungato indica condizione OUT OF SERVICE
             if [# Dist > 150 #] {
                 [# ServiceWorking = false #]
-                println("cargoservice | Sonar D > DFREE ($Dist) -> System OUT OF SERVICE!") color red
+                println("cargoservice | Sonar D > DFREE ($Dist) -> Sistema FUORI SERVIZIO!") color red
             } else {
                 if [# !ServiceWorking #] {
-                    println("cargoservice | Sonar D <= DFREE ($Dist) -> System WORKING again!") color green
+                    println("cargoservice | Sonar D <= DFREE ($Dist) -> Sistema di nuovo FUNZIONANTE!") color green
                 }
                 [# ServiceWorking = true #]
             }
@@ -325,31 +321,24 @@ Per semplicità, nello Sprint 1 non viene implementata la verifica della persist
 
     State returnToState {}
     Goto engaged if [# CargoState == "engaged" #] else disengaged
-
 ```
 
 La procedura di deposito è centralizzata nel *cargoservice*, mentre le operazioni di movimentazione del robot e di marcatura sono modellate tramite comunicazioni Request/Reply. In questo modo è garantita una sincronizzazione esplicita tra le fasi della procedura, impedendo che il deposito nello slot definitivo avvenga prima del completamento della marcatura.
 
-Le coordinate delle destinazioni, invece, vengono recuperate dalla Hold.
-
-Affinchè ogni nuova operazione inizi da una configurazione nota, al termine della procedura il robot viene riportato automaticamente nella posizione *Home*. 
-
-Per consentire una successiva gestione del guasto, in caso di fallimento di uno spostamento, il cargoservice mantiene il sistema nello stato engaged e conserva la prenotazione dello slot. Si è scelto di non annullare automaticamente la procedura.
+Le coordinate delle destinazioni, invece, vengono recuperate dalla Hold. Affinchè ogni nuova operazione inizi da una configurazione nota, al termine della procedura il robot viene riportato automaticamente nella posizione *Home*.  Per consentire una successiva gestione del guasto, in caso di fallimento di uno spostamento, il cargoservice mantiene il sistema nello stato engaged e conserva la prenotazione dello slot. Si è scelto di non annullare automaticamente la procedura.
 
 
 ```qak
-    // GESTIONE ROBOT E MARKER
-
-    State do_robot_job {
-        println("cargoservice | Container deposited! Moving robot to slot5 (2,5) [Row,Col] for marking via robotsmart26...") color magenta
-        request robotsmart -m moverobot : moverobot(2, 5, $StepTime)
+ State do_robot_job {
+        println("cargoservice | Container depositato! Spostamento del robot allo slot5 (2,5) [Riga,Colonna] tramite cargorobot (wrapper robotsmart26)...") color magenta
+        request cargorobot -m moverobot : moverobot(2, 5, $StepTime)
     }
     Transition t0
         whenReply moverobotdone   -> mark_container
         whenReply moverobotfailed -> handle_robot_fail
         
     State mark_container {
-        println("cargoservice | At slot5. Asking markerdevice to mark...") color magenta
+        println("cargoservice | Allo slot5. Richiesta di marcatura al markerdevice...") color magenta
         request markerdevice -m mark_container : markContainer(none)
     }
     Transition t0
@@ -360,8 +349,8 @@ Per consentire una successiva gestione del guasto, in caso di fallimento di uno 
             val DestX = Hold.getSlotX(ReservedSlotId)
             val DestY = Hold.getSlotY(ReservedSlotId)
         #]
-        println("cargoservice | Marked! Moving container to slot$ReservedSlotId ($DestY, $DestX) [Row,Col] via robotsmart26...") color magenta
-    	request robotsmart -m moverobot : moverobot($DestY, $DestX, $StepTime)
+        println("cargoservice | Marcato! Spostamento del container allo slot$ReservedSlotId ($DestY, $DestX) [Riga,Colonna] tramite cargorobot...") color magenta
+        request cargorobot -m moverobot : moverobot($DestY, $DestX, $StepTime)
     }
     Transition t0
         whenReply moverobotdone   -> return_home
@@ -372,27 +361,27 @@ Per consentire una successiva gestione del guasto, in caso di fallimento di uno 
             val HomeX = Hold.getHomeX()
             val HomeY = Hold.getHomeY()
         #]
-        println("cargoservice | Container stored! Returning robot to HOME ($HomeY,$HomeX) [Row,Col] via robotsmart26...") color magenta
-        request robotsmart -m moverobot : moverobot($HomeY, $HomeX, $StepTime)
+        println("cargoservice | Container immagazzinato! Ritorno del robot alla HOME ($HomeY,$HomeX) [Riga,Colonna] tramite cargorobot...") color magenta
+        request cargorobot -m moverobot : moverobot($HomeY, $HomeX, $StepTime)
     }
     Transition t0
         whenReply moverobotdone   -> finish_job
         whenReply moverobotfailed -> handle_robot_fail
         
     State finish_job {
-        println("cargoservice | Job completed!") color green
+        println("cargoservice | Lavoro completato!") color green
         [# CargoState = "disengaged" #]
         forward ledmock -m led_ctrl : ledCmd(off)
     }
     Goto disengaged
 
     State handle_robot_fail {
-        println("cargoservice | Robot movement failed!") color red
+        println("cargoservice | Movimento del robot fallito!") color red
     }
     Goto engaged
 
     State handle_deposit_timeout {
-        println("cargoservice | Deposit timeout! Freeing slot.") color red
+        println("cargoservice | Timeout del deposito! Liberazione dello slot.") color red
         
         [# 
             CargoState = "disengaged" 
