@@ -16,13 +16,15 @@
 
 = Introduction
 
-Il punto di partenza di questo sprint è l'architettura logica (recuperabile al seguente #link("https://github.com/chirichexe/iss-2026/blob/main/sprint0/docs/sprint0_v3.pdf")[link]) e la formalizzazione dei requisiti (recuperabile al seguente #link("https://github.com/chirichexe/iss-2026/blob/main/sprint0/prototype/cargosystem/src/cargosystem.qak")[link]).
+Il punto di partenza di questo sprint è l'architettura logica formalizzata in fase di Sprint 0 (recuperabile al seguente #link("https://github.com/chirichexe/iss-2026/blob/main/sprint0/docs/sprint0_v3.pdf")[link] e riportata qui sotto come immagine) e la formalizzazione dei requisiti (recuperabile al seguente #link("https://github.com/chirichexe/iss-2026/blob/main/sprint0/prototype/cargosystem/src/cargosystem.qak")[link]).
 
 
 #figure(
     image("../../sprint0/prototype/cargosystem/cargosystemarch.png"),
     caption: [Architettura definita nello Sprint0.]
 )
+
+== Goal dello Sprint 1
 
 Si riporta di seguito il goal dello Sprint 1.
 
@@ -69,7 +71,7 @@ L'azienda richiede di realizzare un servizio denominato *cargoservice* con il se
 
 Una analisi approfondita dei requisiti è stata svolta nello #link("https://github.com/chirichexe/iss-2026/blob/main/sprint0/docs/sprint0_v3.pdf")[Sprint0]. Tali risultati vengono assunti come validi anche per lo Sprint 1.
 
-Nel corso dello Sprint 1 è stato tuttavia effettuato un ulteriore approfondimento dei requisiti, a seguito di un chiarimento richiesto alla committente.
+È stato tuttavia effettuato un ulteriore approfondimento dei requisiti, a seguito di un chiarimento richiesto alla committente.
 
 #domanda[
   *Comportamento del robot*: Cosa succede se il sistema entra nello stato di out-of-service? Cosa succede al robot una volta che il sistema esce da tale stato?
@@ -77,28 +79,27 @@ Nel corso dello Sprint 1 è stato tuttavia effettuato un ulteriore approfondimen
 
 / *Risposta della committente*: Il robot deve fermarsi e, una volta terminato lo stato di out-of-service, deve riprendere il movimento se originariamente era in esecuzione.
 
-Da tale chiarimento si deduce che il *cargorobot* debba essere modellato come un servizio in quanto costituisce una componente reattiva del sistema. Non è invece specificato quale componente debba rilevare la condizione di guasto; tale aspetto viene pertanto rimandato alla successiva analisi del problema.
+Da ciò si deduce che il *cargorobot* debba essere modellato come un *servizio* in quanto costituisce una componente reattiva del sistema. Non è invece specificato quale componente debba rilevare la condizione di guasto.
+
+La gestione dell'interruzione e della successiva ripresa del robot non verrà implementata nello Sprint 1, essendo l'obiettivo del prototipo limitato alla realizzazione del flusso principale di carico (ma se ne terrà conto per orientarci nelle scelte progettuali).
 
 = Problem analysis <model>
 
 L'implementazione completa del sistema presuppone dell'esistenza di altri componenti del sistema fisici o in forma simulata (*sonar*, *LED*, *markerdevice*, *IOPort* come web GUI) non ancora sviluppati. 
 La loro realizzazione concreta è pianificata per gli sprint successivi. I componenti "mock" che replicheranno il comportamento di quelli mancanti verranno evoluti rispetto alla formalizzazione QAK già avvenuta in fase di Sprint0 (recuperabile al seguente #link("https://github.com/chirichexe/iss-2026/blob/main/sprint0/prototype/cargosystem/src/cargosystem.qak")[link]). 
 
-Come emerso dall'analisi dei requisiti, questo componente funge da *orchestratore*: coordina le operazioni degli altri componenti del sistema al 
+Come emerso dall'analisi dei requisiti, il *cargoservice* funge da *orchestratore*: coordina le operazioni degli altri componenti del sistema al 
 fine di eseguire le procedure di carico. 
 Inoltre, le entità sono distribuite su quattro nodi separati ma, per non rallentare la prototipazione, tutti i componenti
-verranno rappresentati nello stesso nodo (rappresentato da un Context), tenendo in considerazione che gli attori non condividono memoria, e comunicano
-tra loro tramite scambio di messaggi.
+verranno rappresentati nello stesso nodo (rappresentato da un "context"), tenendo in considerazione che gli attori non condividono memoria, e comunicano tra loro tramite scambio di messaggi.
 
 == Rappresentazione dello stato interno della hold
 
-In questa fase la gestione della hold viene rappresentata tramite un *POJO*.
+In questa fase la gestione della hold viene rappresentata tramite un *POJO*, poichè non rappresenta un'entità attiva del sistema, ma una struttura dati (già definita in fase di sprint0) che descrive lo stato interno dell'ambiente: posizione degli slot, ostacoli, IOPort, home del robot e stato di occupazione degli slot.
 
-La scelta è motivata dal fatto che la hold non rappresenta un'entità attiva del sistema, ma una struttura dati (già definita in fase di sprint0) che descrive lo stato interno dell'ambiente: posizione degli slot, ostacoli, IOPort, home del robot e stato di occupazione degli slot.
+L'interfaccia `IHold` definisce le operazioni necessarie per la sua gestione, indipendentemente dalla loro implementazione. La classe `Hold` ne costituisce l'implementazione concreta, occupandosi della rappresentazione del suo stato e della logica di assegnazione degli slot.
 
-L'interfaccia `IHold` definisce le operazioni necessarie per la gestione della hold, indipendentemente dalla loro implementazione. La classe `Hold` ne costituisce l'implementazione concreta, occupandosi della rappresentazione del suo stato e della logica di assegnazione degli slot.
-
-Inoltre, lo stato iniziale della hold viene caricato da un file di configurazione JSON, così da evitare valori hard-coded nel codice e rendere più semplice modificare la disposizione dell'ambiente senza cambiare la logica applicativa.
+Lo stato iniziale della hold viene caricato da un file di configurazione *JSON*, così da evitare valori hard-coded nel codice e rendere più semplice modificare la disposizione dell'ambiente senza cambiare la logica applicativa.
 
 Il file di configurazione è disponibile al seguente link:
 #link("https://github.com/chirichexe/iss-2026/blob/main/sprint1/prototype/src/hold_config.json")[configurazione hold]
@@ -124,23 +125,23 @@ public interface IHold {
 
 == Analisi e scelta del componente cargorobot
 
-La realizzazione del *cargorobot* richiede di stabilire la natura software più adeguata per il componente. A nostra disposizione abbiamo quattro componenti già pronti, forniti dalla casa di produzione, per la modellazione di un Differential Drive Robot (DDR):
-
-- *VirtualRobot26*: È un ambiente virtuale che non fornisce un'interfaccia di programmazione diretta, ma interagisce ricevendo comandi di movimento 
-#link("https://github.com/anatali/issLab2026/tree/main/it.unibo.virtualRobot2026")[Documentazione VirtualRobot26]
-#link("https://anatali.github.io/issLab2026/_static/docs/Protobook.pdf#page=289")[Codice VirtualRobot26]
+La realizzazione del *cargorobot* richiede di stabilire la natura software più adeguata per il componente. Ce ne sono diversi forniti dalla software house per la modellazione di un Differential Drive Robot (DDR):
 
 - *RobotObj26*: È un POJO. Essendo un oggetto passivo, è limitato e può essere utilizzato solo se il chiamante è scritto in Java.
     - *Pro*: Fornisce comandi chiari e semplici da invocare via codice.
-    - *Contro*: Approccio passivo, sincrono e non reattivo; vincolato al linguaggio Java e inadatto per architetture  distribuite o a microservizi.
-#link("https://github.com/anatali/issLab2026/blob/main/vrUsage26/utils/robots/RobotObj26.java")[Documentazione RobotObj26]
-#link("https://anatali.github.io/issLab2026/_static/docs/Protobook.pdf#page=299")[Codice RobotObj26]
+    - *Contro*: Approccio passivo, sincrono e non reattivo; vincolato al linguaggio Java.
+#link("https://anatali.github.io/issLab2026/_static/docs/Protobook.pdf#page=299")[Documentazione RobotObj26]
+#link("https://github.com/anatali/issLab2026/blob/main/vrUsage26/utils/robots/RobotObj26.java")[Codice RobotObj26]
 
 - *RobotService26*: È un servizio reattivo che richiede che l'applicazione chiamante gestisca manualmente la logica di navigazione passo dopo passo.
     - *Pro*: Architettura reattiva e orientata allo scambio di messaggi.
     - *Contro*: Obbliga il chiamante a farsi carico di tutta la logica di routing e controllo ostacoli.
-#link("https://github.com/anatali/issLab2026/tree/main/robotservice26")[Documentazione RobotService26]
-#link("https://anatali.github.io/issLab2026/_static/docs/Protobook.pdf#page=303")[Codice RobotService26]
+#link("https://anatali.github.io/issLab2026/_static/docs/Protobook.pdf#page=303")[Documentazione RobotService26]
+#link("https://github.com/anatali/issLab2026/tree/main/robotservice26")[Codice RobotService26]
+
+- *VirtualRobot26*: È un ambiente virtuale che non fornisce un'interfaccia di programmazione diretta, ma interagisce ricevendo comandi di movimento 
+#link("https://anatali.github.io/issLab2026/_static/docs/Protobook.pdf#page=289")[Documentazione VirtualRobot26]
+#link("https://github.com/anatali/issLab2026/tree/main/it.unibo.virtualRobot2026")[Codice VirtualRobot26]
 
 - *RobotSmart26*: È un servizio avanzato, proattivo e reattivo. Strutturato su tre servizi (`robotmnemo`, `planexec`, `robotsmart`), è capace di ricevere coordinate, pianificare autonomamente il percorso tramite algoritmo A\*  ed elaborare interruzioni impreviste.
     - *Pro*: Totale autonomia di navigazione, consapevolezza dello spazio (grazie alla mappa interna) e gestione autonoma delle interruzioni.
@@ -148,17 +149,62 @@ La realizzazione del *cargorobot* richiede di stabilire la natura software più 
 #link("https://github.com/anatali/issLab2026/tree/main/robotsmart26")[Documentazione RobotSmart26]
 #link("https://anatali.github.io/issLab2026/_static/docs/Protobook.pdf#page=319")[Codice RobotSmart26]
 
-Per scegliere se vedere al *cargorobot* come un POJO o come un Servizio, il fattore principale  è la *reattività*. Da requisito, in caso di anomalia al sonar (*Out of service*) il robot deve essere in grado di fermarsi completamente. Questa esigenza di reattività e proattività ad eventi di sistema giustifica la modellazione del robot come *Servizio* e non come un semplice *POJO*.
+Dall'analisi dei requisiti sappiamo che, in caso di anomalia al sonar, il robot deve essere in grado di fermarsi completamente. Questa esigenza di reattività ad eventi di sistema giustifica la modellazione del robot come *Servizio* e non come un semplice *POJO*.
 
-È stato concordato l'utilizzo del servizio *RobotSmart26* per garantire *reattività* in caso di allarmi (es. sonar guasto), poiché esso è progettato per interrompere i piani di movimento e mantenere una coerenza di stato. Inoltre possiede la Request `moverobot(TARGETX, TARGETY)`, che formalizza una richiesta di spostamento, calcolando ed eseguendo automaticamente il piano per raggiungere la cella.
+È stato perciò concordato l'utilizzo del servizio *RobotSmart26*, poiché esso è progettato per interrompere i piani di movimento e mantenere una coerenza di stato. 
 
-Analizzando il codice di *RobotSmart26*, si osserva che il componente soddisfa i requisiti funzionali richiesti al cargorobot. In particolare, il robot mantiene internamente una rappresentazione della mappa dell'ambiente che coincide con la struttura della hold prevista dal sistema; l'unica informazione non gestita riguarda lo stato di occupazione degli slot, demandato al cargoservice. Per questo motivo, si è scelto di adottare RobotSmart26 come implementazione del cargorobot, riutilizzandone il comportamento senza introdurre modifiche sostanziali.
+Analizzando il suo codice, si osserva che il componente soddisfa le funzionalità necessarie al cargorobot. In particolare:
+- possiede la Request `moverobot(TARGETX, TARGETY)`, che formalizza una richiesta di spostamento, calcolando ed eseguendo automaticamente il piano per raggiungere la cella.
+- mantiene internamente una rappresentazione della mappa dell'ambiente equiparabile alla struttura della hold prevista dal sistema 
 
-La documentazione di riferimento per *robotsmart26* è disponibile al seguente link:
-#link("https://anatali.github.io/issLab2026/_static/docs/Protobook.pdf#chapter.30")[robotsmart26]
+L'unica informazione non gestita riguarda lo stato di occupazione degli slot, demandata al *cargoservice* e al POJO della *Hold*.
 
-La specifica Qak del componente *robotsmart26* è disponibile al seguente link:
-#link("https://github.com/chirichexe/iss-2026/blob/main/sprint1/robotsmart26/src/robotsmart26.qak")[robotsmart26]
+Poiché da Sprint 0 era già stato formalizzato un attore QAK denominato *cargorobot*, si è deciso di riutilizzarlo come "wrapper" di RobotSmart26. Il cargoservice calcola le coordinate della destinazione interrogando la *Hold* e le invia al cargorobot, che si limita ad inoltrare la richiesta a RobotSmart26, mantenendo il resto del sistema indipendente dall'interfaccia del servizio esterno.
+```
+QActor cargorobot context ctxprototype {
+    State s0 initial {
+        println("cargorobot | STARTED (Wrapper di robotsmart26)") color blue
+    }
+    Goto waiting
+    
+    State waiting {}
+    Transition t0 
+        whenRequest moverobot -> handle_move
+        
+    State handle_move {
+        onMsg(moverobot : moverobot(X, Y, TIME)) {
+            [# 
+                val Tx = payloadArg(0)
+                val Ty = payloadArg(1)
+                val StepTime = payloadArg(2)
+            #]
+            println("cargorobot | Inoltro comando moverobot($Tx, $Ty, $StepTime) a robotsmart26...") color cyan
+            request robotsmart -m moverobot : moverobot($Tx, $Ty, $StepTime)
+        }
+    }
+    Transition t0
+        whenReply moverobotdone   -> handle_move_done
+        whenReply moverobotfailed -> handle_move_failed
+        
+    State handle_move_done {
+        onMsg(moverobotdone : moverobotok(ARG)) {
+            println("cargorobot | Movimento completato da robotsmart26. Rispondo al cargoservice...") color cyan
+            replyTo moverobot with moverobotdone : moverobotok(done)
+        }
+    }
+    Goto waiting
+    
+    State handle_move_failed {
+        onMsg(moverobotfailed : moverobotfailed(PL, TIME)) {
+            println("cargorobot | Fallimento movimento in robotsmart26. Rispondo failure al cargoservice...") color red
+            replyTo moverobot with moverobotfailed : moverobotfailed(obstacle, 0)
+        }
+    }
+    Goto waiting
+}
+```
+
+Il codice dell'attore è disponibile al seguente #link("https://github.com/chirichexe/iss-2026/blob/main/sprint1/prototype/src/Prototype_Sprint1.qak")[link], mentre la specifica Qak del componente *robotsmart26* è disponibile al seguente #link("https://github.com/chirichexe/iss-2026/blob/main/sprint1/robotsmart26/src/robotsmart26.qak")[link]
 
 == Analisi delle Interazioni
 
@@ -185,7 +231,7 @@ Request mark_container : markContainer(none)
 Reply   marking_done   : markingDone(none) for mark_container
 ```
 
-- Per consentire lo spostamento del robot da una posizione a un'altra, cargoservice invia all'attore `cargorobot` (che funge da wrapper di robosmart26) una *request*, attraverso la quale è possibile specificare la destinazione (tramite coordinate) e il tempo di esecuzione. Alla ricezione della richiesta, `cargorobot` calcola il percorso verso la destinazione ed esegue il movimento del robot.
+- Per consentire lo spostamento del robot da una posizione a un'altra, *cargoservice* invia all'attore *cargorobot* una Request, attraverso la quale è possibile specificare la destinazione (tramite coordinate) e il tempo di esecuzione.
 
 ```qak
 Request moverobot : moverobot(TARGETX, TARGETY, STEPTIME)
@@ -198,21 +244,24 @@ Reply moverobotdone : moverobotok(ARG) for moverobot
 Reply moverobotfailed : moverobotfailed(PLANDONE, PLANTODO) for moverobot
 ```
 
-== Rappresentazione dell'attore cargoservice come Macchina a Stati Finiti
+== Rappresentazione dell'attore cargoservice
 
-L'attore cargoservice è, già da Sprint 0, inteso come una Macchina a Stati Finiti che utilizza variabili interne per:
-- memorizzare se la porta di ingresso risulta occupata (IOPortOccupied)
-- se il servizio è attualmente operativo (ServiceWorking)
-- lo stato logico del servizio (CargoState) 
-- l'identificativo dello slot eventualmente riservato (ReservedSlotId).
-- durata del passo (in ms) di avanzamento di una singola cella da parte del robot (StepTime)
+Il codice può essere recuperato al seguente #link("https://github.com/chirichexe/iss-2026/blob/main/sprint1/prototype/src/Prototype_Sprint1.qak")[link].
 
-Per quanto riguarda le transizioni della FSM, si estende il comportamento già realizzato in Sprint0.
+L'attore cargoservice è, già da Sprint 0, inteso come una Macchina a Stati Finiti. Si introducono delle variabili interne per:
+
+- memorizzare se l'IOPort risulta *occupata* (IOPortOccupied)
+- se il servizio è *attualmente operativo* (ServiceWorking)
+- lo *stato logico* del servizio (CargoState) 
+- l'identificativo dello *slot* eventualmente riservato (ReservedSlotId).
+- durata del passo (in ms) di avanzamento di una singola cella da parte del robot (StepTime) 
+
+Per quanto riguarda le transizioni della FSM, ne si estende il comportamento già realizzato in Sprint0.
 
 ```qak
 Context ctxprototype ip [host="localhost" port=8050] // Contesto unico del prototipo per lo Sprint 1
-Context ctxrobotsmart      ip [host="127.0.0.1" port=8020]
 
+Context ctxrobotsmart      ip [host="127.0.0.1" port=8020] // Contesto del robotsmart, servizio esterno
 ExternalQActor robotsmart context ctxrobotsmart
 
 QActor cargoservice context ctxprototype {
@@ -225,18 +274,19 @@ QActor cargoservice context ctxprototype {
     #]
 ```
 
-- Quando viene ricevuta una richiesta *load_request*, il cargoservice  prima di prenotare uno slot verifica che:
+=== Ricezione di una "load_request"
+
+- Quando viene ricevuta una richiesta *load_request*, il cargoservice prima di prenotare uno slot deve verificare che:
  1. il servizio non sia già impegnato nella gestione di un altro container
  2. il sistema risulti funzionante
  3. che la porta di ingresso sia libera.
 
-Se tutte le condizioni risultino soddisfatte viene interrogata la Hold per richiedere la prenotazione di uno slot libero, il cargoservice memorizza l'identificativo dello slot riservato, passa allo stato engaged e informa il client dell'avvenuta accettazione della richiesta. 
+Se tutte le condizioni risultino soddisfatte viene interrogata la *Hold* per richiedere la prenotazione di uno slot libero, il cargoservice memorizza l'identificativo dello slot riservato, passa allo stato engaged e informa il client dell'avvenuta accettazione della richiesta. 
 
 Viene inoltre attivato il LED in modalità *blink* e viene comunicato l'ID dello slot (da mostrare in futuro sul display).
 Nel caso in cui il magazzino risulti completamente occupato cargoservice comunicherà il rifiuto della richiesta, rimanendo disponibile per eventuali.
 
 Il timer di 30 secondi viene avviato quando il sistema entra nello stato *engaged*. Se il container non viene posizionato nell'area del sensore entro tale intervallo, il sistema passa allo stato *disengaged*, libera lo slot precedentemente riservato e spegne il LED.
-
 
 ```qak
 State s0 initial {
@@ -284,7 +334,9 @@ State s0 initial {
     Goto engaged if [# CargoState == "engaged" #] else disengaged
 ```
 
-- Il cargoservic interpreta gli eventi emessi dal sonar in tre modi principali:
+=== Gestione degli eventi sonar
+
+- Il cargoservice interpreta gli *eventi* emessi dal sonar in tre modi principali:
 
 1. Viene rilevata la presenza di un container entro una certa distanza dal sensore (per almeno 3s) e viene impostata a true la variabile interna *IOPortOccupied* per indicare che l'IOPort è occupata.
 
@@ -292,10 +344,9 @@ State s0 initial {
 
 3. La distanza misurata non implica nessun cambiamento di stato. In questo caso il sistema continua a funzionare normalmente.
 
-
 Al termine dell'elaborazione dell'evento il cargoserivce valuta se siano contemporaneamente soddisfatte tutte le condizioni necessarie per iniziare la movimentazione del container. Il robot viene attivato solamente quando il servizio si trova nello stato engaged, il container è stato effettivamente depositato e il sistema risulta operativo. 
 
-Per semplicità, nello Sprint 1 non viene implementata la verifica della persistenza della misura per almeno 3 secondi richiesta dalla traccia. Il prototipo assume che ogni evento sonardata rappresenti una misura già validata dal sonar. La gestione completa del vincolo temporale verrà introdotta negli sprint successivi.
+Per semplicità, nello Sprint 1 *non viene implementata la verifica della persistenza della misura* per almeno 3 secondi richiesto da requisiti. Il prototipo assume che ogni evento sonardata rappresenti una misura già validata dal sonar. La gestione completa del vincolo temporale verrà introdotta negli sprint successivi.
 
 ```qak
     State handle_sonar {
@@ -328,10 +379,13 @@ Per semplicità, nello Sprint 1 non viene implementata la verifica della persist
     Goto engaged if [# CargoState == "engaged" #] else disengaged
 ```
 
-La procedura di deposito è centralizzata nel *cargoservice*, mentre le operazioni di movimentazione del robot e di marcatura sono modellate tramite comunicazioni Request/Reply. In questo modo è garantita una sincronizzazione esplicita tra le fasi della procedura, impedendo che il deposito nello slot definitivo avvenga prima del completamento della marcatura.
+=== Gestione della procedura di movimentazione del robot
 
-Le coordinate delle destinazioni, invece, vengono recuperate dalla Hold. Affinchè ogni nuova operazione inizi da una configurazione nota, al termine della procedura il robot viene riportato automaticamente nella posizione *Home*.  Per consentire una successiva gestione del guasto, in caso di fallimento di uno spostamento, il cargoservice mantiene il sistema nello stato engaged e conserva la prenotazione dello slot. Si è scelto di non annullare automaticamente la procedura.
+Il *cargoservice* dirige quindi il flusso prelevando le coordinate delle destinazioni dalla *Hold* e delegando i comandi di movimentazione fisica al cargorobot.
 
+Al termine di ogni ciclo di deposito, il robot viene riportato in posizione *Home*, assicurando che ogni nuova richiesta inizi da una configurazione spaziale nota.
+
+In caso di fallimento nello spostamento, la procedura non viene interrotta in automatico. Il cargoservice mantiene il sistema nello stato engaged e conserva la prenotazione dello slot, "congelando" l'operazione per consentire una successiva gestione dell'anomalia.
 
 ```qak
  State do_robot_job {
@@ -400,12 +454,15 @@ Le coordinate delle destinazioni, invece, vengono recuperate dalla Hold. Affinch
 
 == Attori QAK di supporto
 
-Gli attori QAK che rappresentano i dispositivi simulati sono riportati separando il comportamento di supporto al prototipo dalle parti usate esclusivamente come testplan.
+Gli attori QAK che rappresentano i dispositivi simulati si limitano ad intercettare e gestire i messaggi inviati dagli altri attori: 
+
+1. `markerdevice`: simula il dispositivo di marcatura del container. Riceve la richiesta di marcatura e risponde con un messaggio di conferma dopo un ritardo di 1,5 secondi.
 
 ```qak
+
 QActor markerdevice context ctxprototype {
     State s0 initial {
-        println("markerdevice | STARTED") color green
+        println("markerdevice | AVVIATO") color green
     }
     Goto work
     
@@ -414,14 +471,18 @@ QActor markerdevice context ctxprototype {
         whenRequest mark_container -> handle_mark
         
     State handle_mark {
-        println("markerdevice | Marking container...") color cyan
+        println("markerdevice | Marcatura del container in corso...") color cyan
         delay 1500
-        println("markerdevice | Container marked!") color cyan
+        println("markerdevice | Container marcato!") color cyan
         replyTo mark_container with marking_done : markingDone(none)
     }
     Goto work
 }
+```
 
+2. `ledmock`: simula il LED. Riceve i comandi di accensione, spegnimento e lampeggio e li stampa a video.
+
+```
 QActor ledmock context ctxprototype {
     State s0 initial { }
     Goto work
@@ -432,17 +493,17 @@ QActor ledmock context ctxprototype {
         
     State handle_cmd {
         onMsg(led_ctrl : ledCmd(CMD)) {
-            println("ledmock | LED is now ${payloadArg(0)}") color green
+            println("ledmock | Il LED ora è ${payloadArg(0)}") color green
         }
     }
     Goto work
 }
 ```
 
+
 = Test plans <testplan>
 
-Il testplan dello Sprint1 viene realizzato come scenario eseguibile interno al modello QAK (recuperabile al seguente #link("https://github.com/chirichexe/iss-2026/blob/main/sprint1/prototype/src/Prototype_Sprint1.qak")[link]).
-Gli attori mock avviano automaticamente le interazioni necessarie a verificare il comportamento essenziale del `cargoservice`.
+Il testplan dello Sprint1 viene realizzato come scenario eseguibile *interno al modello QAK* (recuperabile al seguente #link("https://github.com/chirichexe/iss-2026/blob/main/sprint1/prototype/src/Prototype_Sprint1.qak")[link]). Sono quindi gli attori che avvieranno automaticamente le interazioni necessarie a verificare il comportamento del sistema.
 
 I test previsti sono:
 
@@ -457,9 +518,9 @@ I test previsti sono:
 ```qak
 QActor ioportmock context ctxprototype {
     State s0 initial {
-        // TEST 1: 
+        // TEST 1:
         delay 1000
-        println("ioportmock | TEST 1 - Sending 1st load_request (expected load_accepted)") color cyan
+        println("ioportmock | TEST 1 - Invio della 1a load_request (atteso load_accepted)") color cyan
         request cargoservice -m load_request : loadRequest(none)
     }
     Transition t0
@@ -467,18 +528,30 @@ QActor ioportmock context ctxprototype {
         whenReply load_retrylater -> handle_retry
         whenReply load_refused    -> handle_refuse
 
-    State handle_accept {
-        printCurrentMessage color green
+    State handle_accept { 
+        printCurrentMessage color green 
 
         // TEST 2:
         delay 500
-        println("ioportmock | TEST 2 - Sending 2nd load_request while engaged (expected load_retrylater)") color cyan
+        println("ioportmock | TEST 2 - Invio della 2a load_request mentre impegnato (atteso load_retrylater)") color cyan
         request cargoservice -m load_request : loadRequest(none)
     }
     Transition t0
         whenReply load_retrylater -> handle_no_queue_ok
         whenReply load_accepted   -> handle_unexpected_accept
         whenReply load_refused    -> handle_refuse
+
+    State handle_no_queue_ok {
+        printCurrentMessage color yellow
+        println("ioportmock | TEST 2 OK - richiesta rifiutata con retrylater mentre il servizio è impegnato") color green
+    }
+
+    State handle_unexpected_accept {
+        printCurrentMessage color red
+        println("ioportmock | TEST 2 FALLITO - la richiesta è stata accettata mentre il servizio era già impegnato") color red
+    }
+    State handle_retry  { printCurrentMessage color yellow }
+    State handle_refuse { printCurrentMessage color red }
 }
 ```
 
@@ -499,14 +572,17 @@ QActor sonarmock context ctxprototype {
     State s0 initial {
         // TEST 3:
         delay 4000
+        println("sonarmock | Container posizionato -> Emissione sonardata(30)") color cyan
         emit sonardata : distance(30)
 
         // TEST 4:
         delay 8000
+        println("sonarmock | Il sonar misura D > DFREE (200). Emissione sonardata(200)") color cyan
         emit sonardata : distance(200)
 
         // TEST 5:
         delay 5000
+        println("sonarmock | Il sonar misura D <= DFREE (100). Emissione sonardata(100)") color green
         emit sonardata : distance(100)
     }
 }
@@ -521,7 +597,9 @@ QActor markerdevice context ctxprototype {
     State handle_mark {
         // TEST 6:
 
+        println("markerdevice | Marcatura del container in corso...") color cyan
         delay 1500
+        println("markerdevice | Container marcato!") color cyan
         replyTo mark_container with marking_done : markingDone(none)
     }
 }
@@ -544,7 +622,7 @@ Per procedere al deployment del prototipo è necessario eseguire i seguenti pass
 
 2. Nella directory robotsmart26/yamls eseguire il comando 'docker compose -f unibobasic26.yaml up'
 
-3. Aprire un broswer e andare su http://localhost:8090/
+3. Aprire un browser e andare su http://localhost:8090/
 
 4. Eseguire all'interno della directory del progetto "robotsmart26" il comando `./gradlew run`
 
@@ -563,26 +641,13 @@ L'architettura finale del prototipo sviluppato durante questo Sprint è riportat
     caption: [Architettura definita nello Sprint1.]
 )
 
-
-== Ripartizione del lavoro $$
-
-Durante lo Sprint 1 il gruppo ha lavorato in modo collaborativo, condividendo le principali decisioni progettuali e distribuendo in maniera uniforme le attività di sviluppo.
-
-Le principali aree di lavoro sono state:
-
-- analisi dei requisiti e progettazione dell'architettura;
-- implementazione del `CargoService`, della Hold e degli attori mock;
-- integrazione con `RobotSmart` per la movimentazione del robot;
-- definizione del testplan e verifica del corretto funzionamento del prototipo;
-- redazione della documentazione tecnica.
-
-
 == Goal dello Sprint 2
 
 L'obiettivo dello Sprint 2 è evolvere il prototipo sviluppato sostituendo progressivamente i componenti simulati con le rispettive implementazioni reali:
 
 - IOPort come Web GUI
 - sonar e LED collegati al PicoW;
+- completare la gestione dello stato Out of service integrando il sonar reale, implementando la verifica della misura e l'interruzione/ripresa del movimento del cargorobotD.
 
 Si stima una durata di circa *30 ore* complessive di lavoro ( \u{2248} 10 ore per ciascun componente del gruppo).
 
