@@ -97,34 +97,23 @@ In particolare, per lo Sprint 2 restano centrali le seguenti conclusioni:
 
 = Problem analysis <model>
 
-// =============================================================================
-== Evoluzione rispetto al prototipo dello Sprint 1
-// =============================================================================
-
-Lo Sprint 1 ha validato il flusso principale di carico attraverso un prototipo eseguibile nel quale `ioportmock`, `sonarmock` e `ledmock` simulavano i dispositivi non ancora disponibili. Il *cargoservice* coordinava tali componenti mediante messaggi QAK, mentre il *cargorobot* inoltrava le richieste di movimento a *RobotSmart26*.
-
-Nello Sprint 2 la logica applicativa già validata viene mantenuta, mentre vengono sostituiti progressivamente i componenti simulati con componenti accessibili attraverso tecnologie compatibili con la loro natura:
-
-* l'IOPort viene realizzato come Web GUI;
-* sonar e LED vengono integrati attraverso il PicoW;
-* lo stato della hold e del servizio viene reso osservabile dall'esterno;
-* viene completata la gestione dello stato *Out of service*.
-
-L'obiettivo non è quindi modificare il ciclo di carico definito nello Sprint 1, ma estenderne i confini di interazione, permettendo al *cargoservice* di comunicare con una GUI web e con dispositivi fisici distribuiti.
+Nello Sprint 2 la logica applicativa definita nello sprint precedente verrà mantenuta, e verranno sostituiti progressivamente i componenti simulati con componenti accessibili attraverso tecnologie compatibili con la loro natura:
 
 // =============================================================================
-== Osservabilità dello stato del sistema
+== Osservabilità dello stato della Hold
 // =============================================================================
 
-La Web GUI deve mostrare lo stato corrente della hold e lo stato operativo del servizio. Tali informazioni sono però attualmente mantenute all'interno del *cargoservice* e del POJO `Hold`, e non sono direttamente accessibili ai componenti esterni.
+Da requisito (DA SCRIVERE IN ANALISI QUESTA COSA) la Web GUI deve mostrare lo stato corrente della hold e lo stato operativo del servizio. Tali informazioni sono però attualmente mantenute all'interno del *cargoservice* e del POJO `Hold`, non risultando direttamente accessibili ai componenti esterni.
 
-È pertanto necessario definire una rappresentazione univoca e serializzabile dello stato osservabile del sistema. A tale scopo si sceglie di rappresentarlo mediante un documento JSON contenente almeno:
+Si risulta che la HOLD va rappresentata come attore e non come pojo.
 
-* lo stato logico del servizio (`engaged` oppure `disengaged`);
-* lo stato operativo (`Service working` oppure `Out of service`);
-* lo stato di occupazione dell'IOPort;
-* l'identificativo dell'eventuale slot riservato;
-* lo stato di occupazione degli slot1-4.
+È ora necessario definire una rappresentazione univoca e serializzabile dello stato osservabile del sistema. A tale scopo si sceglie di rappresentarlo mediante un documento JSON contenente almeno:
+
+- lo stato logico del servizio (`engaged` oppure `disengaged`);
+- lo stato operativo (`Service working` oppure `Out of service`);
+- lo stato di occupazione dell'IOPort;
+- l'identificativo dell'eventuale slot riservato;
+- lo stato di occupazione degli slot1-4.
 
 Il JSON rappresenta esclusivamente una vista dello stato mantenuto dal *cargoservice* e dalla `Hold`: non introduce una seconda sorgente di verità e non deve essere modificato direttamente dai componenti esterni.
 
