@@ -140,9 +140,9 @@ Il cargoservice aggiorna tale rappresentazione ogni volta che si verifica una va
 
 Il runtime QAK permette a un attore di esporre il proprio stato come risorsa CoAP osservabile. Questa possibilità risulta adatta al problema poiché consente a un componente esterno di:
 
-* recuperare lo stato corrente del sistema;
-* osservare la risorsa;
-* ricevere una notifica quando il suo contenuto viene aggiornato.
+- recuperare lo stato corrente del sistema;
+- osservare la risorsa;
+- ricevere una notifica quando il suo contenuto viene aggiornato.
 
 Il *cargoservice* espone quindi il documento JSON mediante la propria risorsa CoAP, aggiornandola attraverso `updateResource(...)`.
 
