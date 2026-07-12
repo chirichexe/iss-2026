@@ -95,6 +95,8 @@ In particolare, per lo Sprint 2 restano centrali le seguenti conclusioni:
 - l'IOPort deve essere realizzato come Web GUI;
 - lo stato *Out of service* deve bloccare l'accettazione di nuove richieste e interrompere il movimento del robot, con ripresa al ritorno dello stato *Service working*.
 
+HOLD deve INVIARE il suo STATO
+
 = Problem analysis <model>
 
 Nello Sprint 2 la logica applicativa definita nello sprint precedente verrà mantenuta, e verranno sostituiti progressivamente i componenti simulati con componenti accessibili attraverso tecnologie compatibili con la loro natura:
@@ -103,28 +105,34 @@ Nello Sprint 2 la logica applicativa definita nello sprint precedente verrà man
 == Osservabilità dello stato della Hold
 // =============================================================================
 
-Da requisito (DA SCRIVERE IN ANALISI QUESTA COSA) la Web GUI deve mostrare lo stato corrente della hold e lo stato operativo del servizio. Tali informazioni sono però attualmente mantenute all'interno del *cargoservice* e del POJO `Hold`, non risultando direttamente accessibili ai componenti esterni.
+Da requisito (DA SCRIVERE IN ANALISI QUESTA COSA) la Web GUI deve mostrare lo stato corrente della hold e lo stato operativo del servizio. Tali informazioni sono però attualmente mantenute all'interno del *cargoservice* e del POJO *Hold*, non risultando direttamente accessibili ai componenti esterni.
 
-Si risulta che la HOLD va rappresentata come attore e non come pojo.
+Si risulta che la HOLD va rappresentata come attore e non come pojo. FALSO FORSE VA BENE COME POJO, DA CHIEDERE
 
-È ora necessario definire una rappresentazione univoca e serializzabile dello stato osservabile del sistema. A tale scopo si sceglie di rappresentarlo mediante un documento JSON contenente almeno:
+È ora necessario definire una rappresentazione univoca e serializzabile dello stato osservabile. 
+Si sceglie il formato *JSON*, che è indipendente dal linguaggio e direttamente manipolabile dalla Web GUI.
 
-- lo stato logico del servizio (`engaged` oppure `disengaged`);
-- lo stato operativo (`Service working` oppure `Out of service`);
-- lo stato di occupazione dell'IOPort;
-- l'identificativo dell'eventuale slot riservato;
-- lo stato di occupazione degli slot1-4.
+```json
+{
+  "serviceState": "engaged",         // valori ammessi...
+  "workingState": "Service working", // valori ammessi...
+  "ioPortOccupied": true,
+  "reservedSlot": 2,
+  "slots": {
+    "slot1": "occupied",
+    "slot2": "reserved",
+    "slot3": "free",
+    "slot4": "occupied"
+  }
+}
+```
 
-Il JSON rappresenta esclusivamente una vista dello stato mantenuto dal *cargoservice* e dalla `Hold`: non introduce una seconda sorgente di verità e non deve essere modificato direttamente dai componenti esterni.
+Il cargoservice aggiorna tale rappresentazione ogni volta che si verifica una variazione significativa dello stato del sistema, tra cui:
 
-Ogni volta che avviene una modifica significativa, il *cargoservice* aggiorna la risorsa osservabile. Gli aggiornamenti rilevanti comprendono, ad esempio:
-
-* prenotazione o liberazione di uno slot;
-* passaggio tra `engaged` e `disengaged`;
-* rilevamento o rimozione del container dall'IOPort;
-* ingresso nello stato *Out of service*;
-* ripristino dello stato *Service working*;
-* completamento del deposito nello slot riservato.
+- il passaggio tra gli stati engaged e disengaged
+- il rilevamento di un container nell'IOPort
+- l'ingresso o l'uscita dallo stato Out of service
+- il completamento del deposito nello slot riservato.
 
 // =============================================================================
 == Esposizione dello stato mediante CoAP
