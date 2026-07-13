@@ -159,11 +159,11 @@ Analizzando il suo codice, si osserva che il componente soddisfa le funzionalit�
 
 L'unica informazione non gestita riguarda lo stato di occupazione degli slot, demandata al *cargoservice* e al POJO della *Hold*.
 
-Poiché da Sprint 0 era già stato formalizzato un attore QAK denominato *cargorobot*, si è deciso di riutilizzarlo come "wrapper" di RobotSmart26. Il cargoservice calcola le coordinate della destinazione interrogando la *Hold* e le invia al cargorobot, che si limita ad inoltrare la richiesta a RobotSmart26, mantenendo il resto del sistema indipendente dall'interfaccia del servizio esterno.
+Poiché già nello Sprint 0 era stato formalizzato un attore QAK denominato *cargorobot*, si è deciso di riutilizzarlo come _Sidecar_ verso *RobotSmart26*. Il *cargoservice* calcola le coordinate della destinazione interrogando la *Hold* e le invia al *cargorobot*, il quale svolge il ruolo di _Adapter_, traducendo e inoltrando le richieste a *RobotSmart26* e convertendone le risposte nel formato atteso dal sistema. In questo modo, il *cargoservice* rimane disaccoppiato dal protocollo e dai dettagli implementativi del servizio esterno, confinando ogni logica di integrazione all'interno del *cargorobot*.
 ```
 QActor cargorobot context ctxprototype {
     State s0 initial {
-        println("cargorobot | STARTED (Wrapper di robotsmart26)") color blue
+        println("cargorobot | STARTED (Adapter di robotsmart26)") color blue
     }
     Goto waiting
     
@@ -389,7 +389,7 @@ In caso di fallimento nello spostamento, la procedura non viene interrotta in au
 
 ```qak
  State do_robot_job {
-        println("cargoservice | Container depositato! Spostamento del robot allo slot5 (2,5) [Riga,Colonna] tramite cargorobot (wrapper robotsmart26)...") color magenta
+        println("cargoservice | Container depositato! Spostamento del robot allo slot5 (2,5) [Riga,Colonna] tramite cargorobot (Adapter di robotsmart26)...") color magenta
         request cargorobot -m moverobot : moverobot(2, 5, $StepTime)
     }
     Transition t0
