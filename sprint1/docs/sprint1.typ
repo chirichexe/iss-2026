@@ -210,7 +210,7 @@ Il codice dell'attore è disponibile al seguente #link("https://github.com/chiri
 
 Di seguito si riporta una formalizzazione delle interazioni tra gli attori modellate interpretando e applicando opportune scelte progettuali sui requisiti del sistema. Il codice è disponibile al seguente #link("https://github.com/chirichexe/iss-2026/blob/main/sprint1/prototype/src/Prototype_Sprint1.qak")[link].
 
-- Da requisiti, sappiamo che il sonar deve misurare continuamente la distanza del container dal sonar stesso. Nasce quindi la necessità di dover trasmettere queste misurazioni al cargoservice. Per isolare la responsabilità del sonar a semplice "misuratore e trasmettitore" di informazione, viene naturale formalizzare tale comunicazione come un Event, ovvero un messaggio broadcast che verrà ascoltato da chi interessato (in questo caso *cargoservice*)
+- Da requisiti, sappiamo che il sonar deve misurare continuamente la distanza del container dal sonar stesso. Scegliere un Event anziché un Dispatch garantisce un disaccoppiamento totale, permettendo a più componenti (es. robot, GUI e LED) di ascoltare e reagire allo stesso segnale in modo scalabile, senza che il sonar debba conoscere esplicitamente i destinatari. Inoltre, questa logica si allinea perfettamente all'architettura di MQTT, che si basa proprio sul pattern Publish-Subscribe per distribuire gli eventi sulla rete. // Infine, la semantica di QAK scarta automaticamente gli eventi non previsti nello stato corrente, evitando di intasare inutilmente le code con letture sensoriali vecchie e obsolete, problema che invece si verificherebbe usando i Dispatch.
 
 ```
 Event    sonardata          : distance(D)
