@@ -1,17 +1,20 @@
 :root {
-  color-scheme: light;
-  --bg: #f4f6f8;
-  --panel: #ffffff;
-  --ink: #17202a;
-  --muted: #5d6b7a;
-  --line: #d7dde4;
-  --accent: #126b63;
-  --accent-dark: #0d4f49;
-  --warning: #a85c00;
-  --danger: #b3261e;
-  --free: #1d7f45;
-  --reserved: #254f9a;
-  --marker: #6e4aa8;
+  color-scheme: dark;
+  --bg: #151922;
+  --panel: #202632;
+  --panel-strong: #111827;
+  --surface-raised: #0d141f;
+  --surface-border: #4b5870;
+  --ink: #f8fafc;
+  --muted: #a7b1c2;
+  --line: #394353;
+  --accent: #14b8a6;
+  --accent-dark: #0f9488;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --free: #22c55e;
+  --reserved: #60a5fa;
+  --marker: #c084fc;
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
@@ -27,40 +30,47 @@ body {
 }
 
 .ioport-shell {
-  width: min(1040px, calc(100% - 32px));
+  width: min(1180px, calc(100% - 40px));
   min-height: 100vh;
   margin: 0 auto;
   display: grid;
-  grid-template-columns: minmax(320px, 0.9fr) minmax(360px, 1.1fr);
-  gap: 18px;
+  grid-template-columns: minmax(360px, 0.9fr) minmax(420px, 1.1fr);
+  grid-template-rows: auto 1fr;
+  gap: 24px;
   align-items: center;
-  padding: 28px 0;
+  padding: 40px 0;
+}
+
+.page-header {
+  grid-column: 1 / -1;
+  align-self: end;
+  padding-top: 12px;
 }
 
 .panel {
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: 8px;
-  padding: 22px;
-  box-shadow: 0 14px 40px rgb(23 32 42 / 10%);
+  padding: 32px;
+  box-shadow: 0 18px 48px rgb(0 0 0 / 24%);
 }
 
 .title-row {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 14px;
-  margin-bottom: 22px;
+  gap: 18px;
+  margin-bottom: 30px;
 }
 
 .title-row.compact {
-  margin-bottom: 16px;
+  margin-bottom: 24px;
 }
 
 .eyebrow {
-  margin: 0 0 4px;
+  margin: 0 0 6px;
   color: var(--muted);
-  font-size: 0.78rem;
+  font-size: 0.9rem;
   font-weight: 700;
   letter-spacing: 0;
   text-transform: uppercase;
@@ -73,126 +83,139 @@ h2 {
 }
 
 h1 {
-  font-size: 2.3rem;
+  font-size: 3.8rem;
 }
 
 h2 {
-  font-size: 1.35rem;
+  font-size: 2rem;
 }
 
 .status-pill {
   flex: 0 0 auto;
-  min-width: 122px;
-  border-radius: 999px;
-  padding: 7px 11px;
+  min-width: 150px;
+  border-radius: 6px;
+  padding: 10px 14px;
   border: 1px solid currentColor;
   text-align: center;
-  font-size: 0.84rem;
+  font-size: 1rem;
   font-weight: 700;
+  background: transparent;
 }
 
 .status-pill.working,
 .status-pill.free {
   color: var(--free);
-  background: #eef8f1;
 }
 
 .status-pill.engaged,
 .status-pill.busy {
   color: var(--warning);
-  background: #fff5e8;
 }
 
 .status-pill.out {
   color: var(--danger);
-  background: #fff1f0;
 }
 
 .display {
-  min-height: 154px;
-  border: 1px solid #23364a;
-  border-radius: 6px;
-  background: #101820;
-  color: #e9f2fa;
-  padding: 16px;
+  min-height: 190px;
+  border: 1px solid var(--surface-border);
+  border-radius: 8px;
+  background: var(--surface-raised);
+  color: #f8fafc;
+  padding: 24px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  gap: 18px;
+  gap: 22px;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 8%),
+    0 14px 30px rgb(0 0 0 / 28%);
 }
 
 .display-label {
-  color: #9fb2c4;
-  font-size: 0.8rem;
+  color: #cbd5e1;
+  font-size: 0.95rem;
   font-weight: 700;
   text-transform: uppercase;
 }
 
 .display strong {
-  font-size: 1.25rem;
-  line-height: 1.35;
+  font-size: 1.65rem;
+  line-height: 1.4;
 }
 
 .load-button {
   width: 100%;
-  min-height: 76px;
-  margin-top: 18px;
-  border: 0;
+  min-height: 96px;
+  margin-top: 24px;
+  border: 1px solid #5eead4;
   border-radius: 8px;
   background: var(--accent);
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
-  font-size: 1.16rem;
+  gap: 16px;
+  font-size: 1.45rem;
   font-weight: 800;
   cursor: pointer;
+  box-shadow:
+    0 12px 28px rgb(20 184 166 / 24%),
+    inset 0 1px 0 rgb(255 255 255 / 24%);
 }
 
 .load-button:hover {
   background: var(--accent-dark);
+  box-shadow:
+    0 14px 32px rgb(20 184 166 / 30%),
+    inset 0 1px 0 rgb(255 255 255 / 22%);
 }
 
 .load-button:disabled {
   cursor: not-allowed;
-  background: #8a98a7;
+  background: #5f6b7a;
+  border-color: #7b8797;
+  box-shadow: none;
 }
 
 .button-icon {
   border: 2px solid currentColor;
   border-radius: 6px;
-  padding: 5px 8px;
-  font-size: 0.78rem;
+  padding: 7px 10px;
+  font-size: 0.95rem;
 }
 
 .hold-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
+  grid-template-columns: 1fr;
+  gap: 10px;
 }
 
 .slot {
-  min-height: 102px;
+  min-height: 78px;
   border: 1px solid var(--line);
   border-left: 5px solid currentColor;
-  border-radius: 7px;
-  padding: 13px;
+  border-radius: 8px;
+  padding: 16px 18px;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  align-items: center;
   justify-content: space-between;
-  background: #fafbfc;
+  gap: 18px;
+  background: var(--panel-strong);
 }
 
 .slot span {
   color: var(--muted);
-  font-size: 0.8rem;
+  font-size: 1rem;
   font-weight: 800;
   text-transform: uppercase;
 }
 
 .slot strong {
-  font-size: 1.12rem;
+  color: var(--ink);
+  font-size: 1.5rem;
+  text-align: right;
 }
 
 .slot.free {
@@ -201,24 +224,22 @@ h2 {
 
 .slot.reserved {
   color: var(--reserved);
-  background: #eef4ff;
 }
 
 .slot.occupied {
   color: var(--warning);
-  background: #fff6ea;
 }
 
 .slot.marker {
   color: var(--marker);
-  background: #f5f1ff;
 }
 
 @media (max-width: 760px) {
   .ioport-shell {
     grid-template-columns: 1fr;
+    grid-template-rows: auto;
     align-items: start;
-    padding: 18px 0;
+    padding: 24px 0;
   }
 
   .title-row {
@@ -231,15 +252,31 @@ h2 {
 }
 
 @media (max-width: 460px) {
+  .ioport-shell {
+    width: min(100% - 24px, 1180px);
+  }
+
   .hold-grid {
     grid-template-columns: 1fr;
   }
 
   .panel {
-    padding: 16px;
+    padding: 22px;
   }
 
   h1 {
-    font-size: 1.9rem;
+    font-size: 2.8rem;
+  }
+
+  h2 {
+    font-size: 1.6rem;
+  }
+
+  .display strong {
+    font-size: 1.35rem;
+  }
+
+  .load-button {
+    font-size: 1.25rem;
   }
 }
