@@ -162,6 +162,8 @@ Reply load_retrylater : loadRetryLater(none) for load_request // rinvio temporan
 Reply load_refused : loadRefused(none) for load_request // rifiuto definitivo
 ```
 
+Si noti che la committente, nei requisiti, definisce la risposta del *cargoservice* ai casi di IOPort occupata o sistema *Out of Service* come *retrylater*. Si è scelto di formalizzare tale risposta come *load_retrylater*, poiché essa rappresenta la risposta a una richiesta di *load* e mantiene una terminologia coerente con quella adottata per le altre risposte associate alla medesima richiesta.
+
 == Macro-componenti e natura software
 
 === cargoservice
