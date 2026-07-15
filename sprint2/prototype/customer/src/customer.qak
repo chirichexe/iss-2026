@@ -1,6 +1,6 @@
 System cargosystem
 mqttBroker "localhost" : 1883 eventTopic "cargosystem"
-   
+    
 
 // Customer <-> CargoService 
 Request load_request    : loadRequest(none) 
