@@ -32,39 +32,30 @@ class Sonarmock ( name: String, scope: CoroutineScope, isconfined: Boolean=false
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
-						delay(4000) 
-						CommUtils.outcyan("sonarmock | Container placed -> Emitting sonardata(30)")
-						emit("sonardata", "distance(30)" ) 
-						delay(10000) 
-						CommUtils.outred("sonarmock | Sonar measures D > DFREE (200) -> Emitting sonardata(200)")
+						CommUtils.outcyan("sonarmock | STARTED - Initial distance D=80 (Service working, IOPort free)")
+						emit("sonardata", "distance(80)" ) 
+						delay(5000) 
+						CommUtils.outred("sonarmock [self-test] | Sonar measures D > DFREE (200) -> Emitting sonardata(200) (OUT OF SERVICE)")
 						emit("sonardata", "distance(200)" ) 
 						delay(6000) 
-						CommUtils.outgreen("sonarmock | Sonar measures D <= DFREE (30) -> Emitting sonardata(30)")
-						emit("sonardata", "distance(30)" ) 
-						delay(10000) 
-						CommUtils.outcyan("sonarmock | IOPort free -> Emitting sonardata(80)")
+						CommUtils.outgreen("sonarmock [self-test] | Sonar measures D <= DFREE (80) -> Emitting sonardata(80) (SERVICE WORKING restored)")
 						emit("sonardata", "distance(80)" ) 
 						//genTimer( actor, state )
 					}
 					//After Lenzi Aug2002
 					sysaction { //it:State
 					}	 	 
-					 transition( edgeName="goto",targetState="cycle", cond=doswitch() )
+					 transition( edgeName="goto",targetState="idle", cond=doswitch() )
 				}	 
-				state("cycle") { //this:State
+				state("idle") { //this:State
 					action { //it:State
-						delay(8000) 
-						CommUtils.outcyan("sonarmock [cycle] | Container placed -> Emitting sonardata(30)")
-						emit("sonardata", "distance(30)" ) 
-						delay(8000) 
-						CommUtils.outcyan("sonarmock [cycle] | IOPort free -> Emitting sonardata(80)")
-						emit("sonardata", "distance(80)" ) 
+						delay(60000) 
 						//genTimer( actor, state )
 					}
 					//After Lenzi Aug2002
 					sysaction { //it:State
 					}	 	 
-					 transition( edgeName="goto",targetState="cycle", cond=doswitch() )
+					 transition( edgeName="goto",targetState="idle", cond=doswitch() )
 				}	 
 			}
 		}

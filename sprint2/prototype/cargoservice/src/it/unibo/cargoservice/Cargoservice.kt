@@ -74,10 +74,40 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 					}
 					//After Lenzi Aug2002
 					sysaction { //it:State
-				 	 		stateTimer = TimerActor("timer_engaged", 
-				 	 					  scope, context!!, "local_tout_"+name+"_engaged", 30000.toLong() )  //OCT2023
 					}	 	 
-					 transition(edgeName="t03",targetState="handle_deposit_timeout",cond=whenTimeout("local_tout_"+name+"_engaged"))   
+					 transition( edgeName="goto",targetState="do_robot_job", cond=doswitchGuarded({ IOPortOccupied && CargoState == "engaged" && ServiceWorking  
+					}) )
+					transition( edgeName="goto",targetState="wait_for_container", cond=doswitchGuarded({! ( IOPortOccupied && CargoState == "engaged" && ServiceWorking  
+					) }) )
+				}	 
+				state("wait_for_container") { //this:State
+					action { //it:State
+						delay(2000) 
+						CommUtils.outcyan("cargoservice [sim] | Container automatically dropped into sensor_area (IOPort)!")
+						 IOPortOccupied = true  
+						 val simStatusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId)  
+						updateResourceRep( simStatusJson  
+						)
+						//genTimer( actor, state )
+					}
+					//After Lenzi Aug2002
+					sysaction { //it:State
+					}	 	 
+					 transition( edgeName="goto",targetState="do_robot_job", cond=doswitchGuarded({ IOPortOccupied && CargoState == "engaged" && ServiceWorking  
+					}) )
+					transition( edgeName="goto",targetState="engaged_loop", cond=doswitchGuarded({! ( IOPortOccupied && CargoState == "engaged" && ServiceWorking  
+					) }) )
+				}	 
+				state("engaged_loop") { //this:State
+					action { //it:State
+						//genTimer( actor, state )
+					}
+					//After Lenzi Aug2002
+					sysaction { //it:State
+				 	 		stateTimer = TimerActor("timer_engaged_loop", 
+				 	 					  scope, context!!, "local_tout_"+name+"_engaged_loop", 30000.toLong() )  //OCT2023
+					}	 	 
+					 transition(edgeName="t03",targetState="handle_deposit_timeout",cond=whenTimeout("local_tout_"+name+"_engaged_loop"))   
 					transition(edgeName="t04",targetState="handle_load_request",cond=whenRequest("load_request"))
 					transition(edgeName="t05",targetState="handle_sonar",cond=whenEvent("sonardata"))
 					transition(edgeName="t06",targetState="update_service",cond=whenDispatch("set_service_status"))
@@ -200,15 +230,32 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 				}	 
 				state("do_robot_job") { //this:State
 					action { //it:State
-						CommUtils.outmagenta("cargoservice | Container deposited! Moving to slot5 (2,5)...")
+						CommUtils.outmagenta("cargoservice | Container inside sensor_area! Robot moving to IOPort (4,0) to pick it up...")
+						request("moverobot", "moverobot(4,0,$StepTime)" ,"cargorobot" )  
+						//genTimer( actor, state )
+					}
+					//After Lenzi Aug2002
+					sysaction { //it:State
+					}	 	 
+					 transition(edgeName="t07",targetState="pick_container",cond=whenReply("moverobotdone"))
+					transition(edgeName="t08",targetState="handle_robot_fail",cond=whenReply("moverobotfailed"))
+				}	 
+				state("pick_container") { //this:State
+					action { //it:State
+						CommUtils.outmagenta("cargoservice | Robot at IOPort (4,0). Container picked up! IOPort is now FREE.")
+						 IOPortOccupied = false  
+						 val statusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId)  
+						updateResourceRep( statusJson  
+						)
+						CommUtils.outmagenta("cargoservice | Moving container to slot5 (2,5) for marking...")
 						request("moverobot", "moverobot(2,5,$StepTime)" ,"cargorobot" )  
 						//genTimer( actor, state )
 					}
 					//After Lenzi Aug2002
 					sysaction { //it:State
 					}	 	 
-					 transition(edgeName="t07",targetState="mark_container",cond=whenReply("moverobotdone"))
-					transition(edgeName="t08",targetState="handle_robot_fail",cond=whenReply("moverobotfailed"))
+					 transition(edgeName="t09",targetState="mark_container",cond=whenReply("moverobotdone"))
+					transition(edgeName="t010",targetState="handle_robot_fail",cond=whenReply("moverobotfailed"))
 				}	 
 				state("mark_container") { //this:State
 					action { //it:State
@@ -219,7 +266,7 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 					//After Lenzi Aug2002
 					sysaction { //it:State
 					}	 	 
-					 transition(edgeName="t09",targetState="move_to_reserved_slot",cond=whenReply("marking_done"))
+					 transition(edgeName="t011",targetState="move_to_reserved_slot",cond=whenReply("marking_done"))
 				}	 
 				state("move_to_reserved_slot") { //this:State
 					action { //it:State
@@ -233,8 +280,8 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 					//After Lenzi Aug2002
 					sysaction { //it:State
 					}	 	 
-					 transition(edgeName="t010",targetState="return_home",cond=whenReply("moverobotdone"))
-					transition(edgeName="t011",targetState="handle_robot_fail",cond=whenReply("moverobotfailed"))
+					 transition(edgeName="t012",targetState="return_home",cond=whenReply("moverobotdone"))
+					transition(edgeName="t013",targetState="handle_robot_fail",cond=whenReply("moverobotfailed"))
 				}	 
 				state("return_home") { //this:State
 					action { //it:State
@@ -252,8 +299,8 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 					//After Lenzi Aug2002
 					sysaction { //it:State
 					}	 	 
-					 transition(edgeName="t012",targetState="finish_job",cond=whenReply("moverobotdone"))
-					transition(edgeName="t013",targetState="handle_robot_fail",cond=whenReply("moverobotfailed"))
+					 transition(edgeName="t014",targetState="finish_job",cond=whenReply("moverobotdone"))
+					transition(edgeName="t015",targetState="handle_robot_fail",cond=whenReply("moverobotfailed"))
 				}	 
 				state("finish_job") { //this:State
 					action { //it:State

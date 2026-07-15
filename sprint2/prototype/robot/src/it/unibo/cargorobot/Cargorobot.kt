@@ -30,9 +30,18 @@ class Cargorobot ( name: String, scope: CoroutineScope, isconfined: Boolean=fals
 		//val interruptedStateTransitions = mutableListOf<Transition>()
 		//IF actor.withobj !== null val actor.withobj.name� = actor.withobj.method�ENDIF
 		return { //this:ActionBasciFsm
+				var ConnToRobotSmart : unibo.basicomm23.interfaces.Interaction? = null
 				state("s0") { //this:State
 					action { //it:State
-						CommUtils.outblue("cargorobot | STARTED (Puro wrapper di robotsmart26)")
+						CommUtils.outblue("cargorobot | STARTED (Puro wrapper bridge per robotsmart26)")
+						try {
+							ConnToRobotSmart = unibo.basicomm23.mqtt.MqttConnection.create(
+								"cargorobot_to_rs", "tcp://localhost:1883", "robotsmart26in"
+							)
+							CommUtils.outgreen("cargorobot | Connesso via MQTT al topic robotsmart26in per robotsmart26")
+						} catch(e: Exception) {
+							CommUtils.outred("cargorobot | ERRORE connessione iniziale a robotsmart26: ${e.message}")
+						}
 						//genTimer( actor, state )
 					}
 					//After Lenzi Aug2002
@@ -53,41 +62,28 @@ class Cargorobot ( name: String, scope: CoroutineScope, isconfined: Boolean=fals
 					action { //it:State
 						if( checkMsgContent( Term.createTerm("moverobot(TARGETX,TARGETY,STEPTIME)"), Term.createTerm("moverobot(X,Y,TIME)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
-								 
-								                val Tx = payloadArg(0)
-								                val Ty = payloadArg(1)
-								                val StepTime = payloadArg(2)
-								CommUtils.outcyan("cargorobot | Inoltro comando moverobot($Tx, $Ty, $StepTime) a robotsmart26...")
-								request("moverobot", "moverobot($Tx,$Ty,$StepTime)" ,"robotsmart" )  
-						}
-						//genTimer( actor, state )
-					}
-					//After Lenzi Aug2002
-					sysaction { //it:State
-					}	 	 
-					 transition(edgeName="t01",targetState="handle_move_done",cond=whenReply("moverobotdone"))
-					transition(edgeName="t02",targetState="handle_move_failed",cond=whenReply("moverobotfailed"))
-				}	 
-				state("handle_move_done") { //this:State
-					action { //it:State
-						if( checkMsgContent( Term.createTerm("moverobotok(ARG)"), Term.createTerm("moverobotok(ARG)"), 
-						                        currentMsg.msgContent()) ) { //set msgArgList
-								CommUtils.outcyan("cargorobot | Movimento completato da robotsmart26. Rispondo al cargoservice...")
-								answer("moverobot", "moverobotdone", "moverobotok(done)"   )  
-						}
-						//genTimer( actor, state )
-					}
-					//After Lenzi Aug2002
-					sysaction { //it:State
-					}	 	 
-					 transition( edgeName="goto",targetState="waiting", cond=doswitch() )
-				}	 
-				state("handle_move_failed") { //this:State
-					action { //it:State
-						if( checkMsgContent( Term.createTerm("moverobotfailed(PLANDONE,PLANTODO)"), Term.createTerm("moverobotfailed(PL,TIME)"), 
-						                        currentMsg.msgContent()) ) { //set msgArgList
-								CommUtils.outred("cargorobot | Fallimento movimento in robotsmart26. Rispondo failure al cargoservice...")
-								answer("moverobot", "moverobotfailed", "moverobotfailed(obstacle,0)"   )  
+								val Tx = payloadArg(0)
+								val Ty = payloadArg(1)
+								val StepTime = payloadArg(2)
+								CommUtils.outcyan("cargorobot | Inoltro comando moverobot($Tx, $Ty, $StepTime) a robotsmart26 via MQTT (robotsmart26in)...")
+								var replyStr = ""
+								try {
+									if (ConnToRobotSmart == null) {
+										ConnToRobotSmart = unibo.basicomm23.mqtt.MqttConnection.create(
+											"cargorobot_to_rs", "tcp://localhost:1883", "robotsmart26in"
+										)
+									}
+									val msgReq = unibo.basicomm23.utils.CommUtils.buildRequest("cargorobot", "moverobot", "moverobot($Tx,$Ty,$StepTime)", "robotsmart").toString()
+									replyStr = ConnToRobotSmart!!.request(msgReq)
+									CommUtils.outgreen("cargorobot | Risposta da robotsmart26 via MQTT: $replyStr")
+								} catch(e: Exception) {
+									CommUtils.outred("cargorobot | Errore richiesta moverobot: ${e.message}")
+								}
+								if (replyStr.contains("moverobotok") || replyStr.contains("moverobotdone")) {
+									answer("moverobot", "moverobotdone", "moverobotok(done)")
+								} else {
+									answer("moverobot", "moverobotfailed", "moverobotfailed(obstacle,0)")
+								}
 						}
 						//genTimer( actor, state )
 					}

@@ -1,6 +1,7 @@
 %====================================================================================
 % cargosystem description   
 %====================================================================================
+mqttBroker("localhost", "1883", "cargosystem").
 request( load_request, loadRequest(none) ).
 reply( load_accepted, loadAccepted(SLOTID) ).  %%for load_request
 reply( load_retrylater, loadRetryLater(none) ).  %%for load_request

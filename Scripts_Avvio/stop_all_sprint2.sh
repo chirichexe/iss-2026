@@ -20,4 +20,12 @@ for port in 8086 8090 8085 8020 8050 8051 8052 8053; do
     fi
 done
 
-echo "Tutti i servizi dello Sprint 2 sono stati arrestati con successo!"
+# Chiusura delle finestre dei terminali aperte dagli script di avvio
+echo "Chiusura delle finestre dei terminali in corso..."
+for title in "1_WEnv_Docker" "2_RobotSmart26" "3_CargoService" "4_CargoRobot" "5_Customer_LedMock" "6_IOPortServer_Web" "7_Devices_SonarMarker"; do
+    pkill -f "$title" 2>/dev/null || true
+done
+pkill -f "runCustomer" 2>/dev/null || true
+pkill -f "runIOPortServer.sh" 2>/dev/null || true
+
+echo "Tutti i servizi e le finestre dei terminali dello Sprint 2 sono stati arrestati e chiusi con successo!"

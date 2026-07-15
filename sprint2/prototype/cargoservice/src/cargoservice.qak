@@ -1,7 +1,7 @@
 System cargosystem 
-//mqttBroker "broker.hivemq.com" : 1883
-
-// Customer <-> CargoService    
+mqttBroker "localhost" : 1883 eventTopic "cargosystem"
+ 
+// Customer <-> CargoService     
 Request load_request    : loadRequest(none)
 Reply   load_accepted   : loadAccepted(SLOTID) for load_request 
 Reply   load_retrylater : loadRetryLater(none) for load_request 
@@ -63,6 +63,19 @@ QActor cargoservice context ctxcargoservice {
         [# val statusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId) #]
         updateResource [# statusJson #]
     }
+    Goto do_robot_job if [# IOPortOccupied && CargoState == "engaged" && ServiceWorking #] else wait_for_container
+
+    State wait_for_container {
+        // Simulo che il container "cada" automaticamente nella sensor_area dopo 2 secondi
+        delay 2000
+        println("cargoservice [sim] | Container automatically dropped into sensor_area (IOPort)!") color cyan
+        [# IOPortOccupied = true #]
+        [# val simStatusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId) #]
+        updateResource [# simStatusJson #]
+    }
+    Goto do_robot_job if [# IOPortOccupied && CargoState == "engaged" && ServiceWorking #] else engaged_loop
+
+    State engaged_loop {}
     Transition t0
         whenTime    30000        -> handle_deposit_timeout
         whenRequest load_request -> handle_load_request
@@ -153,7 +166,19 @@ QActor cargoservice context ctxcargoservice {
     // GESTIONE ROBOT E MARKER
     
     State do_robot_job {
-        println("cargoservice | Container deposited! Moving to slot5 (2,5)...") color magenta
+        println("cargoservice | Container inside sensor_area! Robot moving to IOPort (4,0) to pick it up...") color magenta
+        request cargorobot -m moverobot : moverobot(4, 0, $StepTime)
+    }
+    Transition t0
+        whenReply moverobotdone   -> pick_container
+        whenReply moverobotfailed -> handle_robot_fail
+
+    State pick_container {
+        println("cargoservice | Robot at IOPort (4,0). Container picked up! IOPort is now FREE.") color magenta
+        [# IOPortOccupied = false #]
+        [# val statusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId) #]
+        updateResource [# statusJson #]
+        println("cargoservice | Moving container to slot5 (2,5) for marking...") color magenta
         request cargorobot -m moverobot : moverobot(2, 5, $StepTime)
     }
     Transition t0

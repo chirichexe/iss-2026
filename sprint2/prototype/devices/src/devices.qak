@@ -1,13 +1,13 @@
 System cargosystem
-// mqttBroker "broker.hivemq.com" : 1883
+mqttBroker "localhost" : 1883 eventTopic "cargosystem"
 
 
-// Customer <-> CargoService 
+// Customer <-> CargoService  
 Request load_request    : loadRequest(none)
 Reply   load_accepted   : loadAccepted(SLOTID) for load_request 
 Reply   load_retrylater : loadRetryLater(none) for load_request 
 Reply   load_refused    : loadRefused(none) for load_request    
-
+ 
 // Aggiornamenti Sensori e Stato  
 Event    sonardata          : distance(D)  // Emesso dal sonar
 Dispatch set_service_status : setServiceStatus(STATUS) 
@@ -31,37 +31,24 @@ Context ctxrobot        ip [host="localhost" port=8053] // Cargorobot
 // SONAR MOCK
 QActor sonarmock context ctxdevices {
     State s0 initial {
-        delay 4000
-        println("sonarmock | Container placed -> Emitting sonardata(30)") color cyan
-        emit sonardata : distance(30)
+        println("sonarmock | STARTED - Initial distance D=80 (Service working, IOPort free)") color cyan
+        emit sonardata : distance(80)
         
-        // Simulazione ostacolo o guasto (D > DFREE) per testare l'Out of service e l'interruzione del robot
-        delay 10000
-        println("sonarmock | Sonar measures D > DFREE (200) -> Emitting sonardata(200)") color red
+        // Test iniziale automatico di Out of Service richiesto per verificare la reattività del sistema
+        delay 5000
+        println("sonarmock [self-test] | Sonar measures D > DFREE (200) -> Emitting sonardata(200) (OUT OF SERVICE)") color red
         emit sonardata : distance(200)
         
-        // Simulazione ripristino (D <= DFREE)
         delay 6000
-        println("sonarmock | Sonar measures D <= DFREE (30) -> Emitting sonardata(30)") color green
-        emit sonardata : distance(30)
-        
-        // Container rimosso/posato a destinazione, IOPort si libera (50 < D <= 150)
-        delay 10000
-        println("sonarmock | IOPort free -> Emitting sonardata(80)") color cyan
+        println("sonarmock [self-test] | Sonar measures D <= DFREE (80) -> Emitting sonardata(80) (SERVICE WORKING restored)") color green
         emit sonardata : distance(80)
     }
-    Goto cycle
+    Goto idle
 
-    State cycle {
-        delay 8000
-        println("sonarmock [cycle] | Container placed -> Emitting sonardata(30)") color cyan
-        emit sonardata : distance(30)
-        
-        delay 8000
-        println("sonarmock [cycle] | IOPort free -> Emitting sonardata(80)") color cyan
-        emit sonardata : distance(80)
+    State idle {
+        delay 60000
     }
-    Goto cycle
+    Goto idle
 }
 
 // MARKER DEVICE

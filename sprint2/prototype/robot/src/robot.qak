@@ -1,9 +1,8 @@
 System cargosystem 
+mqttBroker "localhost" : 1883 eventTopic "cargosystem"
+ 
 
-//mqttBroker "broker.hivemq.com" : 1883
-
-
-// Customer <-> CargoService  
+// Customer <-> CargoService   
 Request load_request    : loadRequest(none)
 Reply   load_accepted   : loadAccepted(SLOTID) for load_request 
 Reply   load_retrylater : loadRetryLater(none) for load_request 
@@ -24,10 +23,21 @@ Context ctxrobotsmart   ip [host="localhost" port=8020]
 ExternalQActor cargoservice context ctxcargoservice
 ExternalQActor robotsmart   context ctxrobotsmart
 
-// CARGOROBOT (Puro wrapper di dominio per robotsmart26)
+// CARGOROBOT (Puro wrapper bridge di dominio per robotsmart26)
 QActor cargorobot context ctxrobot {
+    [# var ConnToRobotSmart : unibo.basicomm23.interfaces.Interaction? = null #]
     State s0 initial {
-        println("cargorobot | STARTED (Puro wrapper di robotsmart26)") color blue
+        println("cargorobot | STARTED (Puro wrapper bridge per robotsmart26)") color blue
+        [# 
+            try {
+                ConnToRobotSmart = unibo.basicomm23.mqtt.MqttConnection.create(
+                    "cargorobot_to_rs", "tcp://localhost:1883", "robotsmart26in"
+                )
+                println("cargorobot | Connesso via MQTT al topic robotsmart26in per robotsmart26") color green
+            } catch(e: Exception) {
+                println("cargorobot | ERRORE connessione iniziale a robotsmart26: ${e.message}") color red
+            }
+        #]
     }
     Goto waiting
     
@@ -41,27 +51,26 @@ QActor cargorobot context ctxrobot {
                 val Tx = payloadArg(0)
                 val Ty = payloadArg(1)
                 val StepTime = payloadArg(2)
+                println("cargorobot | Inoltro comando moverobot($Tx, $Ty, $StepTime) a robotsmart26 via MQTT (robotsmart26in)...") color cyan
+                var replyStr = ""
+                try {
+                    if (ConnToRobotSmart == null) {
+                        ConnToRobotSmart = unibo.basicomm23.mqtt.MqttConnection.create(
+                            "cargorobot_to_rs", "tcp://localhost:1883", "robotsmart26in"
+                        )
+                    }
+                    val msgReq = unibo.basicomm23.utils.CommUtils.buildRequest("cargorobot", "moverobot", "moverobot($Tx,$Ty,$StepTime)", "robotsmart").toString()
+                    replyStr = ConnToRobotSmart!!.request(msgReq)
+                    println("cargorobot | Risposta da robotsmart26 via MQTT: $replyStr") color green
+                } catch(e: Exception) {
+                    println("cargorobot | Errore richiesta moverobot: ${e.message}") color red
+                }
             #]
-            println("cargorobot | Inoltro comando moverobot($Tx, $Ty, $StepTime) a robotsmart26...") color cyan
-            request robotsmart -m moverobot : moverobot($Tx, $Ty, $StepTime)
-        }
-    }
-    Transition t0
-        whenReply moverobotdone   -> handle_move_done
-        whenReply moverobotfailed -> handle_move_failed
-        
-    State handle_move_done {
-        onMsg(moverobotdone : moverobotok(ARG)) {
-            println("cargorobot | Movimento completato da robotsmart26. Rispondo al cargoservice...") color cyan
-            replyTo moverobot with moverobotdone : moverobotok(done)
-        }
-    }
-    Goto waiting
-    
-    State handle_move_failed {
-        onMsg(moverobotfailed : moverobotfailed(PL, TIME)) {
-            println("cargorobot | Fallimento movimento in robotsmart26. Rispondo failure al cargoservice...") color red
-            replyTo moverobot with moverobotfailed : moverobotfailed(obstacle, 0)
+            if [# replyStr.contains("moverobotok") || replyStr.contains("moverobotdone") #] {
+                replyTo moverobot with moverobotdone : moverobotok(done)
+            } else {
+                replyTo moverobot with moverobotfailed : moverobotfailed(obstacle, 0)
+            }
         }
     }
     Goto waiting
