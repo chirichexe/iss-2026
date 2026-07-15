@@ -259,4 +259,11 @@ public class Hold implements IHold {
         sb.append("}");
         return sb.toString();
     }
+
+    public static void updateAndPublish(it.unibo.kactor.ActorBasic actor, String json) {
+        actor.updateResourceRep(json);
+        if (actor.getMqtt() != null) {
+            actor.getMqtt().publish("cargoservice/status", json, 1, false);
+        }
+    }
 }

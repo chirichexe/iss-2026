@@ -48,13 +48,13 @@ open_terminal() {
     local cmd="$3"
     echo " -> Avvio [$title]..."
     if command -v gnome-terminal >/dev/null 2>&1; then
-        gnome-terminal --title="$title" --working-directory="$dir" -- bash -c ": QAK_TERMINAL_$title; cd \"$dir\" && $cmd; echo ''; echo '--- TERMINATO. Premi INVIO per chiudere ---'; read"
+        gnome-terminal --title="$title" --working-directory="$dir" -- bash -c "trap 'exit 0' TERM INT HUP; : QAK_TERMINAL_$title; cd \"$dir\" && $cmd"
     elif command -v kitty >/dev/null 2>&1; then
-        kitty --title "$title" --directory "$dir" bash -c ": QAK_TERMINAL_$title; cd \"$dir\" && $cmd; echo ''; echo '--- TERMINATO. Premi INVIO per chiudere ---'; read" &
+        kitty --title "$title" --directory "$dir" bash -c "trap 'exit 0' TERM INT HUP; : QAK_TERMINAL_$title; cd \"$dir\" && $cmd" &
     elif command -v x-terminal-emulator >/dev/null 2>&1; then
-        x-terminal-emulator -T "$title" -e bash -c ": QAK_TERMINAL_$title; cd \"$dir\" && $cmd; echo ''; echo '--- TERMINATO. Premi INVIO per chiudere ---'; read" &
+        x-terminal-emulator -T "$title" -e bash -c "trap 'exit 0' TERM INT HUP; : QAK_TERMINAL_$title; cd \"$dir\" && $cmd" &
     else
-        xterm -T "$title" -e bash -c ": QAK_TERMINAL_$title; cd \"$dir\" && $cmd; echo ''; echo '--- TERMINATO. Premi INVIO per chiudere ---'; read" &
+        xterm -T "$title" -e bash -c "trap 'exit 0' TERM INT HUP; : QAK_TERMINAL_$title; cd \"$dir\" && $cmd" &
     fi
 }
 

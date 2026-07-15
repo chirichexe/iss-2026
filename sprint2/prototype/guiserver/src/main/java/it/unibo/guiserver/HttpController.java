@@ -14,15 +14,25 @@ import unibo.basicomm23.utils.ConnectionFactory;
  */
 public class HttpController {
     private final GuiServerQakActor guiActor;
+    private final WsController wsController;
     private final String targetHost = "127.0.0.1";
     private final String targetPort = "8050";
 
-    public HttpController(GuiServerQakActor guiActor) {
+    public HttpController(GuiServerQakActor guiActor, WsController wsController) {
         this.guiActor = guiActor;
+        this.wsController = wsController;
     }
 
     public void handleLoadRequest(Context ctx) {
         System.out.println("HttpController | Received POST /api/load from GUI");
+        if (wsController != null) {
+            String state = wsController.getLastStateJson();
+            if (state != null && (state.contains("\"serviceState\":\"engaged\"") || state.contains("\"workingState\":\"Out of service\"") || state.contains("\"ioPortOccupied\":true"))) {
+                System.out.println("HttpController | Domain currently engaged or busy, returning retrylater immediately without blocking.");
+                ctx.contentType("application/json").result("{\"status\":\"retrylater\"}");
+                return;
+            }
+        }
         try {
             Interaction tcpConn = ConnectionFactory.createClientSupport23(ProtocolType.tcp, targetHost, targetPort);
             if (tcpConn != null) {

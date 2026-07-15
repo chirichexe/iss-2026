@@ -45,6 +45,7 @@ QActor cargoservice context ctxcargoservice {
         println("cargoservice | STARTED") color magenta
         [# val statusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId) #]
         updateResource [# statusJson #]
+        [# Hold.updateAndPublish(myself, statusJson) #]
     }
     Goto disengaged
     
@@ -52,6 +53,7 @@ QActor cargoservice context ctxcargoservice {
         println("cargoservice | DISENGAGED: waiting for requests...") color blue
         [# val statusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId) #]
         updateResource [# statusJson #]
+        [# Hold.updateAndPublish(myself, statusJson) #]
     }
     Transition t0
         whenRequest load_request -> handle_load_request
@@ -62,16 +64,16 @@ QActor cargoservice context ctxcargoservice {
         println("cargoservice | ENGAGED: waiting for container deposit or robot completion...") color blue
         [# val statusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId) #]
         updateResource [# statusJson #]
+        [# Hold.updateAndPublish(myself, statusJson) #]
     }
     Goto do_robot_job if [# IOPortOccupied && CargoState == "engaged" && ServiceWorking #] else wait_for_container
 
     State wait_for_container {
-        // Simulo che il container "cada" automaticamente nella sensor_area dopo 2 secondi
-        delay 2000
         println("cargoservice [sim] | Container automatically dropped into sensor_area (IOPort)!") color cyan
         [# IOPortOccupied = true #]
         [# val simStatusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId) #]
         updateResource [# simStatusJson #]
+        [# Hold.updateAndPublish(myself, simStatusJson) #]
     }
     Goto do_robot_job if [# IOPortOccupied && CargoState == "engaged" && ServiceWorking #] else engaged_loop
 
@@ -101,6 +103,7 @@ QActor cargoservice context ctxcargoservice {
                 replyTo load_request with load_accepted : loadAccepted($SlotName)
                 [# val statusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId) #]
                 updateResource [# statusJson #]
+                [# Hold.updateAndPublish(myself, statusJson) #]
             } else {
                 replyTo load_request with load_refused : loadRefused(none)
             }
@@ -121,6 +124,7 @@ QActor cargoservice context ctxcargoservice {
             }
             [# val statusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId) #]
             updateResource [# statusJson #]
+            [# Hold.updateAndPublish(myself, statusJson) #]
 
             if [# Dist > 150 #] {
                 if [# ServiceWorking #] {
@@ -128,6 +132,7 @@ QActor cargoservice context ctxcargoservice {
                     println("cargoservice | Sonar D > DFREE ($Dist) -> OUT OF SERVICE!") color red
                     [# val statusJson = Hold.toJson(CargoState, "Out of service", IOPortOccupied, ReservedSlotId) #]
                     updateResource [# statusJson #]
+                    [# Hold.updateAndPublish(myself, statusJson) #]
                 }
             } else {
                 if [# !ServiceWorking #] {
@@ -135,6 +140,7 @@ QActor cargoservice context ctxcargoservice {
                     println("cargoservice | Sonar D <= DFREE ($Dist) -> SERVICE WORKING again!") color green
                     [# val statusJson = Hold.toJson(CargoState, "Service working", IOPortOccupied, ReservedSlotId) #]
                     updateResource [# statusJson #]
+                    [# Hold.updateAndPublish(myself, statusJson) #]
                 }
             }
         }
@@ -149,12 +155,14 @@ QActor cargoservice context ctxcargoservice {
                 println("cargoservice | setServiceStatus outofservice -> OUT OF SERVICE!") color red
                 [# val statusJson = Hold.toJson(CargoState, "Out of service", IOPortOccupied, ReservedSlotId) #]
                 updateResource [# statusJson #]
+                [# Hold.updateAndPublish(myself, statusJson) #]
             }
             if [# status == "working" && !ServiceWorking #] {
                 [# ServiceWorking = true #]
                 println("cargoservice | setServiceStatus working -> SERVICE WORKING!") color green
                 [# val statusJson = Hold.toJson(CargoState, "Service working", IOPortOccupied, ReservedSlotId) #]
                 updateResource [# statusJson #]
+                [# Hold.updateAndPublish(myself, statusJson) #]
             }
         }
     }
@@ -166,6 +174,7 @@ QActor cargoservice context ctxcargoservice {
     // GESTIONE ROBOT E MARKER
     
     State do_robot_job {
+        [# discardMessages = true #]
         println("cargoservice | Container inside sensor_area! Robot moving to IOPort (4,0) to pick it up...") color magenta
         request cargorobot -m moverobot : moverobot(4, 0, $StepTime)
     }
@@ -178,6 +187,7 @@ QActor cargoservice context ctxcargoservice {
         [# IOPortOccupied = false #]
         [# val statusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId) #]
         updateResource [# statusJson #]
+        [# Hold.updateAndPublish(myself, statusJson) #]
         println("cargoservice | Moving container to slot5 (2,5) for marking...") color magenta
         request cargorobot -m moverobot : moverobot(2, 5, $StepTime)
     }
@@ -208,6 +218,7 @@ QActor cargoservice context ctxcargoservice {
         [# Hold.occupySlot(ReservedSlotId) #]
         [# val statusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId) #]
         updateResource [# statusJson #]
+        [# Hold.updateAndPublish(myself, statusJson) #]
         [# 
             val HomeX = Hold.getHomeX()
             val HomeY = Hold.getHomeY()
@@ -222,17 +233,20 @@ QActor cargoservice context ctxcargoservice {
     State finish_job {
         println("cargoservice | Job finished successfully!") color green
         [# 
+            discardMessages = false
             CargoState = "disengaged"
             ReservedSlotId = -1
         #]
         forward ledmock -m led_ctrl : ledCmd(off)
         [# val statusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId) #]
         updateResource [# statusJson #]
+        [# Hold.updateAndPublish(myself, statusJson) #]
     }
     Goto disengaged
 
     State handle_robot_fail {
         println("cargoservice | Robot move failed! Aborting job and returning to disengaged...") color red
+        [# discardMessages = false #]
         if [# ReservedSlotId != -1 #] {
             [# Hold.freeSlot(ReservedSlotId) #]
         }
@@ -244,13 +258,17 @@ QActor cargoservice context ctxcargoservice {
         forward ledmock -m led_ctrl : ledCmd(off)
         [# val statusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId) #]
         updateResource [# statusJson #]
+        [# Hold.updateAndPublish(myself, statusJson) #]
     }
     Goto disengaged
 
     State handle_deposit_timeout {
         if [# CargoState == "engaged" && !IOPortOccupied #] {
             println("cargoservice | Deposit timeout! Freeing reserved slot$ReservedSlotId.") color red
-            [# Hold.freeSlot(ReservedSlotId) #]
+            [# 
+                discardMessages = false
+                Hold.freeSlot(ReservedSlotId) 
+            #]
             [# 
                 CargoState = "disengaged"
                 ReservedSlotId = -1
@@ -258,6 +276,7 @@ QActor cargoservice context ctxcargoservice {
             forward ledmock -m led_ctrl : ledCmd(off)
             [# val statusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId) #]
             updateResource [# statusJson #]
+            [# Hold.updateAndPublish(myself, statusJson) #]
         }
     }
     Goto disengaged if [# CargoState == "disengaged" #] else engaged

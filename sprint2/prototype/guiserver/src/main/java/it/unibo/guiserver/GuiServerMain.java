@@ -25,16 +25,22 @@ public class GuiServerMain {
 
         // 2. Initialize specialized SoC Controllers
         WsController wsController = new WsController();
-        HttpController httpController = new HttpController(guiActor);
+        HttpController httpController = new HttpController(guiActor, wsController);
 
         // 3. Initialize and start the internal Javalin GUI Handler
         JavalinGuiHandler guiHandler = new JavalinGuiHandler(port, httpController, wsController);
         guiHandler.start();
 
-        // 4. Start CoAP Observer thread to stream domain state updates to WebSocket clients
+        // 4. Start CoAP and MQTT Observer threads to stream domain state updates to WebSocket clients
         CoapObserver coapObserver = new CoapObserver(wsController);
-        Thread observerThread = new Thread(coapObserver, "CoapObserverThread");
-        observerThread.setDaemon(true);
-        observerThread.start();
+        Thread coapThread = new Thread(coapObserver, "CoapObserverThread");
+        coapThread.setDaemon(true);
+        coapThread.start();
+
+        MqttObserver mqttObserver = new MqttObserver(wsController);
+        Thread mqttThread = new Thread(mqttObserver, "MqttObserverThread");
+        mqttThread.setDaemon(true);
+        mqttThread.start();
     }
 }
+

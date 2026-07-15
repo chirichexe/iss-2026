@@ -25,6 +25,12 @@ echo "Chiusura delle finestre dei terminali in corso..."
 pkill -9 -f "QAK_TERMINAL_" 2>/dev/null || true
 for title in "1_WEnv_Docker" "2_RobotSmart26" "3_CargoService" "4_CargoRobot" "5_Customer_LedMock" "6_GuiServer_Web" "7_Devices_SonarMarker"; do
     pkill -f "$title" 2>/dev/null || true
+    if command -v wmctrl >/dev/null 2>&1; then
+        wmctrl -F -c "$title" 2>/dev/null || true
+    fi
+    if command -v xdotool >/dev/null 2>&1; then
+        xdotool search --name "$title" windowclose 2>/dev/null || true
+    fi
 done
 pkill -f "runCustomer" 2>/dev/null || true
 pkill -f "runDevices" 2>/dev/null || true

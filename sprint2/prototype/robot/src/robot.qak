@@ -27,6 +27,8 @@ ExternalQActor robotsmart   context ctxrobotsmart
 QActor cargorobot context ctxrobot {
     [# 
         var ConnToRobotSmart : unibo.basicomm23.mqtt.MqttConnection? = null 
+        var ConnAnsDone : unibo.basicomm23.mqtt.MqttConnection? = null
+        var ConnAnsFail : unibo.basicomm23.mqtt.MqttConnection? = null
         var CurX = 0
         var CurY = 0
     #]
@@ -35,7 +37,9 @@ QActor cargorobot context ctxrobot {
         [# 
             try {
                 ConnToRobotSmart = unibo.basicomm23.mqtt.MqttConnection("cargorobot_to_rs", "tcp://localhost:1883", "robotsmart26in")
-                unibo.basicomm23.utils.CommUtils.outgreen("cargorobot | Connesso via MQTT a robotsmart26in per robotsmart26")
+                ConnAnsDone = unibo.basicomm23.mqtt.MqttConnection.create("cargorobot_ans_done", "tcp://localhost:1883", "answ_moverobotdone_cargorobot")
+                ConnAnsFail = unibo.basicomm23.mqtt.MqttConnection.create("cargorobot_ans_fail", "tcp://localhost:1883", "answ_moverobotfailed_cargorobot")
+                unibo.basicomm23.utils.CommUtils.outgreen("cargorobot | Connesso via MQTT a robotsmart26in (e ai topic di risposta) per robotsmart26")
             } catch(e: Exception) {
                 unibo.basicomm23.utils.CommUtils.outred("cargorobot | ERRORE connessione iniziale a robotsmart26: ${e.message}")
             }
@@ -66,12 +70,23 @@ QActor cargorobot context ctxrobot {
                         if (ConnToRobotSmart == null) {
                             ConnToRobotSmart = unibo.basicomm23.mqtt.MqttConnection("cargorobot_to_rs", "tcp://localhost:1883", "robotsmart26in")
                         }
-                        val msgReq = unibo.basicomm23.utils.CommUtils.buildRequest("cargorobot", "moverobot", "moverobot($Tx,$Ty,$StepTime)", "robotsmart").toString()
-                        replyStr = ConnToRobotSmart!!.request(msgReq)
-                        while (!replyStr.contains("moverobotok") && !replyStr.contains("moverobotdone") && !replyStr.contains("moverobotfailed") && !replyStr.contains("reply")) {
-                            unibo.basicomm23.utils.CommUtils.outyellow("cargorobot | Ignorando messaggio non-reply dalla coda: $replyStr")
-                            replyStr = ConnToRobotSmart!!.receiveMsg()
+                        if (ConnAnsDone == null) {
+                            ConnAnsDone = unibo.basicomm23.mqtt.MqttConnection.create("cargorobot_ans_done", "tcp://localhost:1883", "answ_moverobotdone_cargorobot")
                         }
+                        if (ConnAnsFail == null) {
+                            ConnAnsFail = unibo.basicomm23.mqtt.MqttConnection.create("cargorobot_ans_fail", "tcp://localhost:1883", "answ_moverobotfailed_cargorobot")
+                        }
+                        val msgReq = unibo.basicomm23.utils.CommUtils.buildRequest("cargorobot", "moverobot", "moverobot($Tx,$Ty,$StepTime)", "robotsmart").toString()
+                        ConnToRobotSmart!!.forward(msgReq)
+                        
+                        var ans: String? = null
+                        while (ans == null) {
+                            ans = ConnAnsDone!!.getQueue().poll(200, java.util.concurrent.TimeUnit.MILLISECONDS)
+                            if (ans == null) {
+                                ans = ConnAnsFail!!.getQueue().poll(200, java.util.concurrent.TimeUnit.MILLISECONDS)
+                            }
+                        }
+                        replyStr = ans
                         unibo.basicomm23.utils.CommUtils.outgreen("cargorobot | Risposta da robotsmart26 via MQTT: $replyStr")
                         if (replyStr.contains("moverobotok") || replyStr.contains("moverobotdone")) {
                             CurX = targetXInt
