@@ -58,15 +58,17 @@ dependencies {
 
 	//HTTP
     implementation 'org.apache.httpcomponents:httpclient:4.5'
+    implementation 'io.javalin:javalin:5.6.3'
 
     /*  MQTT *******************************************************************************  */
     // https://mvnrepository.com/artifact/org.eclipse.paho/org.eclipse.paho.client.mqttv3
     implementation group: 'org.eclipse.paho', name: 'org.eclipse.paho.client.mqttv3', version: '1.2.5'
 
     /* JSON ********************************************************************************* */
-    // https://mvnrepository.com/artifact/org.json/json
     implementation 'com.googlecode.json-simple:json-simple:1.1.1'
     implementation group: 'org.json', name: 'json', version: '20180130'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.15.2'
+    implementation 'com.fasterxml.jackson.module:jackson-module-kotlin:2.15.2'
 
     /* COAP ********************************************************************************* */
     // https://mvnrepository.com/artifact/org.eclipse.californium/californium-core
@@ -172,6 +174,12 @@ task runCustomer(type: JavaExec) {
     group = "Execution"
     classpath = sourceSets.main.runtimeClasspath
     mainClass = 'it.unibo.ctxcustomer.MainCtxcustomerKt'
+}
+
+task runIOPortServer(type: JavaExec) {
+    group = "Execution"
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'it.unibo.ioport.IOPortServer'
 }
 
 task runDevices(type: JavaExec) {

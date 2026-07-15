@@ -139,7 +139,7 @@ tasks.withType(Copy).configureEach {
 
 application {
     //Define the main class for the application.
-    mainClassName    = 'it.unibo.ctxdevices.MainCtxdevicesKt'
+    mainClassName    = 'it.unibo.ctxrobot.MainCtxrobotKt'
 }
  
  jar {
@@ -174,7 +174,7 @@ task run0(type: JavaExec) {
     group = "Execution"
     description = "Run the main class with JavaExecTask"
     classpath = sourceSets.main.runtimeClasspath
-    main = 'it.unibo.ctxdevices.MainCtxdevicesKt'
+    main = 'it.unibo.ctxrobot.MainCtxrobotKt'
 }
 
 /*

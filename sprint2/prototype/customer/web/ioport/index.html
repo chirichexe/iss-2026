@@ -62,6 +62,19 @@
           </div>
         </div>
       </section>
+
+      <section class="panel log-panel" aria-labelledby="log-title">
+        <div class="title-row compact">
+          <div>
+            <p class="eyebrow">Real-Time Event Feed</p>
+            <h2 id="log-title">Log Aggiornamenti IOPort &amp; CoAP</h2>
+          </div>
+          <button id="clear-log-btn" class="clear-log-btn" type="button">Pulisci Log</button>
+        </div>
+        <div id="log-box" class="log-box" role="log" aria-live="polite">
+          <div class="log-entry info"><span class="log-time">[Init]</span> <span class="log-msg">Inizializzazione interfaccia IOPort in corso...</span></div>
+        </div>
+      </section>
     </main>
 
     <script src="./app.js"></script>

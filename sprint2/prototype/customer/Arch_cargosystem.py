@@ -29,6 +29,4 @@ with Diagram('cargosystemArch', show=False, outformat='png', graph_attr=graphatt
           cargoservice=Custom('cargoservice(ext)','./qakicons/externalQActor.png')
      with Cluster('ctxcustomer', graph_attr=nodeattr):
           ledmock=Custom('ledmock','./qakicons/symActorWithobjSmall.png')
-          ioportmock=Custom('ioportmock','./qakicons/symActorWithobjSmall.png')
-     ioportmock >> Edge(color='magenta', style='solid', decorate='true', label='<load_request<font color="darkgreen"> load_accepted load_retrylater load_refused</font> &nbsp; >',  fontcolor='magenta') >> cargoservice
 diag

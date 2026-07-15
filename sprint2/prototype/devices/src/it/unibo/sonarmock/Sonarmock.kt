@@ -35,17 +35,36 @@ class Sonarmock ( name: String, scope: CoroutineScope, isconfined: Boolean=false
 						delay(4000) 
 						CommUtils.outcyan("sonarmock | Container placed -> Emitting sonardata(30)")
 						emit("sonardata", "distance(30)" ) 
-						delay(8000) 
-						CommUtils.outred("sonarmock | Sonar measures D > DFREE for > 3s. System OUT OF SERVICE!")
-						forward("set_service_status", "setServiceStatus(outofservice)" ,"cargoservice" ) 
-						delay(5000) 
-						CommUtils.outgreen("sonarmock | Sonar measures D <= DFREE. System WORKING again!")
-						forward("set_service_status", "setServiceStatus(working)" ,"cargoservice" ) 
+						delay(10000) 
+						CommUtils.outred("sonarmock | Sonar measures D > DFREE (200) -> Emitting sonardata(200)")
+						emit("sonardata", "distance(200)" ) 
+						delay(6000) 
+						CommUtils.outgreen("sonarmock | Sonar measures D <= DFREE (30) -> Emitting sonardata(30)")
+						emit("sonardata", "distance(30)" ) 
+						delay(10000) 
+						CommUtils.outcyan("sonarmock | IOPort free -> Emitting sonardata(80)")
+						emit("sonardata", "distance(80)" ) 
 						//genTimer( actor, state )
 					}
 					//After Lenzi Aug2002
 					sysaction { //it:State
 					}	 	 
+					 transition( edgeName="goto",targetState="cycle", cond=doswitch() )
+				}	 
+				state("cycle") { //this:State
+					action { //it:State
+						delay(8000) 
+						CommUtils.outcyan("sonarmock [cycle] | Container placed -> Emitting sonardata(30)")
+						emit("sonardata", "distance(30)" ) 
+						delay(8000) 
+						CommUtils.outcyan("sonarmock [cycle] | IOPort free -> Emitting sonardata(80)")
+						emit("sonardata", "distance(80)" ) 
+						//genTimer( actor, state )
+					}
+					//After Lenzi Aug2002
+					sysaction { //it:State
+					}	 	 
+					 transition( edgeName="goto",targetState="cycle", cond=doswitch() )
 				}	 
 			}
 		}

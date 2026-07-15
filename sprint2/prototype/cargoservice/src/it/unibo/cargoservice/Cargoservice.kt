@@ -34,10 +34,14 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 		        var ServiceWorking = true
 		        var CargoState     = "disengaged"
 		        var ReservedSlotId = -1
+		        val StepTime       = 345
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
 						CommUtils.outmagenta("cargoservice | STARTED")
+						 val statusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId)  
+						updateResourceRep( statusJson  
+						)
 						//genTimer( actor, state )
 					}
 					//After Lenzi Aug2002
@@ -48,6 +52,9 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 				state("disengaged") { //this:State
 					action { //it:State
 						CommUtils.outblue("cargoservice | DISENGAGED: waiting for requests...")
+						 val statusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId)  
+						updateResourceRep( statusJson  
+						)
 						//genTimer( actor, state )
 					}
 					//After Lenzi Aug2002
@@ -59,7 +66,10 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 				}	 
 				state("engaged") { //this:State
 					action { //it:State
-						CommUtils.outblue("cargoservice | ENGAGED: waiting for container deposit...")
+						CommUtils.outblue("cargoservice | ENGAGED: waiting for container deposit or robot completion...")
+						 val statusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId)  
+						updateResourceRep( statusJson  
+						)
 						//genTimer( actor, state )
 					}
 					//After Lenzi Aug2002
@@ -80,55 +90,31 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 						 ){answer("load_request", "load_retrylater", "loadRetryLater(none)"   )  
 						}
 						else
-						 {request("get_slot", "getSlot(none)" ,"hold" )  
+						 { val SlotId = Hold.reserveSlot()  
+						 if(  SlotId > 0  
+						  ){ 
+						                     ReservedSlotId = SlotId
+						                     CargoState     = "engaged" 
+						 forward("led_ctrl", "ledCmd(blink)" ,"ledmock" ) 
+						  val SlotName = "slot$ReservedSlotId"  
+						 answer("load_request", "load_accepted", "loadAccepted($SlotName)"   )  
+						  val statusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId)  
+						 updateResourceRep( statusJson  
+						 )
+						 }
+						 else
+						  {answer("load_request", "load_refused", "loadRefused(none)"   )  
+						  }
 						 }
 						//genTimer( actor, state )
 					}
 					//After Lenzi Aug2002
 					sysaction { //it:State
 					}	 	 
-					 transition( edgeName="goto",targetState="returnToState", cond=doswitchGuarded({ CargoState == "engaged" || !ServiceWorking || IOPortOccupied  
+					 transition( edgeName="goto",targetState="engaged", cond=doswitchGuarded({ CargoState == "engaged"  
 					}) )
-					transition( edgeName="goto",targetState="wait_for_slot", cond=doswitchGuarded({! ( CargoState == "engaged" || !ServiceWorking || IOPortOccupied  
+					transition( edgeName="goto",targetState="disengaged", cond=doswitchGuarded({! ( CargoState == "engaged"  
 					) }) )
-				}	 
-				state("wait_for_slot") { //this:State
-					action { //it:State
-						//genTimer( actor, state )
-					}
-					//After Lenzi Aug2002
-					sysaction { //it:State
-					}	 	 
-					 transition(edgeName="t07",targetState="accept_request",cond=whenReply("slot_reserved"))
-					transition(edgeName="t08",targetState="refuse_request",cond=whenReply("hold_full"))
-				}	 
-				state("accept_request") { //this:State
-					action { //it:State
-						if( checkMsgContent( Term.createTerm("slotReserved(SLOTID)"), Term.createTerm("slotReserved(ID)"), 
-						                        currentMsg.msgContent()) ) { //set msgArgList
-								 
-								                ReservedSlotId = payloadArg(0).toInt()
-								                CargoState     = "engaged" 
-								forward("led_ctrl", "ledCmd(blink)" ,"ledmock" ) 
-								 val SlotName = "slot$ReservedSlotId"  
-								answer("load_request", "load_accepted", "loadAccepted($SlotName)"   )  
-						}
-						//genTimer( actor, state )
-					}
-					//After Lenzi Aug2002
-					sysaction { //it:State
-					}	 	 
-					 transition( edgeName="goto",targetState="engaged", cond=doswitch() )
-				}	 
-				state("refuse_request") { //this:State
-					action { //it:State
-						answer("load_request", "load_refused", "loadRefused(none)"   )  
-						//genTimer( actor, state )
-					}
-					//After Lenzi Aug2002
-					sysaction { //it:State
-					}	 	 
-					 transition( edgeName="goto",targetState="disengaged", cond=doswitch() )
 				}	 
 				state("handle_sonar") { //this:State
 					action { //it:State
@@ -141,22 +127,57 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 								else
 								 { IOPortOccupied = false  
 								 }
+								 val statusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId)  
+								updateResourceRep( statusJson  
+								)
+								if(  Dist > 150  
+								 ){if(  ServiceWorking  
+								 ){ ServiceWorking = false  
+								CommUtils.outred("cargoservice | Sonar D > DFREE ($Dist) -> OUT OF SERVICE!")
+								 val statusJson = Hold.toJson(CargoState, "Out of service", IOPortOccupied, ReservedSlotId)  
+								updateResourceRep( statusJson  
+								)
+								}
+								}
+								else
+								 {if(  !ServiceWorking  
+								  ){ ServiceWorking = true  
+								 CommUtils.outgreen("cargoservice | Sonar D <= DFREE ($Dist) -> SERVICE WORKING again!")
+								  val statusJson = Hold.toJson(CargoState, "Service working", IOPortOccupied, ReservedSlotId)  
+								 updateResourceRep( statusJson  
+								 )
+								 }
+								 }
 						}
 						//genTimer( actor, state )
 					}
 					//After Lenzi Aug2002
 					sysaction { //it:State
 					}	 	 
-					 transition( edgeName="goto",targetState="do_robot_job", cond=doswitchGuarded({ IOPortOccupied && CargoState == "engaged"  
+					 transition( edgeName="goto",targetState="do_robot_job", cond=doswitchGuarded({ IOPortOccupied && CargoState == "engaged" && ServiceWorking  
 					}) )
-					transition( edgeName="goto",targetState="returnToState", cond=doswitchGuarded({! ( IOPortOccupied && CargoState == "engaged"  
+					transition( edgeName="goto",targetState="returnToState", cond=doswitchGuarded({! ( IOPortOccupied && CargoState == "engaged" && ServiceWorking  
 					) }) )
 				}	 
 				state("update_service") { //this:State
 					action { //it:State
 						if( checkMsgContent( Term.createTerm("setServiceStatus(STATUS)"), Term.createTerm("setServiceStatus(S)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
-								 ServiceWorking = (payloadArg(0) == "working")  
+								 val status = payloadArg(0)  
+								if(  status == "outofservice" && ServiceWorking  
+								 ){ ServiceWorking = false  
+								CommUtils.outred("cargoservice | setServiceStatus outofservice -> OUT OF SERVICE!")
+								 val statusJson = Hold.toJson(CargoState, "Out of service", IOPortOccupied, ReservedSlotId)  
+								updateResourceRep( statusJson  
+								)
+								}
+								if(  status == "working" && !ServiceWorking  
+								 ){ ServiceWorking = true  
+								CommUtils.outgreen("cargoservice | setServiceStatus working -> SERVICE WORKING!")
+								 val statusJson = Hold.toJson(CargoState, "Service working", IOPortOccupied, ReservedSlotId)  
+								updateResourceRep( statusJson  
+								)
+								}
 						}
 						//genTimer( actor, state )
 					}
@@ -179,43 +200,71 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 				}	 
 				state("do_robot_job") { //this:State
 					action { //it:State
-						CommUtils.outmagenta("cargoservice | Container deposited! Moving to slot5...")
-						request("robot_move", "robotMove(slot5)" ,"cargorobotmock" )  
+						CommUtils.outmagenta("cargoservice | Container deposited! Moving to slot5 (2,5)...")
+						request("moverobot", "moverobot(2,5,$StepTime)" ,"cargorobot" )  
 						//genTimer( actor, state )
 					}
 					//After Lenzi Aug2002
 					sysaction { //it:State
 					}	 	 
-					 transition(edgeName="t09",targetState="mark_container",cond=whenReply("robot_done"))
+					 transition(edgeName="t07",targetState="mark_container",cond=whenReply("moverobotdone"))
+					transition(edgeName="t08",targetState="handle_robot_fail",cond=whenReply("moverobotfailed"))
 				}	 
 				state("mark_container") { //this:State
 					action { //it:State
-						CommUtils.outmagenta("cargoservice | At slot5. Asking markerdevice to mark...")
+						CommUtils.outmagenta("cargoservice | At slot5. Asking markerdevice to mark container...")
 						request("mark_container", "markContainer(none)" ,"markerdevice" )  
 						//genTimer( actor, state )
 					}
 					//After Lenzi Aug2002
 					sysaction { //it:State
 					}	 	 
-					 transition(edgeName="t010",targetState="move_to_reserved_slot",cond=whenReply("marking_done"))
+					 transition(edgeName="t09",targetState="move_to_reserved_slot",cond=whenReply("marking_done"))
 				}	 
 				state("move_to_reserved_slot") { //this:State
 					action { //it:State
-						CommUtils.outmagenta("cargoservice | Marked! Moving to slot$ReservedSlotId...")
-						 val TargetSlot = "slot$ReservedSlotId"  
-						request("robot_move", "robotMove($TargetSlot)" ,"cargorobotmock" )  
+						 
+						            val DestX = Hold.getSlotX(ReservedSlotId)
+						            val DestY = Hold.getSlotY(ReservedSlotId)
+						CommUtils.outmagenta("cargoservice | Marked! Moving container to slot$ReservedSlotId ($DestY, $DestX)...")
+						request("moverobot", "moverobot($DestY,$DestX,$StepTime)" ,"cargorobot" )  
 						//genTimer( actor, state )
 					}
 					//After Lenzi Aug2002
 					sysaction { //it:State
 					}	 	 
-					 transition(edgeName="t011",targetState="finish_job",cond=whenReply("robot_done"))
+					 transition(edgeName="t010",targetState="return_home",cond=whenReply("moverobotdone"))
+					transition(edgeName="t011",targetState="handle_robot_fail",cond=whenReply("moverobotfailed"))
+				}	 
+				state("return_home") { //this:State
+					action { //it:State
+						 Hold.occupySlot(ReservedSlotId)  
+						 val statusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId)  
+						updateResourceRep( statusJson  
+						)
+						 
+						            val HomeX = Hold.getHomeX()
+						            val HomeY = Hold.getHomeY()
+						CommUtils.outmagenta("cargoservice | Container stored in slot$ReservedSlotId! Returning robot to HOME ($HomeY, $HomeX)...")
+						request("moverobot", "moverobot($HomeY,$HomeX,$StepTime)" ,"cargorobot" )  
+						//genTimer( actor, state )
+					}
+					//After Lenzi Aug2002
+					sysaction { //it:State
+					}	 	 
+					 transition(edgeName="t012",targetState="finish_job",cond=whenReply("moverobotdone"))
+					transition(edgeName="t013",targetState="handle_robot_fail",cond=whenReply("moverobotfailed"))
 				}	 
 				state("finish_job") { //this:State
 					action { //it:State
-						CommUtils.outgreen("cargoservice | Job completed!")
-						 CargoState = "disengaged"  
+						CommUtils.outgreen("cargoservice | Job finished successfully!")
+						 
+						            CargoState = "disengaged"
+						            ReservedSlotId = -1
 						forward("led_ctrl", "ledCmd(off)" ,"ledmock" ) 
+						 val statusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId)  
+						updateResourceRep( statusJson  
+						)
 						//genTimer( actor, state )
 					}
 					//After Lenzi Aug2002
@@ -223,18 +272,38 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 					}	 	 
 					 transition( edgeName="goto",targetState="disengaged", cond=doswitch() )
 				}	 
-				state("handle_deposit_timeout") { //this:State
+				state("handle_robot_fail") { //this:State
 					action { //it:State
-						CommUtils.outred("cargoservice | Deposit timeout! Freeing slot.")
-						 CargoState = "disengaged"  
-						forward("free_slot", "freeSlot($ReservedSlotId)" ,"hold" ) 
-						forward("led_ctrl", "ledCmd(off)" ,"ledmock" ) 
+						CommUtils.outred("cargoservice | Robot move failed!")
 						//genTimer( actor, state )
 					}
 					//After Lenzi Aug2002
 					sysaction { //it:State
 					}	 	 
-					 transition( edgeName="goto",targetState="disengaged", cond=doswitch() )
+					 transition( edgeName="goto",targetState="engaged", cond=doswitch() )
+				}	 
+				state("handle_deposit_timeout") { //this:State
+					action { //it:State
+						if(  CargoState == "engaged" && !IOPortOccupied  
+						 ){CommUtils.outred("cargoservice | Deposit timeout! Freeing reserved slot$ReservedSlotId.")
+						 Hold.freeSlot(ReservedSlotId)  
+						 
+						                CargoState = "disengaged"
+						                ReservedSlotId = -1
+						forward("led_ctrl", "ledCmd(off)" ,"ledmock" ) 
+						 val statusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId)  
+						updateResourceRep( statusJson  
+						)
+						}
+						//genTimer( actor, state )
+					}
+					//After Lenzi Aug2002
+					sysaction { //it:State
+					}	 	 
+					 transition( edgeName="goto",targetState="disengaged", cond=doswitchGuarded({ CargoState == "disengaged"  
+					}) )
+					transition( edgeName="goto",targetState="engaged", cond=doswitchGuarded({! ( CargoState == "disengaged"  
+					) }) )
 				}	 
 			}
 		}

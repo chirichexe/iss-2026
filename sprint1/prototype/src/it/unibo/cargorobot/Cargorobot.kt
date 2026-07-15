@@ -32,7 +32,7 @@ class Cargorobot ( name: String, scope: CoroutineScope, isconfined: Boolean=fals
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
-						CommUtils.outblue("cargorobot | STARTED (Wrapper di dominio per robotsmart26)")
+						CommUtils.outblue("cargorobot | STARTED (Wrapper di robotsmart26)")
 						//genTimer( actor, state )
 					}
 					//After Lenzi Aug2002

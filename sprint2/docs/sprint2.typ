@@ -91,13 +91,18 @@ In particolare, per lo Sprint 2 restano centrali le seguenti conclusioni:
 - il *cargoservice* è l'orchestratore del ciclo di carico;
 - la *hold* rappresenta lo stato interno degli slot e delle posizioni rilevanti;
 - il *cargorobot* viene trattato come servizio reattivo, tramite wrapper verso *RobotSmart26*;
-- sonar e LED devono essere integrati come dispositivi reali collegati al PicoW;
-- l'IOPort deve essere realizzato come Web GUI;
+- *sonar* e *LED* devono essere integrati come dispositivi reali collegati al PicoW;
+- l'*IOPort* deve essere realizzato come Web GUI;
 - lo stato *Out of service* deve bloccare l'accettazione di nuove richieste e interrompere il movimento del robot, con ripresa al ritorno dello stato *Service working*.
 
 HOLD deve INVIARE il suo STATO
 
+
+
+
+// =============================================================================
 = Problem analysis <model>
+// =============================================================================
 
 Nello Sprint 2 la logica applicativa definita nello sprint precedente verrà mantenuta, e verranno sostituiti progressivamente i componenti simulati con componenti accessibili attraverso tecnologie compatibili con la loro natura:
 
@@ -181,9 +186,9 @@ Quando il cliente preme il pulsante, la GUI invia una richiesta HTTP `POST` al s
 
 Il server traduce tale richiesta in una `load_request` indirizzata al *cargoservice* e attende una delle risposte già definite nello Sprint 1:
 
-* `load_accepted`;
-* `load_retrylater`;
-* `load_refused`.
+- `load_accepted`;
+- `load_retrylater`;
+- `load_refused`.
 
 La risposta viene quindi restituita alla GUI e mostrata sul display.
 
@@ -202,9 +207,9 @@ Si sceglie pertanto una comunicazione push mediante WebSocket:
 
 Il server intermediario svolge quindi una funzione di adattamento tra tre differenti modalità di comunicazione:
 
-* HTTP per i comandi provenienti dalla GUI;
-* CoAP Observe per osservare lo stato del *cargoservice*;
-* WebSocket per inviare aggiornamenti asincroni al browser.
+- HTTP per i comandi provenienti dalla GUI;
+- CoAP Observe per osservare lo stato del *cargoservice*;
+- WebSocket per inviare aggiornamenti asincroni al browser.
 
 // =============================================================================
 == Integrazione del sonar reale
@@ -214,20 +219,20 @@ Nello Sprint 1 il sonar era rappresentato da `sonarmock`, che emetteva eventi `s
 
 Nello Sprint 2 il sonar fisico è collegato al PicoW. Il software eseguito sul dispositivo deve:
 
-* leggere periodicamente la distanza;
-* rendere disponibili le misurazioni al sistema distribuito;
-* rimanere indipendente dall'implementazione interna del *cargoservice*.
+- leggere periodicamente la distanza;
+- rendere disponibili le misurazioni al sistema distribuito;
+- rimanere indipendente dall'implementazione interna del *cargoservice*.
 
 Il PicoW e il sistema QAK operano su piattaforme differenti. È pertanto necessario utilizzare un protocollo interoperabile e sufficientemente leggero per un dispositivo IoT.
 
 Si sceglie MQTT, basato sul modello publish/subscribe. Il PicoW pubblica le misurazioni su un topic dedicato, mentre il sistema software si sottoscrive al medesimo topic e le traduce nel messaggio `sonardata` utilizzato dal *cargoservice*.
 
-La corrispondenza tra topic MQTT e messaggio QAK deve essere configurata esplicitamente. In questo modo la logica applicativa del *cargoservice* può continuare a elaborare `sonardata` senza dipendere dal linguaggio o dalla piattaforma utilizzati dal dispositivo fisico.
+La corrisponenza tra topic MQTT e messaggio QAK deve essere configurata esplicitamente. In questo modo la logica applicativa del *cargoservice* può continuare a elaborare `sonardata` senza dipendere dal linguaggio o dalla piattaforma utilizzati dal dispositivo fisico.
 
 Il sonar conserva quindi una responsabilità limitata:
 
-* misurare la distanza;
-* pubblicare la misura.
+- misurare la distanza;
+- pubblicare la misura.
 
 L'interpretazione applicativa della distanza rimane invece responsabilità del *cargoservice*.
 
@@ -239,24 +244,24 @@ I requisiti non associano un cambiamento di stato a una singola misura istantane
 
 Occorre quindi distinguere:
 
-* `D < D_FREE/2`: possibile presenza del container;
-* `D > D_FREE`: possibile condizione di guasto;
-* valori intermedi: assenza di una delle due condizioni precedenti.
+- `D < D_FREE/2`: possibile presenza del container;
+- `D > D_FREE`: possibile condizione di guasto;
+- valori intermedi: assenza di una delle due condizioni precedenti.
 
 Una singola misura non è sufficiente a produrre una transizione. La condizione deve essere confermata attraverso misure consecutive per l'intervallo temporale richiesto.
 
 La responsabilità della validazione temporale può essere collocata:
 
-* sul PicoW, che pubblica soltanto condizioni già validate;
-* nel sistema QAK, che riceve tutte le misurazioni e gestisce il tempo di permanenza.
+- sul PicoW, che pubblica soltanto condizioni già validate;
+- nel sistema QAK, che riceve tutte le misurazioni e gestisce il tempo di permanenza.
 
 Per mantenere il dispositivo focalizzato sull'acquisizione dei dati e centralizzare nel *cargoservice* le decisioni applicative, si sceglie di trasmettere le misurazioni grezze e di effettuare la validazione temporale lato sistema software.
 
 Il *cargoservice* deve quindi mantenere separatamente:
 
-* l'istante di inizio della condizione `D < D_FREE/2`;
-* l'istante di inizio della condizione `D > D_FREE`;
-* l'eventuale annullamento del conteggio quando la condizione non è più verificata.
+- l'istante di inizio della condizione `D < D_FREE/2`;
+- l'istante di inizio della condizione `D > D_FREE`;
+- l'eventuale annullamento del conteggio quando la condizione non è più verificata.
 
 Solo dopo il superamento dell'intervallo stabilito viene aggiornato lo stato del sistema.
 
@@ -284,9 +289,9 @@ cargoservice -> led_ctrl -> adattatore MQTT -> PicoW -> LED
 
 In questo modo:
 
-* il *cargoservice* continua a utilizzare lo stesso comando definito nello Sprint 1;
-* la gestione elettrica del LED rimane confinata sul PicoW;
-* il componente fisico può essere sostituito senza modificare la logica applicativa.
+- il *cargoservice* continua a utilizzare lo stesso comando definito nello Sprint 1;
+- la gestione elettrica del LED rimane confinata sul PicoW;
+- il componente fisico può essere sostituito senza modificare la logica applicativa.
 
 // =============================================================================
 == Gestione dello stato Out of service
@@ -296,11 +301,11 @@ Nello Sprint 1 il *cargoservice* aggiornava la variabile `ServiceWorking` sulla 
 
 Nello Sprint 2 il comportamento viene completato in accordo con il chiarimento fornito dalla committente:
 
-* quando la condizione `D > D_FREE` persiste per almeno tre secondi, il sistema entra nello stato *Out of service*;
-* durante tale stato non vengono accettate nuove richieste;
-* se il robot è in movimento, il piano deve essere interrotto;
-* quando il sonar torna a misurare `D <= D_FREE`, il sistema ritorna nello stato *Service working*;
-* se un movimento era stato interrotto, deve essere ripreso.
+- quando la condizione `D > D_FREE` persiste per almeno tre secondi, il sistema entra nello stato *Out of service*;
+- durante tale stato non vengono accettate nuove richieste;
+- se il robot è in movimento, il piano deve essere interrotto;
+- quando il sonar torna a misurare `D <= D_FREE`, il sistema ritorna nello stato *Service working*;
+- se un movimento era stato interrotto, deve essere ripreso.
 
 La gestione richiede di distinguere almeno due situazioni:
 
@@ -313,9 +318,9 @@ Nel secondo caso il *cargoservice* deve inoltre richiedere l'interruzione del mo
 
 L'ingresso nello stato *Out of service* non deve:
 
-* liberare automaticamente lo slot riservato;
-* riportare il sistema nello stato `disengaged`;
-* annullare la procedura di carico.
+- liberare automaticamente lo slot riservato;
+- riportare il sistema nello stato `disengaged`;
+- annullare la procedura di carico.
 
 Si tratta infatti di una sospensione temporanea e non del fallimento definitivo dell'operazione.
 
@@ -329,18 +334,18 @@ Quando una `load_request` viene accettata, lo slot viene riservato affinché non
 
 È quindi opportuno distinguere logicamente almeno i seguenti stati:
 
-* libero;
-* riservato;
-* occupato.
+- libero;
+- riservato;
+- occupato.
 
 Questa distinzione permette alla Web GUI di mostrare uno stato più fedele della hold e rende esplicito cosa debba accadere nei casi di timeout, sospensione o fallimento del movimento.
 
 In particolare:
 
-* in caso di timeout prima del deposito, lo slot riservato torna libero;
-* durante una sospensione *Out of service*, lo slot rimane riservato;
-* dopo il deposito completato, lo slot diventa occupato;
-* in caso di fallimento del robot, lo slot non viene liberato automaticamente.
+- in caso di timeout prima del deposito, lo slot riservato torna libero;
+- durante una sospensione *Out of service*, lo slot rimane riservato;
+- dopo il deposito completato, lo slot diventa occupato;
+- in caso di fallimento del robot, lo slot non viene liberato automaticamente.
 
 // =============================================================================
 == Evoluzione dell'architettura
@@ -348,22 +353,22 @@ In particolare:
 
 Rispetto allo Sprint 1 vengono introdotti i seguenti elementi:
 
-* una Web GUI che realizza l'IOCome posso evolvere lo sprint1 naturalmente nello sprint2?Port;
-* un server intermediario per HTTP, WebSocket e osservazione CoAP;
-* un broker MQTT per la comunicazione con il PicoW;
-* il software sul PicoW per il sonar e il LED;
-* un componente di adattamento tra MQTT e i messaggi QAK;
-* la pubblicazione dello stato del *cargoservice* come risorsa CoAP osservabile.
+- una Web GUI che realizza l'IOCome posso evolvere lo sprint1 naturalmente nello sprint2?Port;
+- un server intermediario per HTTP, WebSocket e osservazione CoAP;
+- un broker MQTT per la comunicazione con il PicoW;
+- il software sul PicoW per il sonar e il LED;
+- un componente di adattamento tra MQTT e i messaggi QAK;
+- la pubblicazione dello stato del *cargoservice* come risorsa CoAP osservabile.
 
 Il *cargoservice* rimane l'orchestratore del ciclo di carico e la `Hold` rimane la sorgente dello stato degli slot. I nuovi componenti non trasferiscono altrove la logica applicativa, ma rendono possibile l'interazione con browser e dispositivi fisici.
 
 L'evoluzione preserva quindi le interfacce logiche introdotte nello Sprint 1:
 
-* `load_request` e relative reply per l'IOPort;
-* `sonardata` per le misurazioni del sonar;
-* `led_ctrl` per il controllo del LED;
-* `moverobot` per la movimentazione;
-* `mark_container` per la marcatura.
+- `load_request` e relative reply per l'IOPort;
+- `sonardata` per le misurazioni del sonar;
+- `led_ctrl` per il controllo del LED;
+- `moverobot` per la movimentazione;
+- `mark_container` per la marcatura.
 
 Le principali modifiche riguardano il trasporto dei messaggi e l'osservabilità dello stato, non il significato delle interazioni applicative già validate.
 
@@ -409,8 +414,85 @@ Le principali modifiche riguardano il trasporto dei messaggi e l'osservabilità 
 = Deployment <deployment>
 // =============================================================================
 
-#nota[Da completare con le istruzioni di avvio dei moduli, della Web GUI, del PicoW e dei servizi necessari.]
+                                        
+Il deployment del prototipo relativo allo *Sprint 2* richiede l'orchestrazione di diversi contesti distribuiti su nodi logici o
+fisici distinti (motore QAK, server intermedio Web/CoAP, ambiente di simulazione WEnv e broker MQTT).                                                                                                                                           
+=== Prerequisiti di Sistema                                                                                                    
+Per l'esecuzione end-to-end del sistema è necessaria la presenza dei seguenti strumenti:                                       
+- *JDK*;                                                                        
+- *Docker* e *Docker Compose*;                                   
+- *Browser Web*.     
+                                                                                                                                   
+=== Avvio Automatizzato                                                                                         
+Al fine di semplificare la fase di testing ed evitare conflitti di binding sulle porte di rete, all'interno della cartella     
+`Scripts_Avvio` è stata predisposta una suite di script automatici sia per ambienti *Linux/macOS* che *Windows*.                 
+                                                                                                                                   
+Gli script eseguono una pulizia preventiva delle porte (`8020`, `8050`--`8053`, `8085`, `8086`, `8090`) e dei container Docker 
+residuali, per poi avviare i 7 processi in sequenza ordinata con i corretti tempi di sincronizzazione:                           
+                                                                                                                                   
+    + *Ambiente Virtuale WEnv e Broker MQTT* (`docker compose -f unibobasic26.yaml up`);                                           
+    + *Servizio Base e Pathfinder* (`robotsmart26` su porta `8020`);                                                               
+    + *Orchestratore Centrale e Risorsa CoAP* (`cargoservice` su porta `8050`);                                                    
+    + *Wrapper Trasportatore QAK* (`robot` su porta `8053`);                                                                       
+    + *Contesto Cliente e LedMock* (`customer` su porta `8051`);                                                                   
+    + *Server Intermedio Facade Web GUI / CoAP Observer* (`IOPortServer` su porta `8086`);                                         
+    + *Simulatori Hardware Sonar e Marker* (`devices` su porta `8052`).                                                            
+                                                                                                                                   
+==== Esecuzione su Linux e macOS                                                                                               
+Aprire un terminale nella cartella radice del progetto e avviare lo script dedicato:   
 
+cd Progetto/Scripts_Avvio                                                                                                      
+./start_all_sprint2.sh                                                                                                         
+                                                                                                                                   
+Per arrestare e pulire l'intero sistema al termine delle prove:                                                                  
+                                                                                                                                   
+./stop_all_sprint2.sh                                                                                                          
+                                                                                                                                   
+==== Esecuzione su Windows                                                                                                       
+Da Prompt dei comandi (oppure effettuando un doppio clic su Esplora Risorse):                                                    
+                                                                                                                                   
+cd Progetto\Scripts_Avvio                                                                                                      
+start_all_sprint2.bat                                                                                                          
+                                                                                                                                   
+Lo script aprirà automaticamente 7 finestre del Prompt dei comandi per i rispettivi contesti. Per arrestare l'esecuzione:        
+                                                                                                                                   
+stop_all_sprint2.bat                                                                                                           
+                                                                                                                                   
+=== Avvio Manuale via Gradle                                                                                                     
+Qualora si preferisca avviare e monitorare singolarmente i vari contesti (ad esempio per attività di debug o profilazione), è    
+possibile eseguire i seguenti comandi da terminali separati:                                                                     
+  
+  1. WEnv & MQTT (da sprint2/robotsmart26/yamls)
+  docker compose -f unibobasic26.yaml up
+  
+  2. Robot base (da sprint2/robotsmart26)
+  ./gradlew run
+  
+  3. CargoService (da sprint2/prototype/cargoservice)
+  ./gradlew run
+  
+  4. CargoRobot (da sprint2/prototype/robot)
+  ./gradlew run
+  
+  5. Customer / Led (da sprint2/prototype/customer)
+  ./gradlew runCustomer
+  
+  6. IOPortServer Web Facade (da sprint2/prototype/customer)
+  ./gradlew runIOPortServer
+  
+  7. Devices / Sonar (da sprint2/prototype/devices)
+  ./gradlew run
+  
+=== Verifica e Interazione con il Sistema
+Al termine della sequenza di avvio, l'interfaccia utente è accessibile da browser tramite due endpoint principali:
+  
+  •  http://localhost:8090 : per monitorare visivamente i movimenti del robot all'interno dell'ambiente di simulazione             
+  tridimensionale (WEnv);
+  •  http://localhost:8086 : per accedere alla Web GUI della IOPort. Da questa pagina l'operatore può:
+      • inviare richieste di carico premendo il pulsante LOAD;
+      • osservare l'esito della richiesta ( accepted ,  retrylater ,  refused );
+      • monitorare in tempo reale (tramite notifiche push WebSocket da osservatore CoAP) la transizione di stato degli slot della  
+      stiva ( free ,  reserved ,  occupied ) e lo stato operativo del servizio ( Service working  vs  Out of service ).    
 // =============================================================================
 = Maintenance
 // =============================================================================

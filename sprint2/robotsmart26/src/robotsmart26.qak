@@ -1,0 +1,659 @@
+System /*-trace*/ robotsmart26
+	mqttBroker "localhost" : 1883 eventTopic "robotsmart26in"  //SE definita MQTTBROKER, usa quell'addr
+	
+/*
+ * WARNING: gl eventi emessi  
+ */	 
+	
+/*   
+ * ------------------------------------------------
+ * Handled by robotsmart 
+ * ------------------------------------------------ 
+*/  
+Request  buildPlan   : buildPlan( PX,PY,TX,TY  )		"create plan from (PX,PY) to (TX,TY)"
+Reply buildPlanDone  : buildPlanDone( PLAN ) for buildPlan
+
+Request moverobot    :  moverobot(TARGETX, TARGETY,STEPTIME)  	"move from current pos to (TARGETX,TARGETY)"
+Reply moverobotdone  :  moverobotok(ARG)                    for moverobot
+Reply moverobotfailed:  moverobotfailed(PLANDONE, PLANTODO) for moverobot
+
+Dispatch noplan           : noplan(X)       //autodispatch  
+Dispatch setplanbuildelay : value(V)		"parameter = V >= 0"
+
+Dispatch partnerstarted : partnerstarted(NAME)
+  
+//Delegated by robotsmart
+/*
+        delegate step          to robotmnemo 
+        delegate move          to robotmnemo
+        delegate tuneAtHome    to robotmnemo
+        delegate getrobotstate to robotmnemo
+        delegate doplan        to planexec
+
+Request  doplan     : doplan( PLAN, STEPTIME )	"execute PLAN with STEPTIME"
+Reply doplandone    : doplandone( ARG )         for doplan
+Reply doplanfailed  : doplanfailed( PLANTODO )  for doplan
+
+Request step       : step(TIME)	                        "step command for TIME duration"
+Reply stepdone     : stepdone(V)                 for step
+Reply stepfailed   : stepfailed(DURATION, CAUSE) for step
+
+Dispatch move      : move(M)  "MOVE = l|r|a|d|h   mosse aril sincrone ok"
+Dispatch setrobotstate: setpos(X,Y,D) 		"set robot position to (X,Y) direction D=up|down|left|right" 
+
+Request setdirection : dir( D )  			"set robot direction to D=up|down|left|right" 
+Reply setdirectiondone : pos(PX,PY) for setdirection
+
+Request getrobotstate : getrobotstate(ARG)		"request robot state ARG unused"
+Reply robotstate      : robotstate(POS,DIR)  for getrobotstate  "POS->pos(X,Y) DIR->up|down|left|right"
+
+*/
+
+/*
+ * ------------------------------------------------
+ * Handled by planexec
+ * ------------------------------------------------
+*/
+
+Request  doplan     : doplan( PLAN, STEPTIME )	"execute PLAN with STEPTIME"
+Reply doplandone    : doplandone( ARG )         for doplan
+Reply doplanfailed  : doplanfailed( PLANTODO )  for doplan
+
+Dispatch nextmove     : nextmove(M)			"autodispatch"
+Dispatch nomoremove   : nomoremove(M)       "autodispatch"
+
+Event alarm   : alarm(X)		"event at application level"
+
+/*
+ * ------------------------------------------------
+ * Handled by robotmnemo
+ * ------------------------------------------------
+*/
+Request step       : step(TIME)	                        "step command for TIME duration"
+Reply stepdone     : stepdone(V)                 for step
+Reply stepfailed   : stepfailed(DURATION, CAUSE) for step
+
+Dispatch move      : move(M)  "MOVE = l|r|a|d|h   mosse aril sincrone ok"
+Dispatch setrobotstate: setpos(X,Y,D) 		"set robot position to (X,Y) direction D=up|down|left|right" 
+
+Request setdirection : dir( D )  			"set robot direction to D=up|down|left|right" 
+Reply setdirectiondone : pos(PX,PY) for setdirection
+
+Dispatch changedir     : changedir(X)       //autodispatch  
+
+Request getrobotstate : getrobotstate(ARG)		"request robot state ARG unused"
+Reply robotstate      : robotstate(POS,DIR)  for getrobotstate  "POS->pos(X,Y) DIR->up|down|left|right"
+
+Request getenvmap     : getenvmap(X)				"request environment map as string"
+Reply   envmap        : envmap(MAP)  for getenvmap  "MAP->string "
+
+Request tuneAtHome   : tuneAtHome(X)                  "reposition in home X don't care"
+Reply tuneDone       : tuneDone(X)  for tuneAtHome
+
+Event vrinfo      : vrinfo(SOURCE,INFO)     "streamed: emesso da WEnv"
+Event  sonardata  : sonar( DISTANCE ) 	    "streamed: emesso dal SONAR di WEnv"	
+Event  sonaralarm : distance( DISTANCE ) 	"emesso ad uso di enti esterni al sistema"	 
+ 
+Context ctxrobotsmart ip [host="localhost" port=8020]
+
+/*  
+ * ------------------------------
+ * robotsmart
+ * ------------------------------
+ */ 
+QActor robotsmart context ctxrobotsmart {
+	//	withobj planner using "planning.AStarPathfinding( )"{
+ 
+	[# lateinit var planner : planning.AStarPathfinding   //Note lateinit		
+		var Plan      = ""	
+		var Caller    = ""
+		var TargetX   = "" 
+		var TargetY   = ""		 
+		var X         = ""
+		var Y         = "" 		
+		var StepTime = "335"
+	#]  
+	State s0 initial{ 
+		[# clearlog("./logs/robotsmart26.log") 			//vedi src/main/resources/logback.xml #]
+ 		println("$name | starts ") color blue
+		[# logger.info(  "${currentState.stateName}: starts"  ) #]
+		println("$name | WAIT  before delegate ")  color yellow
+ 		//delay 4000 //(B) attende creazione attori locali robotPos con  è lento
+    }
+    Transition t0
+    	whenMsg partnerstarted -> finishstart
+    	
+ 
+    
+    State finishstart{
+        delegate step          to robotmnemo 
+        delegate move          to robotmnemo
+        delegate tuneAtHome    to robotmnemo 
+        delegate getrobotstate to robotmnemo
+        delegate getenvmap     to robotmnemo
+        delegate setrobotstate to robotmnemo
+        delegate doplan        to planexec
+        
+        [#  planner = planning.AStarPathfinding(  ) #]   //inizaliza planner
+ 	}
+    Goto waitinputmsg
+ 	
+ 	
+ 	State waitinputmsg{
+ 		println("$name | working ... ") color blue
+ 	}
+ 	Transition t0
+ 		whenRequest buildPlan     -> buildPlan
+ 	    whenRequest moverobot     -> domoverobot
+ 	    whenMsg setplanbuildelay  -> dosetplanbuildelay
+ 	    
+ 	    
+ 	State dosetplanbuildelay{
+			onMsg( setplanbuildelay:value(V)){
+				println("$name | dosetplanbuildelay done  ") color green
+				[# planner.setPlanBuildDelay( payloadArg(0).toInt() ) #]
+			}			
+    } 
+	Goto waitinputmsg    
+ 	    
+    State domoverobot{
+    	printCurrentMessage color green
+	 		onMsg(moverobot : moverobot(X,Y,STEPTIME)) {
+				[# TargetX  = payloadArg(0)
+				   TargetY  = payloadArg(1)
+				   StepTime = payloadArg(2)
+	 		    #]
+              request robotmnemo -m setdirection : dir(down)
+	 		  println("$name | setdirecton requested -----------------------------  ") color yellow
+	 		}
+//		}
+    }
+    Transition t0
+    	whenReply setdirectiondone -> planAndDomoves   
+    
+	State planAndDomoves{	 
+//		println("$name | planAndDomoves from ($PX,$PY) to ($TargetX,$TargetY)") color green
+		onMsg( setdirectiondone : pos(PX,PY )){
+		[#  
+		   val PX = payloadArg(0).toInt() 		//robotposutil.getPosX()
+		   val PY = payloadArg(1).toInt() 		//robotposutil.getPosY()
+		   Plan   = planner.planForGoal(PX,PY,TargetX.toInt(),TargetY.toInt()) 	   
+		#]
+		println("$name | Plan-25 to reach ($TargetX,$TargetY) from ($PX,$PY) : $Plan") color green
+		if[# Plan == "''" #]{
+			autodispatch noplan : noplan(obstacle)
+		}else{
+			request planexec -m doplan : doplan($Plan,  $StepTime)
+		}
+//		println("$name | Plan=$Plan from ($PX,$PY) to ($TargetX,$TargetY)") color green
+		} 
+	}
+	Transition t0 
+	    whenMsg noplan         -> noplanfound
+		whenReply doplandone   -> endMOveok
+	    whenReply doplanfailed -> endko
+	 
+	State noplanfound{
+		printCurrentMessage color red
+	}
+	Goto waitinputmsg
+	
+	State endMOveok{
+		printCurrentMessage color green
+ 		replyTo moverobot with moverobotdone : moverobotdone(ok)
+	}
+	Goto waitinputmsg
+	
+	State endko{
+		onMsg( doplanfailed : doplanfailed(ARG) ){
+			[# val PathTodo = payloadArg(0) #]
+			println("$name | pos NOT reached - PathTodo = ${PathTodo} vs. $Plan") color red			 
+			[#   var PathDone = Plan.substring(0, Plan.lastIndexOf(PathTodo))
+				 if( PathDone == "" ) PathDone ="n"				 
+ 				 //else planner.doPathOnMap(PathDone)
+			#]
+			println("$name |  PathDone = ${PathDone} ") color red
+			replyTo moverobot with moverobotfailed : moverobotfailed($PathDone,$PathTodo)
+		}
+	} 
+	Goto waitinputmsg
+ 	    
+ 	State buildPlan{
+		[# var Plan = "''" #]
+		onMsg( buildPlan : buildPlan(PX,PY,TX,TY)){
+			[#  
+			   val PX =  payloadArg(0).toInt() 
+			   val PY = payloadArg(1).toInt()
+			   val TX = payloadArg(2).toInt()
+			   val TY = payloadArg(3).toInt()
+			   Plan   = planner.planForGoal(PX,PY,TX,TY) 	    
+			   if( Plan.isEmpty()) Plan="''"
+			   //CommUtils.outcyan("$name | Plan-25 to reach ($TX,$TY) from ($PX,$PY) = $Plan")
+			#]		
+			println("$name | Plan to reach ($TX,$TY) from ($PX,$PY) = $Plan")
+ 			replyTo buildPlan with buildPlanDone : buildPlanDone($Plan)
+		}
+		
+ 	}
+ 	Goto waitinputmsg
+ 	
+
+    State fatalerror{
+    	println("fatalerror: attempt to reach a cell occupied ") color red
+    }
+    Goto waitinputmsg
+
+}//robotsmart
+ 
+ /*
+ * ------------------------------
+ * robotmnemo
+ * ------------------------------
+ */  
+QActor robotmnemo context ctxrobotsmart 
+        withobj rpos  using "smart.RobotPosUtils.getInstance(\"localhost\")"   //\"192.168.1.214\"
+		withobj robot using "robots.VRObjForQak(myself,\"logs/robotsmart26.log\")"{  
+		
+ 	[# var doingAsynchStep = false   
+  	   var CurTime         = 0L	   
+ 	   var StepTime        = 335
+ 	   var Plan            = "" 
+ 	   var MoveForDir      = ""
+ 	#]  
+	State s0 initial{ 
+		forward robotsmart -m partnerstarted : partnerstarted($MyName)
+		println("$name STARTS ${rpos.getGuiIp() }") color blue
+		[# clearlog("./logs/robotmnemo.log") 	//vedi src/main/resources/logbdomoveack.xml #]
+ 		//[# robot.setTrace(true) #] 
+ 		subscribeTo robotmnemo for sonardata
+  		subscribeTo robotmnemo for vrinfo
+		println("$name subscribe to myself done") color blue
+		[# robot.connect( rpos.getGuiIp() ) #]             //CONNECTION TO robotoutgui with ip given by rpos
+		println("$name | at home. GUI on ...") color blue		
+		[#  rpos.robotAtHome(   ) #] 
+		delay 500 //planexec must be started
+		delegate doplan to planexec     //nel caso di richieste dirette
+	} 
+	Goto waitinputmsg
+	
+	State waitinputmsg{
+		//println("$name | waitinputmsg") color yellow 
+		[#  rpos.showTheRobotState(   ) #]
+	}
+	Transition t0
+	   whenMsg     move          -> domove
+	   whenMsg setrobotstate     -> dosetrobotstate
+ 	   whenRequest setdirection  -> dosetrobotdirection
+ 	   whenRequest getrobotstate -> dogetrobotstate
+	   whenRequest step          -> doAsynchStep
+	   whenRequest getenvmap     -> doGetEnvMap
+	   whenRequest tuneAtHome    -> tuneAtHome
+
+ 	State dogetrobotstate{
+//    	println("$name | getRobotState" ) color magenta
+    	[#  val PX  = rpos.getPosX() 
+    		val PY  = rpos.getPosY() 
+    		val DIR = rpos.getCurDir() 
+    	#]
+    	//updateResource [# "getRobotState" #] 
+    	replyTo getrobotstate with robotstate : robotstate(pos($PX,$PY),$DIR)
+ 		
+ 	}
+ 	Goto waitinputmsg
+ 	
+ 	
+ 	State dosetrobotstate{
+ 		onMsg( setrobotstate : setpos(X,Y,D)){
+ 			[# 
+ 				val X = payloadArg(0).toInt()
+ 				val Y = payloadArg(1).toInt()
+ 				val D = payloadArg(2)
+ 			#]
+ 			[# rpos.setRobotState(X,Y,D) #] 		
+ 		}
+ 	}
+	Goto waitinputmsg
+	
+	State doAsynchStep{
+		//println("$name | doAsynchStep $currentMsg") color blue
+		memoCurrentTime CurTime
+		updateResource [# "doing($name,doAsynchStep)" #]
+		onMsg( step:step(T)){
+			[# robot.forward(payloadArg(0).toInt() ) #]
+		}
+	}	
+	Transition t0
+	    whenInterruptEvent sonardata  -> handleSonarData  
+	    whenEvent vrinfo              -> handleVrinfoMsgReply	   
+
+    
+    State doGetEnvMap{
+    	[# val Maprep = rpos.getMapRep() #]
+    	replyTo getenvmap with envmap : envmap($Maprep)
+    	//println("$Maprep") color yellow
+    	updateResource [# "map($Maprep)" #]    	
+    }
+    Goto waitinputmsg
+    
+	State domove{
+		printCurrentMessage color blue
+		onMsg( move : move(M) ){
+			[# val Move = payloadArg(0);  #]
+			updateResource [# "doing($name,$Move)" #]
+			if [# Move == "h" #] { [# robot.halt()         #]  }
+ 			if [# Move == "a" || Move == "l" #]{ 
+				[# robot.turnLeft()   #]
+				[# rpos.turnLeft()    #]  //update mind
+			}
+			if [# Move == "d" || Move == "r" #]{ 
+				[# robot.turnRight()   #]
+				[# rpos.turnRight()    #]  //update mind
+			}
+		}
+	} 
+	Goto waitinputmsg
+      
+	/*
+	 * Durante un movimento è stato rilveato un segnale dal sonar
+	 */
+	State handleSonarData{ 
+		//printCurrentMessage color green  		 
+		onMsg( sonardata : sonar(D) ){
+			//memoCurrentTime SonardataDT
+			println("$name | handleSonarData ") color green 
+			[# var D = payloadArg(0) #]
+			println("$name |  sonaralarm:distance($D) ----- EMIT ------  ") color red 
+	//			[#  mqtt.publish("vrevents", "msg(sonarval,event,robotmnemo,ANY,distance(4),0)" ) #]
+ 	    	emit sonaralarm :  distance($D)  
+		    //questo contesto NON SA che esiste altro => evento non propagato in assenza di MQTT !!!			
+		} 
+		returnFromInterrupt
+	} 
+	
+     State tuneAtHome{
+    	[# val Dir  = rpos.getCurDir()
+    		var res = false
+    	 #]
+    	println("$name | tuneAtHome Dir=$Dir") color magenta
+    	//DOvrei essere in home => la mente viene aggiornata
+    	
+    	if [# Dir == "up" #]{
+    		[#  rpos.doMove( "w")  #] 
+    		println("$name | tuneAtHome upDir ") color yellow
+    		[# res = robot.step( 300 ) #]
+    		println("$name | tuneAtHome updDir res=$res ") color yellow
+    		[# robot.turnLeft()          #]
+    		[# rpos.doMove( "l" )        #]
+    		[# res = robot.step( 300 )  #]
+    		println("$name | tuneAtHome updDir res=$res ") color yellow
+    		[# robot.turnLeft()          #]
+    		[# rpos.doMove( "l" )        #]
+    		println("$name |  ${rpos.getCurDir()}" )
+    	} else{ 
+    		if [# Dir == "left" #]{
+    			[#  rpos.doMove( "w")  #] 
+	     		[# res = robot.step( 300 )  #]
+	    		println("$name | tuneAtHome leftDir dostep1 res=$res ") color yellow
+	    		//delay 300
+	    		[# robot.turnRight()       #]
+	    		[# rpos.doMove( "r" )      #]
+	    		[# robot.step( 300 )       #]
+	     		println("$name | tuneAtHome leftDir dostep2 res=$res ") color yellow
+	     		[# robot.turnLeft()  #]
+	     		[# rpos.doMove( "l" )        #]
+	    		[# robot.turnLeft()  #]
+	    		[# rpos.doMove( "l" )        #]
+     	    }else{ 
+    			if [# Dir == "down" #]{
+    			
+    			}
+    	}
+    	}  
+        println("$name | tuneAtHome done ") color yellow
+        replyTo tuneAtHome with tuneDone : tuneDone(ok)
+     } 		
+     Goto waitinputmsg
+  	
+	/*
+        --------------------------------------------
+        GESTIONE DELLE INFO DEL SUPPORTO
+        --------------------------------------------
+	*/    
+	State handleVrinfoMsgReply{
+		//printCurrentMessage color green
+		[# var NOW = 0L; var TDONE = 0L #]
+		memoCurrentTime NOW
+		//println("$name | handleVrinfoMsgReply $currentMsg") color red
+		onMsg( vrinfo : vrinfo(S,R)){
+				[# var S = payloadArg(0) #]
+				[# val R = payloadArg(1) #]
+ 					if [# S.contains("ko") #] { 
+						[# TDONE = NOW - CurTime #]
+ 						println("$name | reply asynchstep failed after $R DT=$TDONE") color magenta
+						[# var DT = TDONE.toInt() / 2 #] //EURISTICA
+						
+						[# robot.backward( DT) #]
+						delay 300
+						[# robot.halt()        #]
+
+//						if [# TDONE < 100 #]{
+//							println("$name | reply asynchstep almost correcttttttttttttttttt") color cyan
+//							//replyTo step with stepfailed : stepfailed($TDONE,almostcorrect)
+//							replyTo step with stepdone : stepdone(almostcorrect)
+//							[# rpos.forwardStep()    #]  //update mind							
+//						}else{
+							replyTo step with stepfailed : stepfailed($TDONE,obst)
+							//non cambia posizione
+//						}						
+					}else{
+						//println("$name | reply asynchstep done") color cyan
+						replyTo step with stepdone : stepdone(ok)
+						[# rpos.forwardStep()    #]  //update map
+					} 			
+		}
+	}	
+	Goto waitinputmsg
+
+    State dosetrobotdirection{
+	 		onMsg(setdirection : dir( D )){
+				[# var Dir  = payloadArg(0) #]	
+		    	[# Plan     = rpos.planToSetDirection(Dir) #]  
+		    	println("dosetrobotdirection dir=$Dir Plan=$Plan") color magenta
+		    	if [# Plan == "" #] { 
+		    		autodispatch noplan : noplan(ok)
+		    	}
+		    	else { 
+		    		//request planexec -m doplan : doplan( $Plan, $StepTime )
+		    		//WARNING: planexec richiama robotmnemo per move => eseguo direttamente le rotazioni
+		    		autodispatch changedir : changedir(ok)
+		    	}			
+			}
+    }
+  	Transition t0 
+  	    whenMsg changedir      -> changeDirection
+  	    whenMsg noplan         -> setDirReply
+
+	State changeDirection{
+		[#
+		   if( Plan.length > 0  ){
+			   	MoveForDir =  Plan.elementAt(0).toString() 
+			   	Plan       =  Plan.removePrefix(MoveForDir)
+		   }else{
+			   	MoveForDir  = ""
+			   	Plan        = ""
+		   }
+		#]        	
+       	//println("$name | changeDirectionnnnnnnnnnnnnn $MoveForDir Plan=$Plan") color yellow
+      }
+    Goto nextMove if [# MoveForDir  != "" #] else setDirReply
+	
+	State nextMove{ 
+		if [# MoveForDir == "a" || MoveForDir  == "l" #]{ 
+				[# robot.turnLeft()   #]
+				[# rpos.turnLeft()    #]  //update mind
+			}
+		if [# MoveForDir == "d" || MoveForDir  == "r" #]{ 
+				[# robot.turnRight()   #]
+				[# rpos.turnRight()    #]  //update mind
+			}
+	    //[# Plan  =  Plan.removePrefix(MoveForDir) #]
+	}
+	Goto changeDirection
+
+	State setDirReply{
+		[# val PX = rpos.getPosX() 
+		   val PY = rpos.getPosY()
+		#]
+		replyTo setdirection with setdirectiondone : pos($PX,$PY)
+	}
+	Goto waitinputmsg
+	 
+	
+//    State execDirMove{
+//		//	printCurrentMessage color gray
+//		onMsg( move : move(M) ){
+//			[# val Move = payloadArg(0);  #]
+//			if [# Move == "h" #] { [# robot.halt()         #]  }
+// 			if [# Move == "a" || Move == "l" #]{ 
+//				[# robot.turnLeft()   #]
+//				[# rpos.turnLeft()    #]  //update mind
+//			}
+//			if [# Move == "d" || Move == "r" #]{ 
+//				[# robot.turnRight()   #]
+//				[# rpos.turnRight()    #]  //update mind
+//			}
+//		}    	
+//    }
+//    Transition t0
+//  	    whenMsg move           -> execDirMove  //Un piano può avere più mosse
+//     	whenReply doplandone   -> setDirReply //directionSet  
+//	    whenReply doplanfailed -> fatalerror
+    
+//    State fatalerror{
+//    	println("$name | fatalerror:   ") color red
+//    }
+//    Goto waitinputmsg
+ }
+ 
+ /*
+ * ------------------------------
+ * planexec
+ * ------------------------------
+ */
+QActor planexec context ctxrobotsmart {  //withobj robot using "uniborobots.robotSupport"
+	[#  var Plan          = ""
+		var PlanOrig      = ""
+		var Plantodo      = ""
+		var CurMoveTodo   = ""		
+		var StepTime      = "335"
+		var ExecDelay     = 70L   //(B)
+   	#]
+	State s0 initial{
+	} 
+	Goto work
+
+	State work{  
+		//println("planexec | waiting ...")  
+	} 
+	Transition t0 
+		whenRequest doplan -> execAPlan 
+     
+    State execAPlan{
+    	onMsg( doplan : doplan(PLAN, STEPTIME)){
+    		[# Plan       = payloadArg(0)  //.replace("[","").replace("]","").replace(",","").replace(" ","")
+			   PlanOrig   = Plan
+			   StepTime   = payloadArg(1)          //if int ...
+    		   val Caller = currentMsg.msgSender() //payloadArg(1) 
+      		#]
+      		updateResource [# "doing($name,plan=$Plan)" #]
+      		println("$name | execAPlan nnnnnnnnnnnnnnn $StepTime Plan=$Plan") color yellow
+    	}     	
+    }
+    Goto nextMove
+	
+	State nextMove{ 
+		[# 
+		   if( Plan.length > 0  ){
+		   	CurMoveTodo =  Plan.elementAt(0).toString() 
+		   	Plan        =  Plan.removePrefix(CurMoveTodo)
+		   }else{
+		   	CurMoveTodo = ""
+		   	Plan        = "empty"
+		   } 		   
+		#]
+ 		//println("$name | nextMove $CurMoveTodo")  color cyan  
+ 		if [# CurMoveTodo == "" #] { 
+ 			forward planexec -m nomoremove : nomoremove(end)
+ 		} 
+		else{ if [# CurMoveTodo == "w" #] {
+	 			//delay 200  //avoid too fast ...
+	 			delayVar ExecDelay //avoid too fast ...
+	 			//Il supporto non fa step-back
+	 			request robotmnemo -m step : step($StepTime)	//mentre fa doplan ...		
+			 }else{ //ROTAZIONE
+				println("$name | doMoveTurn $CurMoveTodo")  color yellow
+				forward robotmnemo -m move : move($CurMoveTodo)
+				delay 500
+				forward planexec -m nextmove : nextmove(goon)
+			}
+		}
+ 	}  
+	Transition t0  whenReply stepfailed -> planinterruptedobstacle
+				   whenEvent alarm      -> planinterrupted
+	               whenMsg nomoremove   -> planend
+	               whenMsg nextmove     -> nextMove  
+	               whenReply stepdone   -> nextMove 
+				  
+ 	
+	State planend{ 
+		//printCurrentMessage color red
+			println("$name | planend ok plan=$PlanOrig ") color blue
+			replyTo doplan with doplandone : doplandone($PlanOrig)
+//			updateResource [# "plandone($PlanOrig)" #] 
+	}
+	Goto work 
+	
+	State planinterruptedobstacle{  
+		//printCurrentMessage color green
+ 		println("$name |  planinterruptedobstacle CurMoveTodo=$CurMoveTodo Plan=$Plan StepTime=$StepTime")	color magenta
+ 		[#  Plantodo =  CurMoveTodo + Plan
+ 		#]
+ 		updateResource [# "planinterruptedobstacle($PlanOrig,$Plantodo )" #] 
+ 		replyTo doplan with doplanfailed : doplanfailed( $Plantodo ) 
+ 	}	
+ 	Goto work 
+ 	
+ 	State planinterrupted{  
+		printCurrentMessage color magenta
+// 		println("$name |  planinterrupted $CurMoveTodo ")	color red
+ 		//[# var Plantodo = CurMoveTodo + Plan#]
+ 		updateResource [# "planinterrupted($PlanOrig,$Plantodo )" #] 
+// 		replyTo doplan with doplanfailed : doplanfailed( $Plan )
+ 	}	 
+ 	Transition t0 
+  				  whenMsg nextmove    ->  nonextmovesincealarm
+ 				  whenReply stepdone  ->  nonextmovesincealarm //possiblestepdonemirabella
+ 				  whenReply stepfailed -> planinterruptedobstacle //work
+
+
+	State nonextmovesincealarm{
+ 		println("$name |  nonextmovesincealarm $CurMoveTodo plantodo=$Plan") color magenta
+ 		updateResource [# "planfailed($PlanOrig,$Plan )" #] 
+ 		if [# Plan.length == 0 #]{ //Piano esaurito nonostante l'allarme
+ 			replyTo doplan with doplandone : doplandone($PlanOrig)
+ 		}else{ //Piano interrotto; da fare ancora: Plan
+ 		   replyTo doplan with doplanfailed : doplanfailed( $Plan )
+ 		}
+	}
+	Goto work
+	/*Il piano esegue sempre almeno la prima mossa prima di essere interrotto*/
+	 
+ 	State planrefused{
+ 		println("$name | planrefused ") color magenta
+ 		replyTo doplan with doplanfailed : doplanfailed( youarenotowner )
+ 		//TODO: inserire motivazione fallimento ?
+ 	}
+ 	Goto work
+}
+
+ 
