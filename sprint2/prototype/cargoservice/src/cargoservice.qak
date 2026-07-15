@@ -38,7 +38,7 @@ QActor cargoservice context ctxcargoservice {
         var ServiceWorking = true
         var CargoState     = "disengaged"
         var ReservedSlotId = -1
-        val StepTime       = 335
+        val StepTime       = 345
     #]
 
     State s0 initial {

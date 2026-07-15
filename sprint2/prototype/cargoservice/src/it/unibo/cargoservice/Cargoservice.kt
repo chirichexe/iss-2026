@@ -34,7 +34,7 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 		        var ServiceWorking = true
 		        var CargoState     = "disengaged"
 		        var ReservedSlotId = -1
-		        val StepTime       = 335
+		        val StepTime       = 345
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
