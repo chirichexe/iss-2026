@@ -29,19 +29,20 @@ class Cargorobot ( name: String, scope: CoroutineScope, isconfined: Boolean=fals
 	override fun getBody() : (ActorBasicFsm.() -> Unit){
 		//val interruptedStateTransitions = mutableListOf<Transition>()
 		//IF actor.withobj !== null val actor.withobj.name� = actor.withobj.method�ENDIF
-		 var ConnToRobotSmart : unibo.basicomm23.interfaces.Interaction? = null  
+		 
+		        var ConnToRobotSmart : unibo.basicomm23.mqtt.MqttConnection? = null 
+		        var CurX = 0
+		        var CurY = 0
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
 						CommUtils.outblue("cargorobot | STARTED (Puro wrapper bridge per robotsmart26)")
 						 
 						            try {
-						                ConnToRobotSmart = unibo.basicomm23.mqtt.MqttConnection.create(
-						                    "cargorobot_to_rs", "tcp://localhost:1883", "robotsmart26in"
-						                )
-						                println("cargorobot | Connesso via MQTT al topic robotsmart26in per robotsmart26") color green
+						                ConnToRobotSmart = unibo.basicomm23.mqtt.MqttConnection("cargorobot_to_rs", "tcp://localhost:1883", "robotsmart26in")
+						                unibo.basicomm23.utils.CommUtils.outgreen("cargorobot | Connesso via MQTT a robotsmart26in per robotsmart26")
 						            } catch(e: Exception) {
-						                println("cargorobot | ERRORE connessione iniziale a robotsmart26: ${e.message}") color red
+						                unibo.basicomm23.utils.CommUtils.outred("cargorobot | ERRORE connessione iniziale a robotsmart26: ${e.message}")
 						            }
 						//genTimer( actor, state )
 					}
@@ -67,19 +68,33 @@ class Cargorobot ( name: String, scope: CoroutineScope, isconfined: Boolean=fals
 								                val Tx = payloadArg(0)
 								                val Ty = payloadArg(1)
 								                val StepTime = payloadArg(2)
-								                println("cargorobot | Inoltro comando moverobot($Tx, $Ty, $StepTime) a robotsmart26 via MQTT (robotsmart26in)...") color cyan
 								                var replyStr = ""
-								                try {
-								                    if (ConnToRobotSmart == null) {
-								                        ConnToRobotSmart = unibo.basicomm23.mqtt.MqttConnection.create(
-								                            "cargorobot_to_rs", "tcp://localhost:1883", "robotsmart26in"
-								                        )
+								                val targetXInt = Tx.toIntOrNull() ?: -1
+								                val targetYInt = Ty.toIntOrNull() ?: -1
+								                
+								                if (targetXInt == CurX && targetYInt == CurY && targetXInt != -1) {
+								                    unibo.basicomm23.utils.CommUtils.outgreen("cargorobot | Robot già alla posizione ($Tx, $Ty). Movimento non necessario, rispondo moverobotok(done).")
+								                    replyStr = "moverobotok(done)"
+								                } else {
+								                    unibo.basicomm23.utils.CommUtils.outcyan("cargorobot | Inoltro comando moverobot($Tx, $Ty, $StepTime) a robotsmart26 via MQTT (robotsmart26in)...")
+								                    try {
+								                        if (ConnToRobotSmart == null) {
+								                            ConnToRobotSmart = unibo.basicomm23.mqtt.MqttConnection("cargorobot_to_rs", "tcp://localhost:1883", "robotsmart26in")
+								                        }
+								                        val msgReq = unibo.basicomm23.utils.CommUtils.buildRequest("cargorobot", "moverobot", "moverobot($Tx,$Ty,$StepTime)", "robotsmart").toString()
+								                        replyStr = ConnToRobotSmart!!.request(msgReq)
+								                        while (!replyStr.contains("moverobotok") && !replyStr.contains("moverobotdone") && !replyStr.contains("moverobotfailed") && !replyStr.contains("reply")) {
+								                            unibo.basicomm23.utils.CommUtils.outyellow("cargorobot | Ignorando messaggio non-reply dalla coda: $replyStr")
+								                            replyStr = ConnToRobotSmart!!.receiveMsg()
+								                        }
+								                        unibo.basicomm23.utils.CommUtils.outgreen("cargorobot | Risposta da robotsmart26 via MQTT: $replyStr")
+								                        if (replyStr.contains("moverobotok") || replyStr.contains("moverobotdone")) {
+								                            CurX = targetXInt
+								                            CurY = targetYInt
+								                        }
+								                    } catch(e: Exception) {
+								                        unibo.basicomm23.utils.CommUtils.outred("cargorobot | Errore richiesta moverobot: ${e.message}")
 								                    }
-								                    val msgReq = unibo.basicomm23.utils.CommUtils.buildRequest("cargorobot", "moverobot", "moverobot($Tx,$Ty,$StepTime)", "robotsmart").toString()
-								                    replyStr = ConnToRobotSmart!!.request(msgReq)
-								                    println("cargorobot | Risposta da robotsmart26 via MQTT: $replyStr") color green
-								                } catch(e: Exception) {
-								                    println("cargorobot | Errore richiesta moverobot: ${e.message}") color red
 								                }
 								if(  replyStr.contains("moverobotok") || replyStr.contains("moverobotdone")  
 								 ){answer("moverobot", "moverobotdone", "moverobotok(done)"   )  

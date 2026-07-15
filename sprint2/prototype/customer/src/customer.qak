@@ -14,10 +14,10 @@ Dispatch set_service_status : setServiceStatus(STATUS)
 Dispatch led_ctrl           : ledCmd(CMD)         
 
 // CONTESTI
-Context ctxcargoservice ip [host="localhost" port=8050]
+Context ctxcargoservice ip [host="127.0.0.1" port=8050]
 Context ctxcustomer     ip [host="localhost" port=8051]
-Context ctxdevices      ip [host="localhost" port=8052]
-Context ctxrobot        ip [host="localhost" port=8053] 
+Context ctxdevices      ip [host="127.0.0.1" port=8052]
+Context ctxrobot        ip [host="127.0.0.1" port=8053] 
 
 // LED MOCK (il collegamento hardware PICOW <-> led,sonar sarà sviluppato separatamente)
 QActor ledmock context ctxcustomer {

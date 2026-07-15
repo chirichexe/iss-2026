@@ -15,10 +15,10 @@ reply( moverobotfailed, moverobotfailed(PLANDONE,PLANTODO) ).  %%for moverobot
 request( mark_container, markContainer(none) ).
 reply( marking_done, markingDone(none) ).  %%for mark_container
 %====================================================================================
-context(ctxcargoservice, "localhost",  "TCP", "8050").
-context(ctxcustomer, "localhost",  "TCP", "8051").
+context(ctxcargoservice, "127.0.0.1",  "TCP", "8050").
+context(ctxcustomer, "127.0.0.1",  "TCP", "8051").
 context(ctxdevices, "localhost",  "TCP", "8052").
-context(ctxrobot, "localhost",  "TCP", "8053").
+context(ctxrobot, "127.0.0.1",  "TCP", "8053").
  qactor( sonarmock, ctxdevices, "it.unibo.sonarmock.Sonarmock").
  static(sonarmock).
   qactor( markerdevice, ctxdevices, "it.unibo.markerdevice.Markerdevice").

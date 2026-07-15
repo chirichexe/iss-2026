@@ -10,10 +10,10 @@ event( sonardata, distance(D) ).
 dispatch( set_service_status, setServiceStatus(STATUS) ).
 dispatch( led_ctrl, ledCmd(CMD) ).
 %====================================================================================
-context(ctxcargoservice, "localhost",  "TCP", "8050").
+context(ctxcargoservice, "127.0.0.1",  "TCP", "8050").
 context(ctxcustomer, "localhost",  "TCP", "8051").
-context(ctxdevices, "localhost",  "TCP", "8052").
-context(ctxrobot, "localhost",  "TCP", "8053").
+context(ctxdevices, "127.0.0.1",  "TCP", "8052").
+context(ctxrobot, "127.0.0.1",  "TCP", "8053").
  qactor( ledmock, ctxcustomer, "it.unibo.ledmock.Ledmock").
  static(ledmock).
   qactor( cargoservice, ctxcargoservice, "external").

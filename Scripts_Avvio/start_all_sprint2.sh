@@ -48,13 +48,13 @@ open_terminal() {
     local cmd="$3"
     echo " -> Avvio [$title]..."
     if command -v gnome-terminal >/dev/null 2>&1; then
-        gnome-terminal --title="$title" --working-directory="$dir" -- bash -c "cd \"$dir\" && $cmd; echo ''; echo '--- TERMINATO. Premi INVIO per chiudere ---'; read"
+        gnome-terminal --title="$title" --working-directory="$dir" -- bash -c ": QAK_TERMINAL_$title; cd \"$dir\" && $cmd; echo ''; echo '--- TERMINATO. Premi INVIO per chiudere ---'; read"
     elif command -v kitty >/dev/null 2>&1; then
-        kitty --title "$title" --directory "$dir" bash -c "cd \"$dir\" && $cmd; echo ''; echo '--- TERMINATO. Premi INVIO per chiudere ---'; read" &
+        kitty --title "$title" --directory "$dir" bash -c ": QAK_TERMINAL_$title; cd \"$dir\" && $cmd; echo ''; echo '--- TERMINATO. Premi INVIO per chiudere ---'; read" &
     elif command -v x-terminal-emulator >/dev/null 2>&1; then
-        x-terminal-emulator -T "$title" -e bash -c "cd \"$dir\" && $cmd; echo ''; echo '--- TERMINATO. Premi INVIO per chiudere ---'; read" &
+        x-terminal-emulator -T "$title" -e bash -c ": QAK_TERMINAL_$title; cd \"$dir\" && $cmd; echo ''; echo '--- TERMINATO. Premi INVIO per chiudere ---'; read" &
     else
-        xterm -T "$title" -e bash -c "cd \"$dir\" && $cmd; echo ''; echo '--- TERMINATO. Premi INVIO per chiudere ---'; read" &
+        xterm -T "$title" -e bash -c ": QAK_TERMINAL_$title; cd \"$dir\" && $cmd; echo ''; echo '--- TERMINATO. Premi INVIO per chiudere ---'; read" &
     fi
 }
 
@@ -85,9 +85,9 @@ open_terminal "5_Customer_LedMock" "$PROJECT_DIR/sprint2/prototype/customer" "./
 echo "    Attesa avvio Customer context (3 secondi)..."
 sleep 3
 
-# TERMINALE 6: Server Intermedio Web GUI su porta 8086 (IOPortServer)
-open_terminal "6_IOPortServer_Web" "$PROJECT_DIR/sprint2/prototype/customer" "./runIOPortServer.sh"
-echo "    Attesa avvio IOPortServer (3 secondi)..."
+# TERMINALE 6: Server Esterno Web GUI Inbound Adapter su porta 8086 (guiserver26qak0)
+open_terminal "6_GuiServer_Web" "$PROJECT_DIR/sprint2/prototype/guiserver" "./gradlew run --no-daemon"
+echo "    Attesa avvio GuiServer (3 secondi)..."
 sleep 3
 
 # TERMINALE 7: Dispositivi Sonar e Marker per il test fisico (devices)

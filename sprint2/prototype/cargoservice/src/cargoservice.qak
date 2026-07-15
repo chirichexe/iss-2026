@@ -23,9 +23,9 @@ Reply   marking_done   : markingDone(none) for mark_container
  
 // CONTESTI
 Context ctxcargoservice ip [host="localhost" port=8050] // Cargoservice
-Context ctxcustomer     ip [host="localhost" port=8051] // Ioport web facade / led
-Context ctxdevices      ip [host="localhost" port=8052] // Sonar / markerdevice
-Context ctxrobot        ip [host="localhost" port=8053] // Cargorobot
+Context ctxcustomer     ip [host="127.0.0.1" port=8051] // Ioport web facade / led
+Context ctxdevices      ip [host="127.0.0.1" port=8052] // Sonar / markerdevice
+Context ctxrobot        ip [host="127.0.0.1" port=8053] // Cargorobot
 
 ExternalQActor ledmock      context ctxcustomer
 ExternalQActor markerdevice context ctxdevices
@@ -38,7 +38,7 @@ QActor cargoservice context ctxcargoservice {
         var ServiceWorking = true
         var CargoState     = "disengaged"
         var ReservedSlotId = -1
-        val StepTime       = 345
+        val StepTime       = 335
     #]
 
     State s0 initial {
@@ -232,9 +232,20 @@ QActor cargoservice context ctxcargoservice {
     Goto disengaged
 
     State handle_robot_fail {
-        println("cargoservice | Robot move failed!") color red
+        println("cargoservice | Robot move failed! Aborting job and returning to disengaged...") color red
+        if [# ReservedSlotId != -1 #] {
+            [# Hold.freeSlot(ReservedSlotId) #]
+        }
+        [# 
+            CargoState = "disengaged"
+            ReservedSlotId = -1
+            IOPortOccupied = false
+        #]
+        forward ledmock -m led_ctrl : ledCmd(off)
+        [# val statusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId) #]
+        updateResource [# statusJson #]
     }
-    Goto engaged
+    Goto disengaged
 
     State handle_deposit_timeout {
         if [# CargoState == "engaged" && !IOPortOccupied #] {

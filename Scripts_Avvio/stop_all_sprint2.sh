@@ -22,10 +22,14 @@ done
 
 # Chiusura delle finestre dei terminali aperte dagli script di avvio
 echo "Chiusura delle finestre dei terminali in corso..."
-for title in "1_WEnv_Docker" "2_RobotSmart26" "3_CargoService" "4_CargoRobot" "5_Customer_LedMock" "6_IOPortServer_Web" "7_Devices_SonarMarker"; do
+pkill -9 -f "QAK_TERMINAL_" 2>/dev/null || true
+for title in "1_WEnv_Docker" "2_RobotSmart26" "3_CargoService" "4_CargoRobot" "5_Customer_LedMock" "6_GuiServer_Web" "7_Devices_SonarMarker"; do
     pkill -f "$title" 2>/dev/null || true
 done
 pkill -f "runCustomer" 2>/dev/null || true
+pkill -f "runDevices" 2>/dev/null || true
+pkill -f "runRobot" 2>/dev/null || true
 pkill -f "runIOPortServer.sh" 2>/dev/null || true
+pkill -f "GuiServerMain" 2>/dev/null || true
 
 echo "Tutti i servizi e le finestre dei terminali dello Sprint 2 sono stati arrestati e chiusi con successo!"

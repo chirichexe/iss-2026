@@ -34,7 +34,7 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 		        var ServiceWorking = true
 		        var CargoState     = "disengaged"
 		        var ReservedSlotId = -1
-		        val StepTime       = 345
+		        val StepTime       = 335
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
@@ -321,13 +321,24 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 				}	 
 				state("handle_robot_fail") { //this:State
 					action { //it:State
-						CommUtils.outred("cargoservice | Robot move failed!")
+						CommUtils.outred("cargoservice | Robot move failed! Aborting job and returning to disengaged...")
+						if(  ReservedSlotId != -1  
+						 ){ Hold.freeSlot(ReservedSlotId)  
+						}
+						 
+						            CargoState = "disengaged"
+						            ReservedSlotId = -1
+						            IOPortOccupied = false
+						forward("led_ctrl", "ledCmd(off)" ,"ledmock" ) 
+						 val statusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId)  
+						updateResourceRep( statusJson  
+						)
 						//genTimer( actor, state )
 					}
 					//After Lenzi Aug2002
 					sysaction { //it:State
 					}	 	 
-					 transition( edgeName="goto",targetState="engaged", cond=doswitch() )
+					 transition( edgeName="goto",targetState="disengaged", cond=doswitch() )
 				}	 
 				state("handle_deposit_timeout") { //this:State
 					action { //it:State
