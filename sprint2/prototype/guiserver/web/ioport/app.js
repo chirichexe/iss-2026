@@ -1,61 +1,68 @@
+// ─── State (specchio dello stato dominio cargoservice) ────────────────────────
 const state = {
-  service: "working",
-  ioportBusy: false,
+  working:     true,   // workingState: "Service working" | "Out of service"
+  engaged:     false,  // serviceState: "engaged" | "disengaged"
+  ioportBusy:  false,
   reservedSlot: null,
-  slots: {
-    slot1: "free",
-    slot2: "free",
-    slot3: "free",
-    slot4: "free",
-    slot5: "marker",
-  },
+  slots: { slot1: "free", slot2: "free", slot3: "free", slot4: "free", slot5: "marker" },
 };
 
-const displayMessage = document.querySelector("#display-message");
-const loadButton = document.querySelector("#load-button");
-const serviceIndicator = document.querySelector("#service-indicator");
-const ioportState = document.querySelector("#ioport-state");
-const slotNodes = [...document.querySelectorAll(".slot")];
+// ─── DOM refs ─────────────────────────────────────────────────────────────────
+const displayMessage    = document.querySelector("#display-message");
+const loadButton        = document.querySelector("#load-button");
+const serviceIndicator  = document.querySelector("#service-indicator");
+const ioportStateEl     = document.querySelector("#ioport-state");
+const slotNodes         = [...document.querySelectorAll(".slot")];
+const logBox            = document.querySelector("#log-box");
+const clearLogBtn       = document.querySelector("#clear-log-btn");
 
+// ─── Display: SOLO i messaggi previsti dai requisiti ─────────────────────────
 function setDisplay(message) {
   if (displayMessage) displayMessage.textContent = message;
 }
 
+// ─── Render: ricava l'UI dallo stato ─────────────────────────────────────────
 function render() {
+  // Status pill: "Service working" | "Out of service"  (req.)
   if (serviceIndicator) {
-    serviceIndicator.className = `status-pill ${state.service === "working" ? "working" : "out"}`;
-    serviceIndicator.textContent = state.service === "working" ? "Service working" : "Out of service";
+    serviceIndicator.className = `status-pill ${state.working ? "working" : "out"}`;
+    serviceIndicator.textContent = state.working ? "Service working" : "Out of service";
   }
 
-  if (ioportState) {
-    ioportState.className = `status-pill ${state.ioportBusy ? "busy" : "free"}`;
-    ioportState.textContent = state.ioportBusy ? "IOPort occupato" : "IOPort libero";
+  // IOPort state pill
+  if (ioportStateEl) {
+    ioportStateEl.className = `status-pill ${state.ioportBusy ? "busy" : "free"}`;
+    ioportStateEl.textContent = state.ioportBusy ? "IOPort occupato" : "IOPort libero";
   }
 
+  // Pulsante: disabilitato se out of service, IOPort occupato, o sistema engaged (req.)
   if (loadButton) {
-    loadButton.disabled = state.service !== "working" || state.ioportBusy;
+    loadButton.disabled = !state.working || state.ioportBusy || state.engaged;
   }
 
+  // Griglia hold: stato corrente degli slot (req.)
   slotNodes.forEach((node) => {
-    const slot = node.dataset.slot;
+    const slot  = node.dataset.slot;
     const value = state.slots[slot] || "free";
     node.className = `slot ${value}`;
     const strongTag = node.querySelector("strong");
     if (strongTag) {
-      strongTag.textContent = value === "reserved" ? "riservato" : value === "occupied" ? "occupato" : value === "marker" ? "marker" : "libero";
+      strongTag.textContent =
+        value === "reserved" ? "riservato" :
+        value === "occupied"  ? "occupato"  :
+        value === "marker"    ? "marker"    : "libero";
     }
   });
 }
 
-const logBox = document.querySelector("#log-box");
-const clearLogBtn = document.querySelector("#clear-log-btn");
-
+// ─── Log box (terminale di log) ───────────────────────────────────────────────
 function addLog(message, type = "info") {
   if (!logBox) return;
   const timeStr = new Date().toLocaleTimeString("it-IT", { hour12: false });
   const entry = document.createElement("div");
   entry.className = `log-entry ${type}`;
-  entry.innerHTML = `<span class="log-time">[${timeStr}]</span> <span class="log-msg">${message}</span>`;
+  entry.innerHTML =
+    `<span class="log-time">[${timeStr}]</span> <span class="log-msg">${message}</span>`;
   logBox.appendChild(entry);
   logBox.scrollTop = logBox.scrollHeight;
 }
@@ -63,133 +70,116 @@ function addLog(message, type = "info") {
 if (clearLogBtn) {
   clearLogBtn.addEventListener("click", () => {
     if (logBox) logBox.innerHTML = "";
-    addLog("Log pulito con successo.", "info");
+    addLog("Log pulito.", "info");
   });
 }
 
-// Configurazione WebSocket per ricevere notifiche push dal server intermedio (facade CoAP->WS)
+// ─── WebSocket: riceve push CoAP → aggiorna stato e display ──────────────────
 function setupWebSocket() {
   const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
   const host = window.location.host || "localhost:8086";
-  const wsUrl = `${protocol}//${host}/ws`;
-
-  console.log("Connecting to WebSocket:", wsUrl);
-  const ws = new WebSocket(wsUrl);
+  const ws = new WebSocket(`${protocol}//${host}/ws`);
 
   ws.onopen = () => {
-    console.log("WebSocket connected to IOPortServer");
-    addLog("Connesso al server WebSocket (IOPortServer su :8086)", "success");
+    addLog("Connesso al server (WebSocket attivo).", "success");
   };
 
   ws.onmessage = (event) => {
     try {
       const data = JSON.parse(event.data);
-      console.log("State update from server:", data);
+      const changes = [];
 
-      let changesMsg = [];
-      if (data.workingState && data.workingState !== (state.service === "working" ? "Service working" : "Out of service")) {
-        changesMsg.push(`Servizio -> ${data.workingState}`);
-        state.service = data.workingState === "Service working" ? "working" : "out";
-      } else if (data.workingState) {
-        state.service = data.workingState === "Service working" ? "working" : "out";
+      // serviceState: "engaged" | "disengaged"
+      if (data.serviceState !== undefined) {
+        const newEngaged = data.serviceState === "engaged";
+        if (newEngaged !== state.engaged) {
+          changes.push(`stato servizio: ${data.serviceState}`);
+          state.engaged = newEngaged;
+        }
       }
 
+      // workingState: "Service working" | "Out of service"  (req: display)
+      if (data.workingState !== undefined) {
+        const newWorking = data.workingState === "Service working";
+        if (newWorking !== state.working) {
+          setDisplay(data.workingState);       // messaggio previsto da requisiti
+          changes.push(data.workingState);
+          state.working = newWorking;
+        }
+      }
+
+      // ioPortOccupied
       if (typeof data.ioPortOccupied === "boolean") {
         if (data.ioPortOccupied !== state.ioportBusy) {
-          changesMsg.push(`IOPort -> ${data.ioPortOccupied ? "OCCUPATO" : "LIBERO"}`);
+          changes.push(`IOPort: ${data.ioPortOccupied ? "occupato" : "libero"}`);
+          state.ioportBusy = data.ioPortOccupied;
         }
-        state.ioportBusy = data.ioPortOccupied;
       }
 
+      // reservedSlot
       if (data.reservedSlot !== undefined) {
         const newRes = data.reservedSlot > 0 ? `slot${data.reservedSlot}` : null;
         if (newRes !== state.reservedSlot) {
-          changesMsg.push(`Slot riservato -> ${newRes || "Nessuno"}`);
+          changes.push(`slot riservato: ${newRes ?? "—"}`);
+          state.reservedSlot = newRes;
         }
-        state.reservedSlot = newRes;
       }
 
+      // slots
       if (data.slots && typeof data.slots === "object") {
-        for (const [sName, sVal] of Object.entries(data.slots)) {
-          if (state.slots[sName] !== sVal) {
-            changesMsg.push(`${sName} -> ${sVal}`);
-          }
+        for (const [k, v] of Object.entries(data.slots)) {
+          if (state.slots[k] !== v) changes.push(`${k}: ${v}`);
         }
         state.slots = { ...state.slots, ...data.slots };
       }
 
       render();
 
-      const summary = changesMsg.length > 0 ? `Variazione: ${changesMsg.join(" | ")}` : "Push ricevuto (stato inalterato)";
-      addLog(`[CoAP->WS Push] ${summary}`, changesMsg.length > 0 ? "push" : "info");
+      if (changes.length > 0) {
+        addLog(`[push] ${changes.join(" | ")}`, "push");
+      }
+
     } catch (err) {
-      console.error("Error parsing WebSocket message:", err, event.data);
-      addLog(`Errore parse messaggio WebSocket: ${err.message}`, "error");
+      addLog(`Errore parsing messaggio WebSocket: ${err.message}`, "error");
     }
   };
 
   ws.onclose = () => {
-    console.warn("WebSocket closed. Reconnecting in 3 seconds...");
-    addLog("Disconnesso dal server WebSocket. Riconnessione tra 3s...", "error");
+    addLog("WebSocket chiuso. Riconnessione tra 3s…", "error");
     setTimeout(setupWebSocket, 3000);
-  };
-
-  ws.onerror = (err) => {
-    console.error("WebSocket error:", err);
   };
 }
 
+// ─── Pulsante LOAD → HTTP POST → cargoservice  (req: pushbutton → load_request)
 async function sendLoadRequest() {
-  if (state.service !== "working" || state.ioportBusy) {
-    setDisplay("retrylater: il sistema non puo accettare ora una nuova richiesta.");
-    addLog("Richiesta bloccata dal client: servizio offline o IOPort occupato.", "error");
-    return;
-  }
-
-  setDisplay("Inviando richiesta load_request al cargoservice...");
-  addLog("Invio HTTP POST /api/load al server intermedio...", "request");
   try {
     const response = await fetch("/api/load", {
       method: "POST",
-      headers: { "Content-Type": "application/json" }
+      headers: { "Content-Type": "application/json" },
     });
 
-    if (!response.ok) {
-      setDisplay("retrylater: server temporaneamente non disponibile o errore http.");
-      addLog(`Errore HTTP ${response.status} da /api/load`, "error");
-      return;
-    }
-
     const resJson = await response.json();
-    console.log("POST /api/load result:", resJson);
 
+    // Messaggi sul display: SOLO quelli previsti dai requisiti
     if (resJson.status === "accepted") {
-      const assignedSlot = resJson.slot || "slot1";
-      state.reservedSlot = assignedSlot;
-      if (state.slots[assignedSlot]) state.slots[assignedSlot] = "reserved";
-      setDisplay(`accepted: container assegnato a ${assignedSlot}. Posizionare il container sul sensore (IOPort).`);
-      addLog(`[Risposta /api/load] ACCEPTED: Assegnato a <strong>${assignedSlot}</strong>. In attesa del sonar sul IOPort.`, "success");
+      setDisplay(`accepted: ${resJson.slot} riservato. Posizionare il container nell'area IOPort entro 30s.`);
+      addLog(`Accettato: ${resJson.slot}`, "success");
     } else if (resJson.status === "retrylater") {
-      setDisplay("retrylater: il sistema non puo accettare ora una nuova richiesta (occupato o fuori servizio).");
-      addLog("[Risposta /api/load] RETRY LATER: Sistema occupato o fuori servizio.", "info");
+      setDisplay("retrylater");
+      addLog("Risposta: retrylater", "info");
     } else if (resJson.status === "refused") {
-      setDisplay("refused: hold piena, nessuno slot libero disponibile.");
-      addLog("[Risposta /api/load] REFUSED: Nessuno slot libero nella stiva.", "error");
-    } else {
-      setDisplay(`Errore o risposta sconosciuta: ${resJson.status}`);
-      addLog(`[Risposta /api/load] Esito sconosciuto: ${resJson.status}`, "info");
+      setDisplay("refused");
+      addLog("Risposta: refused (hold piena)", "error");
     }
+
     render();
   } catch (err) {
-    console.error("Errore durante la fetch /api/load:", err);
-    setDisplay("Errore di connessione al server intermedio. Riprovare.");
-    addLog(`Errore di rete su POST /api/load: ${err.message}`, "error");
+    addLog(`Errore di rete: ${err.message}`, "error");
   }
 }
 
-if (loadButton) {
-  loadButton.addEventListener("click", sendLoadRequest);
-}
+loadButton?.addEventListener("click", sendLoadRequest);
 
+// ─── Init ─────────────────────────────────────────────────────────────────────
 render();
 setupWebSocket();

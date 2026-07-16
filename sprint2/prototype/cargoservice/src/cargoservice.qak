@@ -39,6 +39,9 @@ QActor cargoservice context ctxcargoservice {
         var CargoState     = "disengaged"
         var ReservedSlotId = -1
         val StepTime       = 345
+        // Timestamp dell'inizio di una lettura anomala/container sostenuta (-1 = nessuna in corso)
+        var OutOfServicePendingStart = -1L  // req: D > DFREE per almeno 3s
+        var ContainerPendingStart    = -1L  // req: D < DFREE/2 per almeno 3s
     #]
  
     State s0 initial {
@@ -111,37 +114,48 @@ QActor cargoservice context ctxcargoservice {
     Goto engaged if [# CargoState == "engaged" #] else disengaged
 
     // GESTIONE SONAR & OUT OF SERVICE
-    
+
     State handle_sonar {
         onMsg(sonardata : distance(D)) {
-            [# val Dist = payloadArg(0).toInt() #]
-            
-            if [# Dist < 50 #] { 
-                [# IOPortOccupied = true #]
-            } else {
-                [# IOPortOccupied = false #]
-            }
-            [# val statusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId) #]
-            updateResource [# statusJson #]
-            
+            [#
+                val Dist = payloadArg(0).toInt()
+                val Now  = System.currentTimeMillis()
 
-            if [# Dist > 150 #] {
-                if [# ServiceWorking #] {
-                    [# ServiceWorking = false #]
-                    println("cargoservice | Sonar D > DFREE ($Dist) -> OUT OF SERVICE!") color red
-                    [# val statusJson = Hold.toJson(CargoState, "Out of service", IOPortOccupied, ReservedSlotId) #]
-                    updateResource [# statusJson #]
-                    
+                // Container detection: D < DFREE/2 (50) sostenuto per 3s (req.)
+                if (Dist < 50) {
+                    if (ContainerPendingStart < 0L) {
+                        ContainerPendingStart = Now
+                    } else if (Now - ContainerPendingStart >= 3000L) {
+                        IOPortOccupied = true
+                        ContainerPendingStart = -1L
+                    }
+                } else {
+                    ContainerPendingStart = -1L
+                    IOPortOccupied = false
                 }
-            } else {
-                if [# !ServiceWorking #] {
-                    [# ServiceWorking = true #]
-                    println("cargoservice | Sonar D <= DFREE ($Dist) -> SERVICE WORKING again!") color green
-                    [# val statusJson = Hold.toJson(CargoState, "Service working", IOPortOccupied, ReservedSlotId) #]
-                    updateResource [# statusJson #]
-                    
+
+                // Out-of-service: D > DFREE (150) sostenuto per 3s (req.)
+                if (Dist > 150) {
+                    if (ServiceWorking) {
+                        if (OutOfServicePendingStart < 0L) {
+                            OutOfServicePendingStart = Now
+                        } else if (Now - OutOfServicePendingStart >= 3000L) {
+                            ServiceWorking = false
+                            OutOfServicePendingStart = -1L
+                            println("cargoservice | Sonar D>DFREE sostenuto per 3s -> OUT OF SERVICE!")
+                        }
+                    }
+                } else {
+                    OutOfServicePendingStart = -1L
+                    if (!ServiceWorking) {
+                        ServiceWorking = true
+                        println("cargoservice | Sonar D<=DFREE -> SERVICE WORKING again!")
+                    }
                 }
-            }
+
+                val statusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId)
+            #]
+            updateResource [# statusJson #]
         }
     }
     Goto do_robot_job if [# IOPortOccupied && CargoState == "engaged" && ServiceWorking #] else returnToState

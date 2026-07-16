@@ -31,16 +31,27 @@ Context ctxrobot        ip [host="127.0.0.1" port=8053] // Cargorobot
 // SONAR MOCK
 QActor sonarmock context ctxdevices {
     State s0 initial {
-        println("sonarmock | STARTED - Initial distance D=80 (Service working, IOPort free)") color cyan
+        println("sonarmock | STARTED - D=80 (IOPort libero, servizio attivo)") color cyan
         emit sonardata : distance(80)
-        
-        // Test iniziale automatico di Out of Service richiesto per verificare la reattività del sistema
-        delay 5000
-        println("sonarmock [self-test] | Sonar measures D > DFREE (200) -> Emitting sonardata(200) (OUT OF SERVICE)") color red
+
+        // Self-test Out of Service: emette D=200 ogni secondo per 4s.
+        // Il cargoservice va Out of Service dopo 3s sostenuti (req.).
+        delay 3000
+        println("sonarmock [self-test] | Inizio sequenza D>DFREE (1/4)...") color red
         emit sonardata : distance(200)
-        
-        delay 6000
-        println("sonarmock [self-test] | Sonar measures D <= DFREE (80) -> Emitting sonardata(80) (SERVICE WORKING restored)") color green
+        delay 1000
+        println("sonarmock [self-test] | D>DFREE (2/4)...") color red
+        emit sonardata : distance(200)
+        delay 1000
+        println("sonarmock [self-test] | D>DFREE (3/4)...") color red
+        emit sonardata : distance(200)
+        delay 1000
+        println("sonarmock [self-test] | D>DFREE (4/4) -> cargoservice dovrebbe ora essere OUT OF SERVICE") color red
+        emit sonardata : distance(200)
+
+        // Ripristino: D <= DFREE -> SERVICE WORKING
+        delay 2000
+        println("sonarmock [self-test] | D=80 -> ripristino SERVICE WORKING") color green
         emit sonardata : distance(80)
     }
     Goto idle
@@ -50,6 +61,7 @@ QActor sonarmock context ctxdevices {
     }
     Goto idle
 }
+
 
 // MARKER DEVICE
 QActor markerdevice context ctxdevices {
