@@ -134,23 +134,64 @@ object IOPortServer {
                             currentRel = observeRel
                             if (observeRel != null && !observeRel.isCanceled) {
                                 active = true
+                                try {
+                                    val resp = conn.getClient().get()
+                                    if (resp != null) {
+                                        val initContent = resp.responseText
+                                        if (initContent != null && initContent.trim().startsWith("{") && initContent != lastStateJson) {
+                                            lastStateJson = initContent
+                                            wsSessions.forEach { wsCtx ->
+                                                if (wsCtx.session.isOpen) wsCtx.send(initContent)
+                                            }
+                                        }
+                                    }
+                                } catch (ignored: Exception) {}
                             }
                         } else {
-                            Thread.sleep(1000)
+                            Thread.sleep(500)
                         }
                     } catch (e: Exception) {
                         println("IOPortServer | Error setting up observe: ${e.message}")
                         active = false
                         currentConn = null
                         currentRel = null
-                        Thread.sleep(1000)
+                        Thread.sleep(500)
                     }
                 } else {
-                    // Pure push observer: no active GET polling loop.
-                    // If observation breaks or disconnects, Californium triggers onError(), resetting active = false.
+                    val conn = currentConn
+                    val rel = currentRel
+                    if (conn != null) {
+                        try {
+                            val resp = conn.getClient().get()
+                            val content = resp?.responseText
+                            if (content == null || content.isEmpty()) {
+                                println("IOPortServer | CoAP health check returned empty/null. Reconnecting...")
+                                rel?.proactiveCancel()
+                                active = false
+                                currentConn = null
+                                currentRel = null
+                            } else if (content.trim().startsWith("{") && content != lastStateJson) {
+                                println("IOPortServer | CoAP sync check detected update: $content")
+                                lastStateJson = content
+                                wsSessions.forEach { wsCtx ->
+                                    try {
+                                        if (wsCtx.session.isOpen) wsCtx.send(content)
+                                    } catch (e: Exception) {
+                                        println("IOPortServer | Error broadcasting to ws: ${e.message}")
+                                    }
+                                }
+                            }
+                        } catch (e: Exception) {
+                            println("IOPortServer | CoAP health check failed: ${e.message}. Reconnecting...")
+                            rel?.proactiveCancel()
+                            active = false
+                            currentConn = null
+                            currentRel = null
+                        }
+                    }
                 }
                 try {
-                    Thread.sleep(1000)
+                    Thread.sleep(500)
                 } catch (e: InterruptedException) {
                     break
                 }

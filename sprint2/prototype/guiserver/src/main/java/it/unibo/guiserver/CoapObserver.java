@@ -1,27 +1,18 @@
 package it.unibo.guiserver;
 
-import org.eclipse.californium.core.CoapHandler;
-import org.eclipse.californium.core.CoapObserveRelation;
+import org.eclipse.californium.core.CoapClient;
 import org.eclipse.californium.core.CoapResponse;
-import unibo.basicomm23.coap.CoapConnection;
-import unibo.basicomm23.interfaces.Interaction;
-import unibo.basicomm23.msg.ProtocolType;
-import unibo.basicomm23.utils.ConnectionFactory;
 
 /**
- * SoC: Dedicated component for observing the domain state via CoAP.
- * Connects to coap://127.0.0.1:8050/ctxcargoservice/cargoservice and triggers
- * WebSocket broadcasts upon receiving resource state updates.
- * Implements continuous retry and auto-reconnect on observation failure.
+ * SoC: Dedicated component for monitoring the domain state via CoAP.
+ * Note: Implements an optimized "Smart Polling" pattern because the current
+ * server-side QAK framework does not natively trigger pure-push Observe notifications.
  */
 public class CoapObserver implements Runnable {
     private final WsController wsController;
-    private final String coapAddr = "127.0.0.1:8050";
-    private final String coapPath = "ctxcargoservice/cargoservice";
+    private final String coapUrl = "coap://127.0.0.1:8050/ctxcargoservice/cargoservice";
     private volatile boolean running = true;
-    private volatile boolean active = false;
-    private CoapConnection currentConn = null;
-    private CoapObserveRelation currentRel = null;
+    private CoapClient client;
 
     public CoapObserver(WsController wsController) {
         this.wsController = wsController;
@@ -29,91 +20,57 @@ public class CoapObserver implements Runnable {
 
     public void stop() {
         this.running = false;
+        if (client != null) {
+            client.shutdown();
+        }
     }
 
     @Override
     public void run() {
-        while (running) {
-            if (!active) {
-                try {
-                    Interaction conn = ConnectionFactory.createClientSupport23(ProtocolType.coap, coapAddr, coapPath);
-                    if (conn instanceof CoapConnection) {
-                        currentConn = (CoapConnection) conn;
-                        System.out.println("CoapObserver | Attempting to observe coap://" + coapAddr + "/" + coapPath);
-                        CoapObserveRelation rel = currentConn.observeResource(new CoapHandler() {
-                            @Override
-                            public void onLoad(CoapResponse response) {
-                                active = true;
-                                String content = response.getResponseText();
-                                if (content != null && content.trim().startsWith("{") && !content.equals(wsController.getLastStateJson())) {
-                                    System.out.println("CoapObserver | Resource update received via observe: " + content);
-                                    wsController.broadcast(content);
-                                }
-                            }
+        System.out.println("CoapObserver | Starting Smart Polling on: " + coapUrl);
+        client = new CoapClient(coapUrl);
+        client.setTimeout(2000L); // Timeout basso per non bloccare il thread
 
-                            @Override
-                            public void onError() {
-                                System.err.println("CoapObserver | Observation error or disconnection. Will reconnect...");
-                                active = false;
-                                currentConn = null;
-                                currentRel = null;
-                            }
-                        });
-                        currentRel = rel;
-                        if (rel != null && !rel.isCanceled()) {
-                            active = true;
-                            try {
-                                if (currentConn.getClient() != null) {
-                                    CoapResponse resp = currentConn.getClient().get();
-                                    if (resp != null) {
-                                        String content = resp.getResponseText();
-                                        if (content != null && content.trim().startsWith("{") && !content.equals(wsController.getLastStateJson())) {
-                                            wsController.broadcast(content);
-                                        }
-                                    }
-                                }
-                            } catch (Exception ignored) {}
-                        }
-                    }
-                } catch (Exception e) {
-                    System.err.println("CoapObserver | Error setting up observe: " + e.getMessage());
-                    active = false;
-                    currentConn = null;
-                    currentRel = null;
-                }
-            } else {
-                if (currentConn != null && currentConn.getClient() != null) {
-                    try {
-                        CoapResponse resp = currentConn.getClient().get();
-                        if (resp != null) {
-                            String content = resp.getResponseText();
-                            if (content != null && content.trim().startsWith("{") && !content.equals(wsController.getLastStateJson())) {
-                                System.out.println("CoapObserver | Sync update detected via CoAP polling: " + content);
-                                wsController.broadcast(content);
-                            }
-                        } else {
-                            System.err.println("CoapObserver | CoAP health check returned null. Reconnecting...");
-                            if (currentRel != null) currentRel.proactiveCancel();
-                            active = false;
-                            currentConn = null;
-                            currentRel = null;
-                        }
-                    } catch (Exception e) {
-                        System.err.println("CoapObserver | CoAP health check failed: " + e.getMessage());
-                        if (currentRel != null) currentRel.proactiveCancel();
-                        active = false;
-                        currentConn = null;
-                        currentRel = null;
-                    }
-                } else {
-                    active = false;
-                }
-            }
+        while (running) {
             try {
+                CoapResponse resp = client.get();
+                if (resp != null) {
+                    processAndBroadcast(resp.getResponseText());
+                } else {
+                    System.err.println("CoapObserver | Server non raggiungibile. Ritento...");
+                }
+            } catch (Exception e) {
+                System.err.println("CoapObserver | Errore durante il polling: " + e.getMessage());
+            }
+
+            try {
+                // Polling frequente (500ms) per un'esperienza real-time fluida
                 Thread.sleep(500);
-            } catch (InterruptedException ie) {
+            } catch (InterruptedException e) {
                 break;
             }
+        }
+    }
+
+    private void processAndBroadcast(String rawContent) {
+        if (rawContent == null || rawContent.trim().isEmpty()) return;
+
+        String jsonPayload = rawContent.trim();
+
+        // Estrazione sicura: se il QAK wrappa il payload in un ApplMessage,
+        // preleviamo forzatamente solo la parte JSON { ... }
+        if (jsonPayload.contains("{") && jsonPayload.contains("}")) {
+            int firstBrace = jsonPayload.indexOf('{');
+            int lastBrace = jsonPayload.lastIndexOf('}');
+            if (firstBrace != -1 && lastBrace != -1 && lastBrace > firstBrace) {
+                jsonPayload = jsonPayload.substring(firstBrace, lastBrace + 1);
+            }
+        }
+
+        // Se è un JSON valido ed è DIVERSO dall'ultimo inviato, esegui il broadcast
+        if (jsonPayload.startsWith("{") && !jsonPayload.equals(wsController.getLastStateJson())) {
+            // System.out.println("CoapObserver | Stato aggiornato rilevato: " + jsonPayload);
+            wsController.broadcast(jsonPayload);
         }
     }
 }

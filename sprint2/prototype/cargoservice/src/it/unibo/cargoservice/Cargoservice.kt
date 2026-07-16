@@ -42,7 +42,6 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 						 val statusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId)  
 						updateResourceRep( statusJson  
 						)
-						 Hold.updateAndPublish(myself, statusJson)  
 						//genTimer( actor, state )
 					}
 					//After Lenzi Aug2002
@@ -56,7 +55,6 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 						 val statusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId)  
 						updateResourceRep( statusJson  
 						)
-						 Hold.updateAndPublish(myself, statusJson)  
 						//genTimer( actor, state )
 					}
 					//After Lenzi Aug2002
@@ -72,7 +70,6 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 						 val statusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId)  
 						updateResourceRep( statusJson  
 						)
-						 Hold.updateAndPublish(myself, statusJson)  
 						//genTimer( actor, state )
 					}
 					//After Lenzi Aug2002
@@ -90,7 +87,6 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 						 val simStatusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId)  
 						updateResourceRep( simStatusJson  
 						)
-						 Hold.updateAndPublish(myself, simStatusJson)  
 						//genTimer( actor, state )
 					}
 					//After Lenzi Aug2002
@@ -134,7 +130,6 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 						  val statusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId)  
 						 updateResourceRep( statusJson  
 						 )
-						  Hold.updateAndPublish(myself, statusJson)  
 						 }
 						 else
 						  {answer("load_request", "load_refused", "loadRefused(none)"   )  
@@ -164,7 +159,6 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 								 val statusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId)  
 								updateResourceRep( statusJson  
 								)
-								 Hold.updateAndPublish(myself, statusJson)  
 								if(  Dist > 150  
 								 ){if(  ServiceWorking  
 								 ){ ServiceWorking = false  
@@ -172,7 +166,6 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 								 val statusJson = Hold.toJson(CargoState, "Out of service", IOPortOccupied, ReservedSlotId)  
 								updateResourceRep( statusJson  
 								)
-								 Hold.updateAndPublish(myself, statusJson)  
 								}
 								}
 								else
@@ -182,7 +175,6 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 								  val statusJson = Hold.toJson(CargoState, "Service working", IOPortOccupied, ReservedSlotId)  
 								 updateResourceRep( statusJson  
 								 )
-								  Hold.updateAndPublish(myself, statusJson)  
 								 }
 								 }
 						}
@@ -207,7 +199,6 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 								 val statusJson = Hold.toJson(CargoState, "Out of service", IOPortOccupied, ReservedSlotId)  
 								updateResourceRep( statusJson  
 								)
-								 Hold.updateAndPublish(myself, statusJson)  
 								}
 								if(  status == "working" && !ServiceWorking  
 								 ){ ServiceWorking = true  
@@ -215,7 +206,6 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 								 val statusJson = Hold.toJson(CargoState, "Service working", IOPortOccupied, ReservedSlotId)  
 								updateResourceRep( statusJson  
 								)
-								 Hold.updateAndPublish(myself, statusJson)  
 								}
 						}
 						//genTimer( actor, state )
@@ -257,7 +247,6 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 						 val statusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId)  
 						updateResourceRep( statusJson  
 						)
-						 Hold.updateAndPublish(myself, statusJson)  
 						CommUtils.outmagenta("cargoservice | Moving container to slot5 (2,5) for marking...")
 						request("moverobot", "moverobot(2,5,$StepTime)" ,"cargorobot" )  
 						//genTimer( actor, state )
@@ -300,7 +289,6 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 						 val statusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId)  
 						updateResourceRep( statusJson  
 						)
-						 Hold.updateAndPublish(myself, statusJson)  
 						 
 						            val HomeX = Hold.getHomeX()
 						            val HomeY = Hold.getHomeY()
@@ -325,7 +313,6 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 						 val statusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId)  
 						updateResourceRep( statusJson  
 						)
-						 Hold.updateAndPublish(myself, statusJson)  
 						//genTimer( actor, state )
 					}
 					//After Lenzi Aug2002
@@ -348,7 +335,6 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 						 val statusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId)  
 						updateResourceRep( statusJson  
 						)
-						 Hold.updateAndPublish(myself, statusJson)  
 						//genTimer( actor, state )
 					}
 					//After Lenzi Aug2002
@@ -370,7 +356,6 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 						 val statusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId)  
 						updateResourceRep( statusJson  
 						)
-						 Hold.updateAndPublish(myself, statusJson)  
 						}
 						//genTimer( actor, state )
 					}

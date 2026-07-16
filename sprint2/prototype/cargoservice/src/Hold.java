@@ -260,9 +260,4 @@ public class Hold implements IHold {
         return sb.toString();
     }
 
-    public static void updateAndPublish(it.unibo.kactor.ActorBasic actor, String json) {
-        // CoAP resource representation is updated natively via updateResource [# statusJson #] in QAK.
-        // We avoid calling actor.updateResourceRep(json) a second time here and do not publish via MQTT,
-        // preventing Californium CoAP deduplication conflicts and protocol mismatch.
-    }
 }
