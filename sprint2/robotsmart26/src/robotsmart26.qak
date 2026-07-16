@@ -3,11 +3,11 @@ System /*-trace*/ robotsmart26
 	
 /*
  * WARNING: gl eventi emessi  
- */	 
+ */	
 	
 /*   
  * ------------------------------------------------
- * Handled by robotsmart  
+ * Handled by robotsmart
  * ------------------------------------------------ 
 */  
 Request  buildPlan   : buildPlan( PX,PY,TX,TY  )		"create plan from (PX,PY) to (TX,TY)"

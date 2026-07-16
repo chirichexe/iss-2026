@@ -112,8 +112,8 @@ object IOPortServer {
                                 override fun onLoad(response: CoapResponse) {
                                     active = true
                                     val content = response.responseText
-                                    println("IOPortServer | CoAP resource update received: $content")
-                                    if (content != null && content.trim().startsWith("{")) {
+                                    if (content != null && content.trim().startsWith("{") && content != lastStateJson) {
+                                        println("IOPortServer | CoAP resource update received: $content")
                                         lastStateJson = content
                                         wsSessions.forEach { wsCtx ->
                                             try {
@@ -125,7 +125,7 @@ object IOPortServer {
                                     }
                                 }
                                 override fun onError() {
-                                    println("IOPortServer | CoAP observation error or disconnect. Reconnecting in 2s...")
+                                    println("IOPortServer | CoAP observation error or disconnect. Reconnecting...")
                                     active = false
                                     currentConn = null
                                     currentRel = null
@@ -138,7 +138,7 @@ object IOPortServer {
                                     val resp = conn.getClient().get()
                                     if (resp != null) {
                                         val initContent = resp.responseText
-                                        if (initContent != null && initContent.trim().startsWith("{")) {
+                                        if (initContent != null && initContent.trim().startsWith("{") && initContent != lastStateJson) {
                                             lastStateJson = initContent
                                             wsSessions.forEach { wsCtx ->
                                                 if (wsCtx.session.isOpen) wsCtx.send(initContent)
@@ -148,14 +148,14 @@ object IOPortServer {
                                 } catch (ignored: Exception) {}
                             }
                         } else {
-                            Thread.sleep(2000)
+                            Thread.sleep(500)
                         }
                     } catch (e: Exception) {
                         println("IOPortServer | Error setting up observe: ${e.message}")
                         active = false
                         currentConn = null
                         currentRel = null
-                        Thread.sleep(2000)
+                        Thread.sleep(500)
                     }
                 } else {
                     val conn = currentConn
@@ -170,7 +170,8 @@ object IOPortServer {
                                 active = false
                                 currentConn = null
                                 currentRel = null
-                            } else if (content.trim().startsWith("{")) {
+                            } else if (content.trim().startsWith("{") && content != lastStateJson) {
+                                println("IOPortServer | CoAP sync check detected update: $content")
                                 lastStateJson = content
                                 wsSessions.forEach { wsCtx ->
                                     try {
@@ -190,7 +191,7 @@ object IOPortServer {
                     }
                 }
                 try {
-                    Thread.sleep(2000)
+                    Thread.sleep(500)
                 } catch (e: InterruptedException) {
                     break
                 }

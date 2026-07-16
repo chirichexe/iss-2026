@@ -20,6 +20,8 @@ public class CoapObserver implements Runnable {
     private final String coapPath = "ctxcargoservice/cargoservice";
     private volatile boolean running = true;
     private volatile boolean active = false;
+    private CoapConnection currentConn = null;
+    private CoapObserveRelation currentRel = null;
 
     public CoapObserver(WsController wsController) {
         this.wsController = wsController;
@@ -36,34 +38,79 @@ public class CoapObserver implements Runnable {
                 try {
                     Interaction conn = ConnectionFactory.createClientSupport23(ProtocolType.coap, coapAddr, coapPath);
                     if (conn instanceof CoapConnection) {
-                        CoapConnection coapConn = (CoapConnection) conn;
+                        currentConn = (CoapConnection) conn;
                         System.out.println("CoapObserver | Attempting to observe coap://" + coapAddr + "/" + coapPath);
-                        CoapObserveRelation rel = coapConn.observeResource(new CoapHandler() {
+                        CoapObserveRelation rel = currentConn.observeResource(new CoapHandler() {
                             @Override
                             public void onLoad(CoapResponse response) {
                                 active = true;
                                 String content = response.getResponseText();
-                                System.out.println("CoapObserver | Resource update received: " + content);
-                                wsController.broadcast(content);
+                                if (content != null && content.trim().startsWith("{") && !content.equals(wsController.getLastStateJson())) {
+                                    System.out.println("CoapObserver | Resource update received via observe: " + content);
+                                    wsController.broadcast(content);
+                                }
                             }
 
                             @Override
                             public void onError() {
-                                System.err.println("CoapObserver | Observation error or disconnection. Will reconnect in 2s...");
+                                System.err.println("CoapObserver | Observation error or disconnection. Will reconnect...");
                                 active = false;
+                                currentConn = null;
+                                currentRel = null;
                             }
                         });
+                        currentRel = rel;
                         if (rel != null && !rel.isCanceled()) {
                             active = true;
+                            try {
+                                if (currentConn.getClient() != null) {
+                                    CoapResponse resp = currentConn.getClient().get();
+                                    if (resp != null) {
+                                        String content = resp.getResponseText();
+                                        if (content != null && content.trim().startsWith("{") && !content.equals(wsController.getLastStateJson())) {
+                                            wsController.broadcast(content);
+                                        }
+                                    }
+                                }
+                            } catch (Exception ignored) {}
                         }
                     }
                 } catch (Exception e) {
                     System.err.println("CoapObserver | Error setting up observe: " + e.getMessage());
                     active = false;
+                    currentConn = null;
+                    currentRel = null;
+                }
+            } else {
+                if (currentConn != null && currentConn.getClient() != null) {
+                    try {
+                        CoapResponse resp = currentConn.getClient().get();
+                        if (resp != null) {
+                            String content = resp.getResponseText();
+                            if (content != null && content.trim().startsWith("{") && !content.equals(wsController.getLastStateJson())) {
+                                System.out.println("CoapObserver | Sync update detected via CoAP polling: " + content);
+                                wsController.broadcast(content);
+                            }
+                        } else {
+                            System.err.println("CoapObserver | CoAP health check returned null. Reconnecting...");
+                            if (currentRel != null) currentRel.proactiveCancel();
+                            active = false;
+                            currentConn = null;
+                            currentRel = null;
+                        }
+                    } catch (Exception e) {
+                        System.err.println("CoapObserver | CoAP health check failed: " + e.getMessage());
+                        if (currentRel != null) currentRel.proactiveCancel();
+                        active = false;
+                        currentConn = null;
+                        currentRel = null;
+                    }
+                } else {
+                    active = false;
                 }
             }
             try {
-                Thread.sleep(2000);
+                Thread.sleep(500);
             } catch (InterruptedException ie) {
                 break;
             }
