@@ -35,6 +35,8 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 		        var CargoState     = "disengaged"
 		        var ReservedSlotId = -1
 		        val StepTime       = 345
+		        var OutOfServicePendingStart = -1L
+		        var ContainerPendingStart    = -1L
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
@@ -149,34 +151,44 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 					action { //it:State
 						if( checkMsgContent( Term.createTerm("distance(D)"), Term.createTerm("distance(D)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
-								 val Dist = payloadArg(0).toInt()  
-								if(  Dist < 50  
-								 ){ IOPortOccupied = true  
+																val Dist = payloadArg(0).toInt()
+								val Now  = System.currentTimeMillis()
+								val DFree = Hold.getDfree()
+								val DFreeDiv2 = DFree / 2
+
+								// Container detection: D < DFREE/2 sostenuto per 3s (req.)
+								if (Dist < DFreeDiv2) {
+									if (ContainerPendingStart < 0L) {
+										ContainerPendingStart = Now
+									} else if (Now - ContainerPendingStart >= 3000L) {
+										IOPortOccupied = true
+										ContainerPendingStart = -1L
+									}
+								} else {
+									ContainerPendingStart = -1L
+									IOPortOccupied = false
 								}
-								else
-								 { IOPortOccupied = false  
-								 }
-								 val statusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId)  
-								updateResourceRep( statusJson  
-								)
-								if(  Dist > 150  
-								 ){if(  ServiceWorking  
-								 ){ ServiceWorking = false  
-								CommUtils.outred("cargoservice | Sonar D > DFREE ($Dist) -> OUT OF SERVICE!")
-								 val statusJson = Hold.toJson(CargoState, "Out of service", IOPortOccupied, ReservedSlotId)  
-								updateResourceRep( statusJson  
-								)
+
+								// Out-of-service: D > DFREE sostenuto per 3s (req.)
+								if (Dist > DFree) {
+									if (ServiceWorking) {
+										if (OutOfServicePendingStart < 0L) {
+											OutOfServicePendingStart = Now
+										} else if (Now - OutOfServicePendingStart >= 3000L) {
+											ServiceWorking = false
+											OutOfServicePendingStart = -1L
+											CommUtils.outred("cargoservice | Sonar D>DFREE ($Dist > $DFree) sostenuto per 3s -> OUT OF SERVICE!")
+										}
+									}
+								} else {
+									OutOfServicePendingStart = -1L
+									if (!ServiceWorking) {
+										ServiceWorking = true
+										CommUtils.outgreen("cargoservice | Sonar D<=DFREE ($Dist <= $DFree) -> SERVICE WORKING again!")
+									}
 								}
-								}
-								else
-								 {if(  !ServiceWorking  
-								  ){ ServiceWorking = true  
-								 CommUtils.outgreen("cargoservice | Sonar D <= DFREE ($Dist) -> SERVICE WORKING again!")
-								  val statusJson = Hold.toJson(CargoState, "Service working", IOPortOccupied, ReservedSlotId)  
-								 updateResourceRep( statusJson  
-								 )
-								 }
-								 }
+								val statusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId)
+								updateResourceRep( statusJson )
 						}
 						//genTimer( actor, state )
 					}

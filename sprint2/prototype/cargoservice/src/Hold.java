@@ -6,6 +6,7 @@ public class Hold implements IHold {
     private int height = 6;
     private int homeX = 0;
     private int homeY = 0;
+    private int dfree = 150;
 
     private CellType[][] cells;
 
@@ -13,6 +14,10 @@ public class Hold implements IHold {
     private final String[] slotStates = new String[] { "free", "free", "free", "free", "marker" };
     private final int[] slotX = new int[] { 1, 4, 1, 4, 5 };
     private final int[] slotY = new int[] { 1, 1, 3, 3, 2 };
+
+    public static int getDfree() {
+        return INSTANCE.dfree;
+    }
 
     public Hold() {
         initDefaultGrid();
@@ -85,9 +90,25 @@ public class Hold implements IHold {
                 cells[s5y][s5x] = CellType.SLOT5;
             }
 
+            int dfreeVal = extractTopLevelInt(json, "\"dfree\"", 150);
+            this.dfree = dfreeVal;
+
         } catch (Exception e) {
             System.err.println("Hold | Error loading config from JSON: " + e.getMessage());
         }
+    }
+
+    private int extractTopLevelInt(String json, String fieldToken, int defaultVal) {
+        int fieldIdx = json.indexOf(fieldToken);
+        if (fieldIdx < 0) return defaultVal;
+        int start = fieldIdx + fieldToken.length();
+        while (start < json.length() && (Character.isWhitespace(json.charAt(start)) || json.charAt(start) == ':' || json.charAt(start) == ',')) start++;
+        int end = start;
+        while (end < json.length() && Character.isDigit(json.charAt(end))) end++;
+        if (end > start) {
+            return Integer.parseInt(json.substring(start, end));
+        }
+        return defaultVal;
     }
 
     private int extractInt(String json, String sectionToken, String fieldToken, int defaultVal) {
