@@ -19,10 +19,10 @@ Context ctxioport       ip [host="localhost" port=8051]
 Context ctxdevices      ip [host="127.0.0.1" port=8052]
 Context ctxrobot        ip [host="127.0.0.1" port=8053] 
 
-// LED MOCK (il collegamento hardware PICOW <-> led,sonar sarà sviluppato separatamente)
-QActor ledmock context ctxioport {
+// LED ADAPTER: traduce il comando applicativo led_ctrl in publish MQTT su comando/led.
+QActor ledadapter context ctxioport {
     State s0 initial { 
-        println("ledmock | STARTED") color green
+        println("ledadapter | STARTED - publishing LED commands to MQTT topic comando/led") color green
     }   
     Goto work
     
@@ -34,10 +34,10 @@ QActor ledmock context ctxioport {
         onMsg(led_ctrl : ledCmd(CMD)) {
             [# 
                 val Command = payloadArg(0).toString()
-                mqtt.publish("comando/led", Command, 0, false)
+                publish(Command, "comando/led", 0, false)
             #]
             
-            println("led_adapter | MQTT publish eseguito") color blue
+            println("ledadapter | MQTT publish comando/led=$Command") color blue
         }
     }
     Goto work

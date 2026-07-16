@@ -27,7 +27,7 @@ Context ctxioport       ip [host="127.0.0.1" port=8051] // Ioport web facade / l
 Context ctxdevices      ip [host="127.0.0.1" port=8052] // Sonar / markerdevice
 Context ctxrobot        ip [host="127.0.0.1" port=8053] // Cargorobot
 
-ExternalQActor ledmock      context ctxioport
+ExternalQActor ledadapter   context ctxioport
 ExternalQActor markerdevice context ctxdevices
 ExternalQActor cargorobot   context ctxrobot
 
@@ -100,7 +100,7 @@ QActor cargoservice context ctxcargoservice {
                     ReservedSlotId = SlotId
                     CargoState     = "engaged" 
                 #]
-                forward ledmock -m led_ctrl : ledCmd(blink)
+                forward ledadapter -m led_ctrl : ledCmd(blink)
                 [# val SlotName = "slot$ReservedSlotId" #]
                 replyTo load_request with load_accepted : loadAccepted($SlotName)
                 [# val statusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId) #]
@@ -250,7 +250,7 @@ QActor cargoservice context ctxcargoservice {
             CargoState = "disengaged"
             ReservedSlotId = -1
         #]
-        forward ledmock -m led_ctrl : ledCmd(off)
+        forward ledadapter -m led_ctrl : ledCmd(off)
         [# val statusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId) #]
         updateResource [# statusJson #]
         
@@ -268,7 +268,7 @@ QActor cargoservice context ctxcargoservice {
             ReservedSlotId = -1
             IOPortOccupied = false
         #]
-        forward ledmock -m led_ctrl : ledCmd(off)
+        forward ledadapter -m led_ctrl : ledCmd(off)
         [# val statusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId) #]
         updateResource [# statusJson #]
         
@@ -286,7 +286,7 @@ QActor cargoservice context ctxcargoservice {
                 CargoState = "disengaged"
                 ReservedSlotId = -1
             #]
-            forward ledmock -m led_ctrl : ledCmd(off)
+            forward ledadapter -m led_ctrl : ledCmd(off)
             [# val statusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId) #]
             updateResource [# statusJson #]
             

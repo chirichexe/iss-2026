@@ -1,5 +1,5 @@
 System cargosystem
-mqttBroker "localhost" : 1883 eventTopic "cargosystem"
+mqttBroker "localhost" : 1883 eventTopic "sensore/sonar"
 
  
 // Customer <-> CargoService  
@@ -10,6 +10,7 @@ Reply   load_refused    : loadRefused(none) for load_request
  
 // Aggiornamenti Sensori e Stato  
 Event    sonardata          : distance(D)  // Emesso dal sonar
+Event    kernel_rawmsg      : kernel_rawmsg(D) // Payload MQTT raw ricevuto da sensore/sonar
 Dispatch set_service_status : setServiceStatus(STATUS) 
 Dispatch led_ctrl           : ledCmd(CMD)         
 
@@ -28,38 +29,32 @@ Context ctxioport       ip [host="127.0.0.1" port=8051] // Ioport web / led
 Context ctxdevices      ip [host="localhost" port=8052] // Sonar / markerdevice
 Context ctxrobot        ip [host="127.0.0.1" port=8053] // Cargorobot
 
-// SONAR MOCK
-QActor sonarmock context ctxdevices {
+// SONAR ADAPTER: riceve automaticamente da eventTopic "sensore/sonar" e traduce i payload raw in eventi sonardata.
+QActor sonaradapter context ctxdevices {
     State s0 initial {
-        println("sonarmock | STARTED - D=80 (IOPort libero, servizio attivo)") color cyan
-        emit sonardata : distance(80)
-
-        // Self-test Out of Service: emette D=200 ogni secondo per 4s.
-        // Il cargoservice va Out of Service dopo 3s sostenuti (req.).
-        delay 3000
-        println("sonarmock [self-test] | Inizio sequenza D>DFREE (1/4)...") color red
-        emit sonardata : distance(200)
-        delay 1000
-        println("sonarmock [self-test] | D>DFREE (2/4)...") color red
-        emit sonardata : distance(200)
-        delay 1000
-        println("sonarmock [self-test] | D>DFREE (3/4)...") color red
-        emit sonardata : distance(200)
-        delay 1000
-        println("sonarmock [self-test] | D>DFREE (4/4) -> cargoservice dovrebbe ora essere OUT OF SERVICE") color red
-        emit sonardata : distance(200)
-
-        // Ripristino: D <= DFREE -> SERVICE WORKING
-        delay 2000
-        println("sonarmock [self-test] | D=80 -> ripristino SERVICE WORKING") color green
-        emit sonardata : distance(80)
+        println("sonaradapter | STARTED - MQTT input topic sensore/sonar") color cyan
     }
-    Goto idle
+    Goto work
 
-    State idle {
-        delay 60000
+    State work { }
+    Transition t0
+        whenEvent kernel_rawmsg -> handle_sonar_payload
+
+    State handle_sonar_payload {
+        onMsg(kernel_rawmsg : kernel_rawmsg(D)) {
+            [#
+                val RawDistance = payloadArg(0).trim()
+                val Distance = RawDistance.toIntOrNull()
+            #]
+            if [# Distance != null #] {
+                emit sonardata : distance($Distance)
+                println("sonaradapter | MQTT sensore/sonar=$RawDistance -> sonardata distance($Distance)") color cyan
+            } else {
+                println("sonaradapter | Ignored invalid MQTT sonar payload: $RawDistance") color red
+            }
+        }
     }
-    Goto idle
+    Goto work
 }
 
 
