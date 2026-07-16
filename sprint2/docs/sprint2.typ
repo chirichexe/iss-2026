@@ -111,12 +111,15 @@ NOTA: SI HA A DISPOSIZIONE un ESP32 e non un PicoW
 == Osservabilità dello stato della Hold e considerazioni sulla Web GUI
 // =============================================================================
 
-Nello Sprint 1, l'IOPort era modellato come un *attore QAK mock* all'interno dello *stesso contesto della Hold*. Questa vicinanza gli permetteva di reagire direttamente ai messaggi scambiati sulla rete di attori.
+Nello Sprint 1, l'IOPort era modellato come un *attore QAK mock* all'interno dello *stesso contesto della Hold*. 
+Questa vicinanza gli permetteva di reagire direttamente ai messaggi scambiati sulla rete di attori.
 
-Con l'evoluzione del sistema, l'IOPort diventerà una Web GUI eseguita in un browser esterno, introducendo così due problematiche che rendono i messaggi QAK nativi *inadatti* all'aggiornamento dell'interfaccia:
+Con l'evoluzione del sistema, l'IOPort diventerà una Web GUI eseguita in un browser esterno, introducendo così due 
+problematiche che rendono i messaggi QAK nativi *inadatti* all'aggiornamento dell'interfaccia:
 
 1. I browser *non comprendono* il protocollo di messaggistica QAK e non possono partecipare direttamente alla rete di attori.
-2. Per rappresentare in tempo reale lo stato della Hold, la condizione Out of Service e l'occupazione dell'IOPort, la GUI necessita di una vista consistente e sincronizzata del sistema in un determinato istante, anziché di una sequenza di messaggi da ricostruire ed elaborare lato client.
+2. Per rappresentare in tempo reale lo stato della Hold, la condizione Out of Service e l'occupazione dell'IOPort, la GUI necessita 
+di una vista consistente e sincronizzata del sistema in un determinato istante, anziché di una sequenza di messaggi da ricostruire ed elaborare lato client.
 
 Per questo motivo lo stato dinamico del sistema andrà centralizzato in un'*unica rappresentazione* indipendente dall'implementazione interna degli attori e facilmente interpretabile dal client. In questo modo la Web GUI rimane disaccoppiata dalla logica applicativa, mentre il cargoservice continua a essere l'unico responsabile della gestione delle transizioni di stato e dell'aggiornamento della rappresentazione condivisa.
 
