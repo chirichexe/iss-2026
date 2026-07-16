@@ -88,43 +88,48 @@ L'analisi dei requisiti è stata svolta nello #link("https://github.com/chiriche
 
 In particolare, per lo Sprint 2 restano centrali le seguenti conclusioni:
 
-- il *cargoservice* è l'orchestratore del ciclo di carico;
+- il *cargoservice* Resta l'orchestratore del ciclo di carico;
 - la *hold* rappresenta lo stato interno degli slot e delle posizioni rilevanti;
-- il *cargorobot* viene trattato come servizio reattivo, tramite wrapper verso *RobotSmart26*;
+- il *cargorobot* viene trattato come servizio reattivo, tramite wrapper (SPECIFICA PATTERN) verso *RobotSmart26*;
 - *sonar* e *LED* devono essere integrati come dispositivi reali collegati al PicoW;
 - l'*IOPort* deve essere realizzato come Web GUI;
 - lo stato *Out of service* deve bloccare l'accettazione di nuove richieste e interrompere il movimento del robot, con ripresa al ritorno dello stato *Service working*.
 
-HOLD deve INVIARE il suo STATO
+Dai requisiti si comprende come sul display dell'IoPort bisogna mostrare, oltre ai messaggi del display attualmente modellati come "Response" di QAK, lo stato corrente della Hold, che attualmente è auto-contenuto dal POJO. Bisognerà quindi riflettere su dei meccanismi di invio di aggiornamenti dello stato dalla Hold alla GUI dell'IoPort.
 
-
-
+Il messaggio *"Out of service"* se il sensore sonar misura la distanza del container dal sonar stesso D > D#sub[FREE] per almeno 3 secondi.
+- Il sensore associato all'IOPort è un dispositivo (un sonar) utilizzato per rilevare la presenza di un container, quando misura una distanza D, tale che D < D#sub[FREE]/2, per un tempo ragionevole (ad esempio 3 secondi).
 
 // =============================================================================
 = Problem analysis <model>
 // =============================================================================
 
-Nello Sprint 2 la logica applicativa definita nello sprint precedente verrà mantenuta, e verranno sostituiti progressivamente i componenti simulati con componenti accessibili attraverso tecnologie compatibili con la loro natura:
+Come definito precedentemente, bisogna sostituire progressivamente i componenti simulati con componenti accessibili attraverso tecnologie compatibili con la loro natura:
 
 // =============================================================================
-== Osservabilità dello stato della Hold
+== Osservabilità dello stato della Hold e considerazioni sulla Web GUI
 // =============================================================================
 
-Da requisito (DA SCRIVERE IN ANALISI QUESTA COSA) la Web GUI deve mostrare lo stato corrente della hold e lo stato operativo del servizio. Tali informazioni sono però attualmente mantenute all'interno del *cargoservice* e del POJO *Hold*, non risultando direttamente accessibili ai componenti esterni.
+Nello Sprint 1, l'IOPort era modellato come un attore QAK "mock" all'interno dello stesso contesto dell hold. Questa vicinanza tecnologica permetteva all'IOPort di reagire direttamente ai singoli eventi e messaggi asincroni scambiati sulla rete di attori. 
 
-Si risulta che la HOLD va rappresentata come attore e non come pojo. FALSO FORSE VA BENE COME POJO, DA CHIEDERE
+Adesso l'IOPort evolve in una Web GUI eseguita in un browser web esterno. Questa transizione fisica e architetturale solleva tre problematiche fondamentali che rendono i messaggi QAK nativi inadeguati per l'aggiornamento dell'interfaccia:
 
-È ora necessario definire una rappresentazione univoca e serializzabile dello stato osservabile. 
-Si sceglie il formato *JSON*, che è indipendente dal linguaggio e direttamente manipolabile dalla Web GUI.
+1. I browser non comprendono lo scambio di messaggi nativi QAK e non possono partecipare direttamente alla topologia di rete del modello ad attori da esso implementato.
+
+2. Per mostrare in tempo reale lo stato della *Hold*, lo stato *Out of service* o l'occupazione dell'IOPort, la GUI necessita di una rappresentazione dello stato del sistema consistente e sincronizzata in un dato istante, piuttosto che di un flusso di messaggi frammentati da ricostruire ed elaborare lato client.
+
+Fornire un'unica struttura dati descrittiva potrà consentire di disaccoppiare la Web GUI dalla logica interna degli attori. Il frontend si limiterà ad associare i dati ricevuti sui componenti grafici. Il *cargoservice* continuerà a gestire le transizioni di stato.
+
+Lo stato dinamico della *Hold* e del sistema viene astratto e centralizzato in una rappresentazione serializzabile in formato *JSON*, indipendente dal linguaggio di programmazione e direttamente interpretabile dal motore JavaScript del client.
 
 ```json
 {
-  "serviceState": "engaged",         // valori ammessi...
-  "workingState": "Service working", // valori ammessi...
-  "ioPortOccupied": true,
-  "reservedSlot": 2,
-  "slots": {
-    "slot1": "occupied",
+  "serviceState": "engaged",         // engaged, disengaged
+  "workingState": "Service working", // Service working, Out of service
+  "ioPortOccupied": true,            // true o false
+  "reservedSlot": 2,                 // slot riservato per l'operazione corrente
+  "slots": {                         // occupied, reserved, free
+    "slot1": "occupied",  
     "slot2": "reserved",
     "slot3": "free",
     "slot4": "occupied"
@@ -132,18 +137,14 @@ Si sceglie il formato *JSON*, che è indipendente dal linguaggio e direttamente 
 }
 ```
 
-Il cargoservice aggiorna tale rappresentazione ogni volta che si verifica una variazione significativa dello stato del sistema, tra cui:
 
-- il passaggio tra gli stati engaged e disengaged
-- il rilevamento di un container nell'IOPort
-- l'ingresso o l'uscita dallo stato Out of service
-- il completamento del deposito nello slot riservato.
+Il cargoservice si assume la responsabilità di rigenerare questa stringa JSON e di notificarla all'esterno ogni volta che si verifica una variazione significativa del sistema (es. transizione tra gli stati engaged/disengaged, variazione delle distanze del sonar, ingresso/uscita dallo stato Out of service o completamento del deposito).
 
 // =============================================================================
-== Esposizione dello stato mediante CoAP
+== Protocolli per l'esposizione dello stato mediante
 // =============================================================================
 
-Il runtime QAK permette a un attore di esporre il proprio stato come risorsa CoAP osservabile. Questa possibilità risulta adatta al problema poiché consente a un componente esterno di:
+Il runtime QAK permette a un attore di esporre nativamente il proprio stato come risorsa CoAP osservabile. Questa possibilità risulta adatta al problema poiché consente a un componente esterno di:
 
 - recuperare lo stato corrente del sistema;
 - osservare la risorsa;
