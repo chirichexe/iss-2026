@@ -19,26 +19,28 @@ Context ctxcustomer     ip [host="localhost" port=8051]
 Context ctxdevices      ip [host="127.0.0.1" port=8052]
 Context ctxrobot        ip [host="127.0.0.1" port=8053] 
 
-// LED MOCK (il collegamento hardware PICOW <-> led,sonar sarà sviluppato separatamente)
-QActor ledmock context ctxcustomer {
-    State s0 initial { 
-        println("ledmock | STARTED") color green
-    }   
+// LED ADAPTER (Bridge verso PicoW/ESP32 via MQTT)
+QActor led_adapter context ctxcustomer {
+    State s0 initial {
+        println("led_adapter | STARTED") color blue
+    }
     Goto work
     
-    State work {} 
+    State work { }
     Transition t0 
-        whenMsg led_ctrl -> handle_cmd 
+        whenMsg led_ctrl -> handle_led_cmd
         
-    State handle_cmd {
+    State handle_led_cmd {
         onMsg(led_ctrl : ledCmd(CMD)) {
-            println("ledmock | LED is now ${payloadArg(0)}") color green
+            [# 
+                val Command = payloadArg(0).toString()
+                mqtt.publish("comando/led", Command, 0, false)
+            #]
+            
+            println("led_adapter | MQTT publish eseguito") color blue
         }
     }
     Goto work
 }
 
 ExternalQActor cargoservice context ctxcargoservice
-
-
-
