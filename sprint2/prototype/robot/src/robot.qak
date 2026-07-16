@@ -15,7 +15,7 @@ Reply    moverobotfailed : moverobotfailed(PLANDONE, PLANTODO) for moverobot
 
 // CONTESTI
 Context ctxcargoservice ip [host="127.0.0.1" port=8050]
-Context ctxcustomer     ip [host="127.0.0.1" port=8051]
+Context ctxioport       ip [host="127.0.0.1" port=8051]
 Context ctxdevices      ip [host="127.0.0.1" port=8052]
 Context ctxrobot        ip [host="localhost" port=8053]
 Context ctxrobotsmart   ip [host="127.0.0.1" port=8020] 

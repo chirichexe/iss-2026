@@ -24,7 +24,7 @@ dependencies {
     implementation 'org.slf4j:slf4j-api:2.0.7'
     implementation 'ch.qos.logback:logback-classic:1.2.11'
 
-    // MQTT
+    // MQTT (Required by QAK dependencies even though MQTT observer is removed)
     implementation group: 'org.eclipse.paho', name: 'org.eclipse.paho.client.mqttv3', version: '1.2.5'
 
     // JSON

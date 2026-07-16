@@ -29,8 +29,8 @@ for port in 8086 8090 8085 8020 8050 8051 8052 8053; do
 done
 
 # Termina tutti i Gradle daemon inattivi in RAM per evitare Out of Memory (OOM Killer)
-if [ -f "$PROJECT_DIR/sprint2/prototype/customer/gradlew" ]; then
-    "$PROJECT_DIR/sprint2/prototype/customer/gradlew" --stop 2>/dev/null || true
+if [ -f "$PROJECT_DIR/sprint2/prototype/ioport/gradlew" ]; then
+    "$PROJECT_DIR/sprint2/prototype/ioport/gradlew" --stop 2>/dev/null || true
 fi
 
 echo "Attesa pulizia completata..."
@@ -80,9 +80,9 @@ open_terminal "4_CargoRobot" "$PROJECT_DIR/sprint2/prototype/robot" "./gradlew r
 echo "    Attesa avvio CargoRobot (3 secondi)..."
 sleep 3
 
-# TERMINALE 5: Contesto QAK Cliente / LedMock (customer)
-open_terminal "5_Customer_LedMock" "$PROJECT_DIR/sprint2/prototype/customer" "./gradlew runCustomer --no-daemon"
-echo "    Attesa avvio Customer context (3 secondi)..."
+# TERMINALE 5: Contesto QAK Ioport / LedMock (ioport)
+open_terminal "5_Ioport_LedMock" "$PROJECT_DIR/sprint2/prototype/ioport" "./gradlew runIoport --no-daemon"
+echo "    Attesa avvio Ioport context (3 secondi)..."
 sleep 3
 
 # TERMINALE 6: Server Esterno Web GUI Inbound Adapter su porta 8086 (guiserver26qak0)
