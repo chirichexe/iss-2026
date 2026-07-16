@@ -47,13 +47,16 @@ class Ledmock ( name: String, scope: CoroutineScope, isconfined: Boolean=false, 
 					//After Lenzi Aug2002
 					sysaction { //it:State
 					}	 	 
-					 transition(edgeName="t00",targetState="handle_cmd",cond=whenDispatch("led_ctrl"))
+					 transition(edgeName="t00",targetState="handle_led_cmd",cond=whenDispatch("led_ctrl"))
 				}	 
-				state("handle_cmd") { //this:State
+				state("handle_led_cmd") { //this:State
 					action { //it:State
 						if( checkMsgContent( Term.createTerm("ledCmd(CMD)"), Term.createTerm("ledCmd(CMD)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
-								CommUtils.outgreen("ledmock | LED is now ${payloadArg(0)}")
+								 
+								                val Command = payloadArg(0).toString()
+								                mqtt.publish("comando/led", Command, 0, false)
+								CommUtils.outblue("led_adapter | MQTT publish eseguito")
 						}
 						//genTimer( actor, state )
 					}

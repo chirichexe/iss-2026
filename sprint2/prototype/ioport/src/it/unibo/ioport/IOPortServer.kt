@@ -96,39 +96,103 @@ object IOPortServer {
             }
         }
 
-        // Avvio del thread per l'osservazione CoAP sul cargoservice con meccanismo di retry
         thread(start = true, isDaemon = true, name = "CoapObserverThread") {
-            var observed = false
-            while (!observed) {
-                try {
-                    val coapConn = ConnectionFactory.createClientSupport23(ProtocolType.coap, "127.0.0.1:8050", "ctxcargoservice/cargoservice")
-                    if (coapConn != null && coapConn is CoapConnection) {
-                        println("IOPortServer | CoAP observer connected to coap://127.0.0.1:8050/ctxcargoservice/cargoservice")
-                        coapConn.observeResource(object : CoapHandler {
-                            override fun onLoad(response: CoapResponse) {
-                                val content = response.responseText
-                                println("IOPortServer | CoAP resource update received: $content")
-                                if (content != null && content.trim().startsWith("{")) {
-                                    lastStateJson = content
-                                    wsSessions.forEach { wsCtx ->
-                                        try {
-                                            if (wsCtx.session.isOpen) wsCtx.send(content)
-                                        } catch (e: Exception) {
-                                            println("IOPortServer | Error broadcasting to ws: ${e.message}")
+            var active = false
+            var currentConn: CoapConnection? = null
+            var currentRel: org.eclipse.californium.core.CoapObserveRelation? = null
+            while (true) {
+                val act = active
+                if (!act) {
+                    try {
+                        val conn = ConnectionFactory.createClientSupport23(ProtocolType.coap, "127.0.0.1:8050", "ctxcargoservice/cargoservice")
+                        if (conn != null && conn is CoapConnection) {
+                            currentConn = conn
+                            println("IOPortServer | Attempting to observe coap://127.0.0.1:8050/ctxcargoservice/cargoservice")
+                            val observeRel = conn.getClient().observe(object : CoapHandler {
+                                override fun onLoad(response: CoapResponse) {
+                                    active = true
+                                    val content = response.responseText
+                                    println("IOPortServer | CoAP resource update received: $content")
+                                    if (content != null && content.trim().startsWith("{")) {
+                                        lastStateJson = content
+                                        wsSessions.forEach { wsCtx ->
+                                            try {
+                                                if (wsCtx.session.isOpen) wsCtx.send(content)
+                                            } catch (e: Exception) {
+                                                println("IOPortServer | Error broadcasting to ws: ${e.message}")
+                                            }
                                         }
                                     }
                                 }
+                                override fun onError() {
+                                    println("IOPortServer | CoAP observation error or disconnect. Reconnecting in 2s...")
+                                    active = false
+                                    currentConn = null
+                                    currentRel = null
+                                }
+                            })
+                            currentRel = observeRel
+                            if (observeRel != null && !observeRel.isCanceled) {
+                                active = true
+                                try {
+                                    val resp = conn.getClient().get()
+                                    if (resp != null) {
+                                        val initContent = resp.responseText
+                                        if (initContent != null && initContent.trim().startsWith("{")) {
+                                            lastStateJson = initContent
+                                            wsSessions.forEach { wsCtx ->
+                                                if (wsCtx.session.isOpen) wsCtx.send(initContent)
+                                            }
+                                        }
+                                    }
+                                } catch (ignored: Exception) {}
                             }
-                            override fun onError() {
-                                println("IOPortServer | CoAP observation error or disconnect")
-                            }
-                        })
-                        observed = true
-                    } else {
+                        } else {
+                            Thread.sleep(2000)
+                        }
+                    } catch (e: Exception) {
+                        println("IOPortServer | Error setting up observe: ${e.message}")
+                        active = false
+                        currentConn = null
+                        currentRel = null
                         Thread.sleep(2000)
                     }
-                } catch (e: Exception) {
+                } else {
+                    val conn = currentConn
+                    val rel = currentRel
+                    if (conn != null) {
+                        try {
+                            val resp = conn.getClient().get()
+                            val content = resp?.responseText
+                            if (content == null || content.isEmpty()) {
+                                println("IOPortServer | CoAP health check returned empty/null. Reconnecting...")
+                                rel?.proactiveCancel()
+                                active = false
+                                currentConn = null
+                                currentRel = null
+                            } else if (content.trim().startsWith("{")) {
+                                lastStateJson = content
+                                wsSessions.forEach { wsCtx ->
+                                    try {
+                                        if (wsCtx.session.isOpen) wsCtx.send(content)
+                                    } catch (e: Exception) {
+                                        println("IOPortServer | Error broadcasting to ws: ${e.message}")
+                                    }
+                                }
+                            }
+                        } catch (e: Exception) {
+                            println("IOPortServer | CoAP health check failed: ${e.message}. Reconnecting...")
+                            rel?.proactiveCancel()
+                            active = false
+                            currentConn = null
+                            currentRel = null
+                        }
+                    }
+                }
+                try {
                     Thread.sleep(2000)
+                } catch (e: InterruptedException) {
+                    break
                 }
             }
         }

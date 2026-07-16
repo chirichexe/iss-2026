@@ -86,12 +86,28 @@ public class VRObj26  implements IRobotBasicMoves {
     } 
     @Override
     public void turnLeft() throws Exception {
-        requestSynch(VrobotMsgs.turnleftcmd);
+        CommUtils.delay(50);
+        String res = requestSynch(VrobotMsgs.turnleftcmd);
+        int attempts = 0;
+        while ((res == null || res.contains("false")) && attempts < 10) {
+            attempts++;
+            CommUtils.outyellow("VRObj26 | turnLeft retrying after notallowed/collision (attempt " + attempts + ")...");
+            CommUtils.delay(150);
+            res = requestSynch(VrobotMsgs.turnleftcmd);
+        }
     }
 
     @Override
     public void turnRight() throws Exception {
-        requestSynch(VrobotMsgs.turnrightcmd);
+        CommUtils.delay(50);
+        String res = requestSynch(VrobotMsgs.turnrightcmd);
+        int attempts = 0;
+        while ((res == null || res.contains("false")) && attempts < 10) {
+            attempts++;
+            CommUtils.outyellow("VRObj26 | turnRight retrying after notallowed/collision (attempt " + attempts + ")...");
+            CommUtils.delay(150);
+            res = requestSynch(VrobotMsgs.turnrightcmd);
+        }
     }
 
     @Override
@@ -139,38 +155,37 @@ public class VRObj26  implements IRobotBasicMoves {
             return;
         } 
        if( ! doingStepSynch ) {    
-            String wenvInfo = toApplMsg.replace("CONTENT", "vrinfo("+move+"," +elapsed +")");
-            IApplMessage msg = new ApplMessage(wenvInfo);
+            String cleanMove = move.replaceAll("[^a-zA-Z0-9_]", "_");
+            IApplMessage msg = CommUtils.buildEvent("VRObj26", "vrinfo", "vrinfo("+cleanMove+"," +elapsed +")");
             emitInfo(msg);   
        }else {  //move is a forwardcmd for step synch
-           String wenvInfo = toApplMsg.replace("CONTENT", "vrinfo(step,"+elapsed+")");
-           IApplMessage msg = new ApplMessage(wenvInfo);
-           emitInfo(msg);   
-           activateWaiting(move,"true" );
+            IApplMessage msg = CommUtils.buildEvent("VRObj26", "vrinfo", "vrinfo(step,"+elapsed+")");
+            emitInfo(msg);   
+            activateWaiting(move,"true" );
        }        
     }
     
     protected void handleMoveko(String move) {
-     	//int elapsed = getDuration();  //elapsed Già valutata da collision
+      	//int elapsed = getDuration();  //elapsed Già valutata da collision
         if( tracing )              
         	CommUtils.outblack("VRObj26 | handleMoveKO:" + move + " elapsed=" + elapsed + " doingStepSynch " + doingStepSynch);               
-    	if (move.contains("collision") || move.contains("interrupted") ) {
+    	if (move.contains("collision") || move.contains("interrupted") || move.contains("notallowed") || move.contains("_notallowed") || move.contains("false")) {
             if(  ! doingStepSynch ) {   
             	 move = move.split("-")[0];   //xxx-collsion
-                 String wenvInfo = "msg(vrinfo, event, VRObj26, none, CONTENT, 0)"
-                         .replace("CONTENT","vrinfo(" + move + "_ko ,"+ elapsed + ")");
-                 IApplMessage msg = new ApplMessage(wenvInfo);   
+                 String cleanMove = move.replaceAll("[^a-zA-Z0-9_]", "_");
+                 IApplMessage msg = CommUtils.buildEvent("VRObj26", "vrinfo", "vrinfo(" + cleanMove + "_ko," + elapsed + ")");
                  if( tracing )  
                 	 CommUtils.outred("VRObj26 | handleMoveKO msg:" + msg);
                  emitInfo(msg);
+                 activateWaiting(move, "false");
             } else {
             	String m = "stepFail("+elapsed+")";
                 IApplMessage stepFailEvent = CommUtils.buildEvent("VRObj26","stepFail",m );
                 //CommUtils.outred("VRObj26 | handleMoveKO msg:" + stepFailEvent);
                 doingStepSynch = false;
                 emitInfo(stepFailEvent);
+                activateWaiting(move,"false"  );
             }
-            activateWaiting(move,"false"  );
         }    	
     } 
     
@@ -178,8 +193,9 @@ public class VRObj26  implements IRobotBasicMoves {
     	elapsed = getDuration();
     	halt(); //interrompe la move che provocato la collision
         //CommUtils.outred( "VRObj26 | handleCollision:"   );               
+        String cleanCause = cause.replaceAll("[^a-zA-Z0-9_]", "_");
         IApplMessage collisionEvent = CommUtils.buildEvent(
-                "VRObj26","vrinfo","vrinfo(obstacle_XXX,collision)".replace("XXX", cause) );
+                "VRObj26","vrinfo","vrinfo(obstacle_" + cleanCause + ",collision)" );
         //CommUtils.outyellow("VRObj26 | emit " + collisionEvent + " elapsed=" + elapsed);
         emitInfo(collisionEvent);
     }
@@ -350,7 +366,7 @@ class WsconnObserver implements IObserver{
             }          	 
             if (info.contains("_notallowed")) {
                 CommUtils.outred("     wsconn | update WARNING!!! _notallowed unexpected in " + info);
-                robot.halt();
+                robot.handleMoveko("notallowed");
                 return;
             }
             if (jsonObj.get("sonarName") != null) {

@@ -27,7 +27,7 @@ with Diagram('cargosystemArch', show=False, outformat='png', graph_attr=graphatt
 ### see https://renenyffenegger.ch/notes/tools/Graphviz/attributes/label/HTML-like/index
      with Cluster('ctxcargoservice', graph_attr=nodeattr):
           cargoservice=Custom('cargoservice','./qakicons/symActorWithobjSmall.png')
-     with Cluster('ctxcustomer', graph_attr=nodeattr):
+     with Cluster('ctxioport', graph_attr=nodeattr):
           ledmock=Custom('ledmock(ext)','./qakicons/externalQActor.png')
      with Cluster('ctxdevices', graph_attr=nodeattr):
           markerdevice=Custom('markerdevice(ext)','./qakicons/externalQActor.png')
