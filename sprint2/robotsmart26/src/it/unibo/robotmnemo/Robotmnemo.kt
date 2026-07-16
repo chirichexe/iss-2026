@@ -46,6 +46,7 @@ class Robotmnemo ( name: String, scope: CoroutineScope, isconfined: Boolean=fals
 						subscribeToLocalActor("robotmnemo") 
 						CommUtils.outblue("$name subscribe to myself done")
 						 robot.connect( rpos.getGuiIp() )  
+						 robot.setTrace(true)
 						CommUtils.outblue("$name | at home. GUI on ...")
 						  rpos.robotAtHome(   )  
 						delay(500) 

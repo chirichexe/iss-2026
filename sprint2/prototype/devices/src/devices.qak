@@ -9,7 +9,7 @@ Reply   load_retrylater : loadRetryLater(none) for load_request
 Reply   load_refused    : loadRefused(none) for load_request    
  
 // Aggiornamenti Sensori e Stato  
-Event    sonardata          : distance(D)  // Emesso dal sonar
+Event    wall_sonardata          : distance(D)  // Emesso dal sonar
 Event    kernel_rawmsg      : kernel_rawmsg(D) // Payload MQTT raw ricevuto da sensore/sonar
 Dispatch set_service_status : setServiceStatus(STATUS) 
 Dispatch led_ctrl           : ledCmd(CMD)         
@@ -32,8 +32,11 @@ Context ctxrobot        ip [host="127.0.0.1" port=8053] // Cargorobot
 // SONAR ADAPTER: si sottoscrive al topic "sensore/sonar" e traduce i payload raw in eventi sonardata.
 QActor sonaradapter context ctxdevices {
     State s0 initial {
-        [# subscribe("sensore/sonar") #]
-        println("sonaradapter | STARTED - MQTT input topic sensore/sonar") color cyan
+        [#
+            val topic = System.getenv("SONAR_TOPIC") ?: "sensore/sonar"
+            subscribe(topic)
+            println("sonaradapter | STARTED - MQTT input topic $topic")
+        #]
     }
     Goto work
 
@@ -48,8 +51,8 @@ QActor sonaradapter context ctxdevices {
                 val Distance = RawDistance.toDoubleOrNull()?.toInt()
             #]
             if [# Distance != null #] {
-                emit sonardata : distance($Distance)
-                println("sonaradapter | MQTT sensore/sonar=$RawDistance -> sonardata distance($Distance)") color cyan
+                emit wall_sonardata : distance($Distance)
+                println("sonaradapter | MQTT sensore/sonar=$RawDistance -> wall_sonardata distance($Distance)") color cyan
             } else {
                 println("sonaradapter | Ignored invalid MQTT sonar payload: $RawDistance") color red
             }

@@ -31,5 +31,5 @@ with Diagram('cargosystemArch', show=False, outformat='png', graph_attr=graphatt
           sonaradapter=Custom('sonaradapter','./qakicons/symActorWithobjSmall.png')
           markerdevice=Custom('markerdevice','./qakicons/symActorWithobjSmall.png')
      sys >> Edge( label='kernel_rawmsg', **evattr, decorate='true', fontcolor='darkgreen') >> sonaradapter
-     sonaradapter >> Edge( label='sonardata', **eventedgeattr, decorate='true', fontcolor='red') >> sys
+     sonaradapter >> Edge( label='wall_sonardata', **eventedgeattr, decorate='true', fontcolor='red') >> sys
 diag

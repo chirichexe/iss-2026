@@ -8,7 +8,7 @@ Reply   load_retrylater : loadRetryLater(none) for load_request
 Reply   load_refused    : loadRefused(none) for load_request    
 
 // Aggiornamenti Sensori e Stato 
-Event    sonardata          : distance(D)  // Emesso dal sonar
+Event    wall_sonardata          : distance(D)  // Emesso dal sonar
 Dispatch set_service_status : setServiceStatus(STATUS) 
 Dispatch led_ctrl           : ledCmd(CMD)         
 
@@ -60,7 +60,7 @@ QActor cargoservice context ctxcargoservice {
     }
     Transition t0
         whenRequest load_request -> handle_load_request
-        whenEvent   sonardata    -> handle_sonar
+        whenEvent   wall_sonardata    -> handle_sonar
         whenMsg     set_service_status -> update_service
 
     State engaged {
@@ -72,18 +72,15 @@ QActor cargoservice context ctxcargoservice {
     Goto do_robot_job if [# IOPortOccupied && CargoState == "engaged" && ServiceWorking #] else wait_for_container
 
     State wait_for_container {
-        println("cargoservice [sim] | Container automatically dropped into sensor_area (IOPort)!") color cyan
-        [# IOPortOccupied = true #]
-        [# val simStatusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId) #]
-        updateResource [# simStatusJson #]
+        println("cargoservice | Waiting for container to be deposited on IOPort...") color cyan
     }
-    Goto do_robot_job if [# IOPortOccupied && CargoState == "engaged" && ServiceWorking #] else engaged_loop
+    Goto engaged_loop
 
     State engaged_loop {}
     Transition t0
         whenTime    30000        -> handle_deposit_timeout
         whenRequest load_request -> handle_load_request
-        whenEvent   sonardata    -> handle_sonar
+        whenEvent   wall_sonardata    -> handle_sonar
         whenMsg     set_service_status -> update_service
 
     // GESTIONE RICHIESTE
@@ -116,7 +113,7 @@ QActor cargoservice context ctxcargoservice {
     // GESTIONE SONAR & OUT OF SERVICE
 
     State handle_sonar {
-        onMsg(sonardata : distance(D)) {
+        onMsg(wall_sonardata : distance(D)) {
             [#
                 val Dist = payloadArg(0).toInt()
                 val Now  = System.currentTimeMillis()

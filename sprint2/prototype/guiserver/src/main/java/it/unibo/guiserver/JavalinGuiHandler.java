@@ -40,6 +40,9 @@ public class JavalinGuiHandler {
 
         // Wiring HTTP routes
         app.post("/api/load", httpController::handleLoadRequest);
+        app.get("/api/state", ctx -> {
+            ctx.contentType("application/json").result(wsController.getLastStateJson());
+        });
     }
 
     public void stop() {

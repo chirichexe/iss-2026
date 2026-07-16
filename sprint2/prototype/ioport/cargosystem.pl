@@ -6,7 +6,7 @@ request( load_request, loadRequest(none) ).
 reply( load_accepted, loadAccepted(SLOTID) ).  %%for load_request
 reply( load_retrylater, loadRetryLater(none) ).  %%for load_request
 reply( load_refused, loadRefused(none) ).  %%for load_request
-event( sonardata, distance(D) ).
+event( wall_sonardata, distance(D) ).
 dispatch( set_service_status, setServiceStatus(STATUS) ).
 dispatch( led_ctrl, ledCmd(CMD) ).
 %====================================================================================

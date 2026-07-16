@@ -8,35 +8,59 @@ import org.eclipse.californium.core.CoapResponse;
 /**
  * Monitors the cargoservice domain state via CoAP Observe (RFC 7641 push),
  * mirroring the pattern used in the reference sprint3 (CargoserviceCoAPObserver).
- * When the QAK actor calls updateResource(), the server pushes a notification here
- * which is then broadcast to all connected WebSocket clients.
+ * Uses a background thread to automatically reconnect if the target service is
+ * not yet online or goes down during execution.
  */
 public class CoapObserver {
     private final WsController wsController;
     private final String coapUrl = "coap://127.0.0.1:8050/ctxcargoservice/cargoservice";
     private CoapClient client;
     private CoapObserveRelation relation;
+    private volatile boolean running = true;
+    private Thread observerThread;
 
     public CoapObserver(WsController wsController) {
         this.wsController = wsController;
         this.client = new CoapClient(coapUrl);
 
-        System.out.println("CoapObserver | Registering CoAP Observe on: " + coapUrl);
+        System.out.println("CoapObserver | Starting CoAP Reconnecting Observer on: " + coapUrl);
 
-        relation = client.observe(new CoapHandler() {
-            @Override
-            public void onLoad(CoapResponse response) {
-                processAndBroadcast(response.getResponseText());
-            }
+        observerThread = new Thread(() -> {
+            while (running) {
+                if (relation == null || relation.isCanceled()) {
+                    try {
+                        relation = client.observe(new CoapHandler() {
+                            @Override
+                            public void onLoad(CoapResponse response) {
+                                processAndBroadcast(response.getResponseText());
+                            }
 
-            @Override
-            public void onError() {
-                System.err.println("CoapObserver | Errore osservando la risorsa CoAP (server irraggiungibile o relazione persa).");
+                            @Override
+                            public void onError() {
+                                System.err.println("CoapObserver | CoAP observation error. Will reconnect...");
+                                relation = null;
+                            }
+                        });
+                    } catch (Exception e) {
+                        relation = null;
+                    }
+                }
+                try {
+                    Thread.sleep(2000);
+                } catch (InterruptedException e) {
+                    break;
+                }
             }
         });
+        observerThread.setDaemon(true);
+        observerThread.start();
     }
 
     public void stop() {
+        running = false;
+        if (observerThread != null) {
+            observerThread.interrupt();
+        }
         if (relation != null) {
             relation.proactiveCancel();
         }
@@ -50,7 +74,7 @@ public class CoapObserver {
 
         String jsonPayload = rawContent.trim();
 
-        // Il QAK può wrappare il payload in un ApplMessage: estraiamo solo il JSON { ... }
+        // QAK might wrap the payload in an ApplMessage, extract only the inner JSON { ... }
         if (jsonPayload.contains("{") && jsonPayload.contains("}")) {
             int firstBrace = jsonPayload.indexOf('{');
             int lastBrace  = jsonPayload.lastIndexOf('}');

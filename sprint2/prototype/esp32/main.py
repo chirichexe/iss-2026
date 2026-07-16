@@ -14,16 +14,17 @@ trigger = machine.Pin(26, machine.Pin.OUT)
 echo = machine.Pin(25, machine.Pin.IN)
 led = machine.Pin(2, machine.Pin.OUT)
 
+led_state = 'off'
+
 def sub_cb(topic, msg):
+    global led_state
     if msg == b'blink':
-        for _ in range(5):
-            led.value(1)
-            time.sleep(0.2)
-            led.value(0)
-            time.sleep(0.2)
+        led_state = 'blink'
     elif msg == b'on':
+        led_state = 'on'
         led.value(1)
     elif msg == b'off':
+        led_state = 'off'
         led.value(0)
 
 def connect_wifi():
@@ -50,6 +51,10 @@ while True:
     try:
         client.check_msg()
         
+        # update LED if blinking
+        if led_state == 'blink':
+            led.value(not led.value())
+            
         trigger.value(0)
         time.sleep_us(5)
         trigger.value(1)

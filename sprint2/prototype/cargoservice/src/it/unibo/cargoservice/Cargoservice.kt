@@ -63,7 +63,7 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 					sysaction { //it:State
 					}	 	 
 					 transition(edgeName="t00",targetState="handle_load_request",cond=whenRequest("load_request"))
-					transition(edgeName="t01",targetState="handle_sonar",cond=whenEvent("sonardata"))
+					transition(edgeName="t01",targetState="handle_sonar",cond=whenEvent("wall_sonardata"))
 					transition(edgeName="t02",targetState="update_service",cond=whenDispatch("set_service_status"))
 				}	 
 				state("engaged") { //this:State
@@ -84,20 +84,13 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 				}	 
 				state("wait_for_container") { //this:State
 					action { //it:State
-						CommUtils.outcyan("cargoservice [sim] | Container automatically dropped into sensor_area (IOPort)!")
-						 IOPortOccupied = true  
-						 val simStatusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId)  
-						updateResourceRep( simStatusJson  
-						)
+						CommUtils.outcyan("cargoservice | Waiting for container to be deposited on IOPort...")
 						//genTimer( actor, state )
 					}
 					//After Lenzi Aug2002
 					sysaction { //it:State
 					}	 	 
-					 transition( edgeName="goto",targetState="do_robot_job", cond=doswitchGuarded({ IOPortOccupied && CargoState == "engaged" && ServiceWorking  
-					}) )
-					transition( edgeName="goto",targetState="engaged_loop", cond=doswitchGuarded({! ( IOPortOccupied && CargoState == "engaged" && ServiceWorking  
-					) }) )
+					 transition( edgeName="goto",targetState="engaged_loop", cond=doswitch() )
 				}	 
 				state("engaged_loop") { //this:State
 					action { //it:State
@@ -106,11 +99,11 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 					//After Lenzi Aug2002
 					sysaction { //it:State
 				 	 		stateTimer = TimerActor("timer_engaged_loop", 
-				 	 					  scope, context!!, "local_tout_"+name+"_engaged_loop", 30000.toLong() )  //OCT2023
+				 	 					  scope, context!!, "local_tout_cargoservice_engaged", 30000.toLong() )  //OCT2023
 					}	 	 
-					 transition(edgeName="t03",targetState="handle_deposit_timeout",cond=whenTimeout("local_tout_"+name+"_engaged_loop"))   
+					 transition(edgeName="t03",targetState="handle_deposit_timeout",cond=whenTimeout("local_tout_cargoservice_engaged"))   
 					transition(edgeName="t04",targetState="handle_load_request",cond=whenRequest("load_request"))
-					transition(edgeName="t05",targetState="handle_sonar",cond=whenEvent("sonardata"))
+					transition(edgeName="t05",targetState="handle_sonar",cond=whenEvent("wall_sonardata"))
 					transition(edgeName="t06",targetState="update_service",cond=whenDispatch("set_service_status"))
 				}	 
 				state("handle_load_request") { //this:State
@@ -126,7 +119,7 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 						  ){ 
 						                     ReservedSlotId = SlotId
 						                     CargoState     = "engaged" 
-						 forward("led_ctrl", "ledCmd(blink)" ,"ledmock" ) 
+						 forward("led_ctrl", "ledCmd(blink)" ,"ledadapter" ) 
 						  val SlotName = "slot$ReservedSlotId"  
 						 answer("load_request", "load_accepted", "loadAccepted($SlotName)"   )  
 						  val statusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId)  
@@ -321,7 +314,7 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 						            discardMessages = false
 						            CargoState = "disengaged"
 						            ReservedSlotId = -1
-						forward("led_ctrl", "ledCmd(off)" ,"ledmock" ) 
+						forward("led_ctrl", "ledCmd(off)" ,"ledadapter" ) 
 						 val statusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId)  
 						updateResourceRep( statusJson  
 						)
@@ -343,7 +336,7 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 						            CargoState = "disengaged"
 						            ReservedSlotId = -1
 						            IOPortOccupied = false
-						forward("led_ctrl", "ledCmd(off)" ,"ledmock" ) 
+						forward("led_ctrl", "ledCmd(off)" ,"ledadapter" ) 
 						 val statusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId)  
 						updateResourceRep( statusJson  
 						)
@@ -364,7 +357,7 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 						 
 						                CargoState = "disengaged"
 						                ReservedSlotId = -1
-						forward("led_ctrl", "ledCmd(off)" ,"ledmock" ) 
+						forward("led_ctrl", "ledCmd(off)" ,"ledadapter" ) 
 						 val statusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId)  
 						updateResourceRep( statusJson  
 						)

@@ -32,8 +32,10 @@ class Sonaradapter ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
-						 subscribe("sensore/sonar")  
-						CommUtils.outcyan("sonaradapter | STARTED - MQTT input topic sensore/sonar")
+						
+						            val topic = System.getenv("SONAR_TOPIC") ?: "sensore/sonar"
+						            subscribe(topic)
+						            println("sonaradapter | STARTED - MQTT input topic $topic")
 						//genTimer( actor, state )
 					}
 					//After Lenzi Aug2002
@@ -58,8 +60,8 @@ class Sonaradapter ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 								                val RawDistance = payloadArg(0).trim()
 								                val Distance = RawDistance.toDoubleOrNull()?.toInt()
 								if(  Distance != null  
-								 ){emit("sonardata", "distance($Distance)" ) 
-								CommUtils.outcyan("sonaradapter | MQTT sensore/sonar=$RawDistance -> sonardata distance($Distance)")
+								 ){emit("wall_sonardata", "distance($Distance)" ) 
+								CommUtils.outcyan("sonaradapter | MQTT sensore/sonar=$RawDistance -> wall_sonardata distance($Distance)")
 								}
 								else
 								 {CommUtils.outred("sonaradapter | Ignored invalid MQTT sonar payload: $RawDistance")
@@ -74,18 +76,4 @@ class Sonaradapter ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 				}	 
 			}
 		}
-
-	override fun messageArrived(topic: String, msg: org.eclipse.paho.client.mqttv3.MqttMessage) {
-		if (topic == "sensore/sonar") {
-			try {
-				val rawMsg = msg.toString()
-				val m = MsgUtil.buildEvent("alien", "kernel_rawmsg", "kernel_rawmsg('$rawMsg')")
-				kotlinx.coroutines.GlobalScope.launch { actor.send(m) }
-			} catch (e: Exception) {
-				CommUtils.outred("Sonaradapter | Error in custom messageArrived: ${e.message}")
-			}
-		} else {
-			super.messageArrived(topic, msg)
-		}
-	}
 } 

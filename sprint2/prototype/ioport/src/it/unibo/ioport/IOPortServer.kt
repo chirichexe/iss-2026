@@ -96,6 +96,10 @@ object IOPortServer {
             }
         }
 
+        app.get("/api/state") { ctx ->
+            ctx.contentType("application/json").result(lastStateJson)
+        }
+
         thread(start = true, isDaemon = true, name = "CoapObserverThread") {
             var active = false
             var currentConn: CoapConnection? = null

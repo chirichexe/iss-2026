@@ -6,7 +6,7 @@ request( load_request, loadRequest(none) ).
 reply( load_accepted, loadAccepted(SLOTID) ).  %%for load_request
 reply( load_retrylater, loadRetryLater(none) ).  %%for load_request
 reply( load_refused, loadRefused(none) ).  %%for load_request
-event( sonardata, distance(D) ).
+event( wall_sonardata, distance(D) ).
 dispatch( set_service_status, setServiceStatus(STATUS) ).
 dispatch( led_ctrl, ledCmd(CMD) ).
 request( moverobot, moverobot(TARGETX,TARGETY,STEPTIME) ).
@@ -19,7 +19,7 @@ context(ctxcargoservice, "localhost",  "TCP", "8050").
 context(ctxioport, "127.0.0.1",  "TCP", "8051").
 context(ctxdevices, "127.0.0.1",  "TCP", "8052").
 context(ctxrobot, "127.0.0.1",  "TCP", "8053").
- qactor( ledmock, ctxioport, "external").
+ qactor( ledadapter, ctxioport, "external").
   qactor( markerdevice, ctxdevices, "external").
   qactor( cargorobot, ctxrobot, "external").
   qactor( cargoservice, ctxcargoservice, "it.unibo.cargoservice.Cargoservice").
