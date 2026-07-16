@@ -1,5 +1,5 @@
 System cargosystem
-mqttBroker "localhost" : 1883 eventTopic "sensore/sonar"
+mqttBroker "localhost" : 1883 eventTopic "cargosystem"
 
  
 // Customer <-> CargoService  
@@ -29,9 +29,10 @@ Context ctxioport       ip [host="127.0.0.1" port=8051] // Ioport web / led
 Context ctxdevices      ip [host="localhost" port=8052] // Sonar / markerdevice
 Context ctxrobot        ip [host="127.0.0.1" port=8053] // Cargorobot
 
-// SONAR ADAPTER: riceve automaticamente da eventTopic "sensore/sonar" e traduce i payload raw in eventi sonardata.
+// SONAR ADAPTER: si sottoscrive al topic "sensore/sonar" e traduce i payload raw in eventi sonardata.
 QActor sonaradapter context ctxdevices {
     State s0 initial {
+        [# subscribe("sensore/sonar") #]
         println("sonaradapter | STARTED - MQTT input topic sensore/sonar") color cyan
     }
     Goto work
@@ -44,7 +45,7 @@ QActor sonaradapter context ctxdevices {
         onMsg(kernel_rawmsg : kernel_rawmsg(D)) {
             [#
                 val RawDistance = payloadArg(0).trim()
-                val Distance = RawDistance.toIntOrNull()
+                val Distance = RawDistance.toDoubleOrNull()?.toInt()
             #]
             if [# Distance != null #] {
                 emit sonardata : distance($Distance)
