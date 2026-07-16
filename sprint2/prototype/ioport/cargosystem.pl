@@ -14,6 +14,6 @@ context(ctxcargoservice, "127.0.0.1",  "TCP", "8050").
 context(ctxioport, "localhost",  "TCP", "8051").
 context(ctxdevices, "127.0.0.1",  "TCP", "8052").
 context(ctxrobot, "127.0.0.1",  "TCP", "8053").
- qactor( ledmock, ctxioport, "it.unibo.ledmock.Ledmock").
- static(ledmock).
+ qactor( ledadapter, ctxioport, "it.unibo.ledadapter.Ledadapter").
+ static(ledadapter).
   qactor( cargoservice, ctxcargoservice, "external").

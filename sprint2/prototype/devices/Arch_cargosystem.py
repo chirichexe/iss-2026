@@ -28,7 +28,8 @@ with Diagram('cargosystemArch', show=False, outformat='png', graph_attr=graphatt
      with Cluster('ctxcargoservice', graph_attr=nodeattr):
           cargoservice=Custom('cargoservice(ext)','./qakicons/externalQActor.png')
      with Cluster('ctxdevices', graph_attr=nodeattr):
-          sonarmock=Custom('sonarmock','./qakicons/symActorWithobjSmall.png')
+          sonaradapter=Custom('sonaradapter','./qakicons/symActorWithobjSmall.png')
           markerdevice=Custom('markerdevice','./qakicons/symActorWithobjSmall.png')
-     sonarmock >> Edge( label='sonardata', **eventedgeattr, decorate='true', fontcolor='red') >> sys
+     sys >> Edge( label='kernel_rawmsg', **evattr, decorate='true', fontcolor='darkgreen') >> sonaradapter
+     sonaradapter >> Edge( label='sonardata', **eventedgeattr, decorate='true', fontcolor='red') >> sys
 diag

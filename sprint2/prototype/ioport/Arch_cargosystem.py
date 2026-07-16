@@ -28,5 +28,5 @@ with Diagram('cargosystemArch', show=False, outformat='png', graph_attr=graphatt
      with Cluster('ctxcargoservice', graph_attr=nodeattr):
           cargoservice=Custom('cargoservice(ext)','./qakicons/externalQActor.png')
      with Cluster('ctxioport', graph_attr=nodeattr):
-          ledmock=Custom('ledmock','./qakicons/symActorWithobjSmall.png')
+          ledadapter=Custom('ledadapter','./qakicons/symActorWithobjSmall.png')
 diag
