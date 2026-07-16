@@ -23,8 +23,8 @@ for %%p in (8086 8090 8085 8020 8050 8051 8052 8053) do (
     )
 )
 
-if exist "%PROJECT_DIR%\sprint2\prototype\customer\gradlew.bat" (
-    call "%PROJECT_DIR%\sprint2\prototype\customer\gradlew.bat" --stop 2>nul
+if exist "%PROJECT_DIR%\sprint2\prototype\ioport\gradlew.bat" (
+    call "%PROJECT_DIR%\sprint2\prototype\ioport\gradlew.bat" --stop 2>nul
 )
 
 timeout /t 2 /nobreak >nul
@@ -56,15 +56,15 @@ start "4_CargoRobot" /D "%PROJECT_DIR%\sprint2\prototype\robot" cmd /k "gradlew.
 echo     Attesa avvio CargoRobot (3 secondi)...
 timeout /t 3 /nobreak >nul
 
-REM TERMINALE 5: Contesto QAK Cliente / LedMock (customer)
-echo  -> Avvio [5_Customer_LedMock]...
-start "5_Customer_LedMock" /D "%PROJECT_DIR%\sprint2\prototype\customer" cmd /k "gradlew.bat runCustomer --no-daemon"
-echo     Attesa avvio Customer context (3 secondi)...
+REM TERMINALE 5: Contesto QAK Ioport / LedMock (ioport)
+echo  -> Avvio [5_Ioport_LedMock]...
+start "5_Ioport_LedMock" /D "%PROJECT_DIR%\sprint2\prototype\ioport" cmd /k "gradlew.bat runIoport --no-daemon"
+echo     Attesa avvio Ioport context (3 secondi)...
 timeout /t 3 /nobreak >nul
 
 REM TERMINALE 6: Server Intermedio Web GUI su porta 8086 (IOPortServer)
 echo  -> Avvio [6_IOPortServer_Web]...
-start "6_IOPortServer_Web" /D "%PROJECT_DIR%\sprint2\prototype\customer" cmd /k "runIOPortServer.bat"
+start "6_IOPortServer_Web" /D "%PROJECT_DIR%\sprint2\prototype\ioport" cmd /k "runIOPortServer.bat"
 echo     Attesa avvio IOPortServer (3 secondi)...
 timeout /t 3 /nobreak >nul
 

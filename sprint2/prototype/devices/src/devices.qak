@@ -24,7 +24,7 @@ Reply   marking_done   : markingDone(none) for mark_container
 
 // CONTESTI 
 Context ctxcargoservice ip [host="127.0.0.1" port=8050] // Cargoservice
-Context ctxcustomer     ip [host="127.0.0.1" port=8051] // Ioport web / led 
+Context ctxioport       ip [host="127.0.0.1" port=8051] // Ioport web / led 
 Context ctxdevices      ip [host="localhost" port=8052] // Sonar / markerdevice
 Context ctxrobot        ip [host="127.0.0.1" port=8053] // Cargorobot
 

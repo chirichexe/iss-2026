@@ -2,7 +2,6 @@ package it.unibo.guiserver;
 
 import it.unibo.kactor.ActorBasicFsm;
 import kotlinx.coroutines.CoroutineScope;
-import unibo.basicomm23.interfaces.IApplMessage;
 import unibo.basicomm23.utils.CommUtils;
 
 /**

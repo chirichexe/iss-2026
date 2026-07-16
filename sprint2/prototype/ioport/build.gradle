@@ -135,7 +135,7 @@ tasks.withType(Copy).configureEach {
 
 application {
     //Define the main class for the application.
-     mainClassName    = 'it.unibo.ctxcustomer.MainCtxcustomerKt'
+     mainClassName    = 'it.unibo.ctxioport.MainCtxioportKt'
 }
  
  jar {
@@ -170,10 +170,10 @@ run {
     standardInput = System.in
 }
 
-task runCustomer(type: JavaExec) {
+task runIoport(type: JavaExec) {
     group = "Execution"
     classpath = sourceSets.main.runtimeClasspath
-    mainClass = 'it.unibo.ctxcustomer.MainCtxcustomerKt'
+    mainClass = 'it.unibo.ctxioport.MainCtxioportKt'
 }
 
 task runIOPortServer(type: JavaExec) {

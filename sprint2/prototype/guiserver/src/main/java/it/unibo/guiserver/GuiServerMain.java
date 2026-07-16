@@ -31,16 +31,10 @@ public class GuiServerMain {
         JavalinGuiHandler guiHandler = new JavalinGuiHandler(port, httpController, wsController);
         guiHandler.start();
 
-        // 4. Start CoAP and MQTT Observer threads to stream domain state updates to WebSocket clients
+        // 4. Start CoAP Observer thread to stream domain state updates to WebSocket clients (MQTT observer removed)
         CoapObserver coapObserver = new CoapObserver(wsController);
         Thread coapThread = new Thread(coapObserver, "CoapObserverThread");
         coapThread.setDaemon(true);
         coapThread.start();
-
-        MqttObserver mqttObserver = new MqttObserver(wsController);
-        Thread mqttThread = new Thread(mqttObserver, "MqttObserverThread");
-        mqttThread.setDaemon(true);
-        mqttThread.start();
     }
 }
-

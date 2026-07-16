@@ -11,9 +11,9 @@ dispatch( set_service_status, setServiceStatus(STATUS) ).
 dispatch( led_ctrl, ledCmd(CMD) ).
 %====================================================================================
 context(ctxcargoservice, "127.0.0.1",  "TCP", "8050").
-context(ctxcustomer, "localhost",  "TCP", "8051").
+context(ctxioport, "localhost",  "TCP", "8051").
 context(ctxdevices, "127.0.0.1",  "TCP", "8052").
 context(ctxrobot, "127.0.0.1",  "TCP", "8053").
- qactor( ledmock, ctxcustomer, "it.unibo.ledmock.Ledmock").
+ qactor( ledmock, ctxioport, "it.unibo.ledmock.Ledmock").
  static(ledmock).
   qactor( cargoservice, ctxcargoservice, "external").

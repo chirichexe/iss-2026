@@ -168,10 +168,10 @@ run {
     standardInput = System.in
 }
 
-task runCustomer(type: JavaExec) {
+task runIoport(type: JavaExec) {
     group = "Execution"
     classpath = sourceSets.main.runtimeClasspath
-    mainClass = 'it.unibo.ctxcustomer.MainCtxcustomerKt'
+    mainClass = 'it.unibo.ctxioport.MainCtxioportKt'
 }
 
 task runDevices(type: JavaExec) {
