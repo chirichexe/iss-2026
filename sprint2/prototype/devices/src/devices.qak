@@ -75,7 +75,7 @@ QActor sonaradapter context ctxdevices {
             #]
             if [# Distance != null #] {
                 emit wall_sonardata : distance($Distance)
-                println("sonaradapter | MQTT sensore/sonar=$RawDistance -> wall_sonardata distance($Distance)") color cyan
+                println("sonaradapter | PALLE MQTT sensore/sonar=$RawDistance -> wall_sonardata distance($Distance)") color cyan
             } else {
                 println("sonaradapter | Ignored invalid MQTT sonar payload: $RawDistance") color red
             }

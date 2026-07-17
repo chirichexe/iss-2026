@@ -84,7 +84,7 @@ class Sonaradapter ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 								                val Distance = RawDistance.toDoubleOrNull()?.toInt()
 								if(  Distance != null  
 								 ){emit("wall_sonardata", "distance($Distance)" ) 
-								CommUtils.outcyan("sonaradapter | MQTT sensore/sonar=$RawDistance -> wall_sonardata distance($Distance)")
+								CommUtils.outcyan("sonaradapter | PALLE MQTT sensore/sonar=$RawDistance -> wall_sonardata distance($Distance)")
 								}
 								else
 								 {CommUtils.outred("sonaradapter | Ignored invalid MQTT sonar payload: $RawDistance")
