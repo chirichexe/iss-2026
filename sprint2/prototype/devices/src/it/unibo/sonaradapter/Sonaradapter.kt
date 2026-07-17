@@ -43,7 +43,7 @@ class Sonaradapter ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 						                        val rawStr = message.toString().trim()
 						                        val distance = rawStr.toDoubleOrNull()?.toInt()
 						                        if (distance != null) {
-						                            val event = it.unibo.kactor.MsgUtil.buildEvent("sonaradapter", "kernel_rawmsg", "kernel_rawmsg('$rawStr')")
+						                            val event = MsgUtil.buildEvent("sonaradapter", "kernel_rawmsg", "kernel_rawmsg('$rawStr')")
 						                            kotlinx.coroutines.GlobalScope.launch { self.actor.send(event) }
 						                        } else {
 						                            unibo.basicomm23.utils.CommUtils.outred("sonaradapter | Ignored invalid raw MQTT sonar payload: $rawStr")

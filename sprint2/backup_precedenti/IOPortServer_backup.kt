@@ -26,11 +26,12 @@ object IOPortServer {
         println("IOPortServer | Starting Web Facade Server for Maritime CargoService...")
         println("=========================================================================")
 
-        var webDir = File("../ioport-frontend/web/ioport")
-        if (!webDir.exists()) {
-            webDir = File("web/ioport")
+        val webDir = File("web/ioport")
+        val absWebDir = if (webDir.exists()) {
+            webDir.absolutePath
+        } else {
+            "/home/daniele949/Desktop/Scuola/1 Anno Magistrale/2 semestre/IngSoftwareM/Progetto/sprint2/prototype/customer/web/ioport"
         }
-        val absWebDir = if (webDir.exists()) webDir.absolutePath else "web/ioport"
         println("IOPortServer | Serving static web files from: $absWebDir")
 
         val port = args.firstOrNull()?.toIntOrNull() ?: 8086
@@ -95,15 +96,13 @@ object IOPortServer {
             }
         }
 
-        app.get("/api/state") { ctx ->
-            ctx.contentType("application/json").result(lastStateJson)
-        }
-
         thread(start = true, isDaemon = true, name = "CoapObserverThread") {
+            var active = false
             var currentConn: CoapConnection? = null
             var currentRel: org.eclipse.californium.core.CoapObserveRelation? = null
             while (true) {
-                if (currentRel == null || currentRel.isCanceled) {
+                val act = active
+                if (!act) {
                     try {
                         val conn = ConnectionFactory.createClientSupport23(ProtocolType.coap, "127.0.0.1:8050", "ctxcargoservice/cargoservice")
                         if (conn != null && conn is CoapConnection) {
@@ -111,6 +110,7 @@ object IOPortServer {
                             println("IOPortServer | Attempting to observe coap://127.0.0.1:8050/ctxcargoservice/cargoservice")
                             val observeRel = conn.getClient().observe(object : CoapHandler {
                                 override fun onLoad(response: CoapResponse) {
+                                    active = true
                                     val content = response.responseText
                                     if (content != null && content.trim().startsWith("{") && content != lastStateJson) {
                                         println("IOPortServer | CoAP resource update received: $content")
@@ -126,20 +126,72 @@ object IOPortServer {
                                 }
                                 override fun onError() {
                                     println("IOPortServer | CoAP observation error or disconnect. Reconnecting...")
+                                    active = false
                                     currentConn = null
                                     currentRel = null
                                 }
                             })
                             currentRel = observeRel
+                            if (observeRel != null && !observeRel.isCanceled) {
+                                active = true
+                                try {
+                                    val resp = conn.getClient().get()
+                                    if (resp != null) {
+                                        val initContent = resp.responseText
+                                        if (initContent != null && initContent.trim().startsWith("{") && initContent != lastStateJson) {
+                                            lastStateJson = initContent
+                                            wsSessions.forEach { wsCtx ->
+                                                if (wsCtx.session.isOpen) wsCtx.send(initContent)
+                                            }
+                                        }
+                                    }
+                                } catch (ignored: Exception) {}
+                            }
+                        } else {
+                            Thread.sleep(500)
                         }
                     } catch (e: Exception) {
                         println("IOPortServer | Error setting up observe: ${e.message}")
+                        active = false
                         currentConn = null
                         currentRel = null
+                        Thread.sleep(500)
+                    }
+                } else {
+                    val conn = currentConn
+                    val rel = currentRel
+                    if (conn != null) {
+                        try {
+                            val resp = conn.getClient().get()
+                            val content = resp?.responseText
+                            if (content == null || content.isEmpty()) {
+                                println("IOPortServer | CoAP health check returned empty/null. Reconnecting...")
+                                rel?.proactiveCancel()
+                                active = false
+                                currentConn = null
+                                currentRel = null
+                            } else if (content.trim().startsWith("{") && content != lastStateJson) {
+                                println("IOPortServer | CoAP sync check detected update: $content")
+                                lastStateJson = content
+                                wsSessions.forEach { wsCtx ->
+                                    try {
+                                        if (wsCtx.session.isOpen) wsCtx.send(content)
+                                    } catch (e: Exception) {
+                                        println("IOPortServer | Error broadcasting to ws: ${e.message}")
+                                    }
+                                }
+                            }
+                        } catch (e: Exception) {
+                            println("IOPortServer | CoAP health check failed: ${e.message}. Reconnecting...")
+                            rel?.proactiveCancel()
+                            active = false
+                            currentConn = null
+                            currentRel = null
+                        }
                     }
                 }
                 try {
-                    Thread.sleep(2000)
+                    Thread.sleep(500)
                 } catch (e: InterruptedException) {
                     break
                 }
