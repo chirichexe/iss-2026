@@ -58,6 +58,7 @@ public class Hold implements IHold {
             br.close();
             String json = sb.toString();
 
+            // Extract home position
             int hX = extractInt(json, "\"home\"", "\"x\":", 0);
             int hY = extractInt(json, "\"home\"", "\"y\":", 0);
             this.homeX = hX;
@@ -66,12 +67,14 @@ public class Hold implements IHold {
                 cells[homeY][homeX] = CellType.HOME;
             }
 
+            // Extract I/O port position
             int ioX = extractInt(json, "\"ioport\"", "\"x\":", 0);
             int ioY = extractInt(json, "\"ioport\"", "\"y\":", 4);
             if (ioY < height && ioX < width) {
                 cells[ioY][ioX] = CellType.IOPORT;
             }
 
+            // Extract slot positions
             for (int id = 1; id <= 4; id++) {
                 int sx = extractSlotX(json, id, slotX[id - 1]);
                 int sy = extractSlotY(json, id, slotY[id - 1]);
@@ -82,6 +85,7 @@ public class Hold implements IHold {
                 }
             }
 
+            // Extract slot 5 position (marker)
             int s5x = extractSlotX(json, 5, slotX[4]);
             int s5y = extractSlotY(json, 5, slotY[4]);
             slotX[4] = s5x;
@@ -90,6 +94,7 @@ public class Hold implements IHold {
                 cells[s5y][s5x] = CellType.SLOT5;
             }
 
+            // Extract dfree value
             int dfreeVal = extractTopLevelInt(json, "\"dfree\"", 150);
             this.dfree = dfreeVal;
 
