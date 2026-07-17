@@ -38,7 +38,7 @@ QActor cargoservice context ctxcargoservice {
         var ServiceWorking = true
         var CargoState     = "disengaged"
         var ReservedSlotId = -1
-        val StepTime       = 345
+        val StepTime       = 335
         // Timestamp dell'inizio di una lettura anomala/container sostenuta (-1 = nessuna in corso)
         var OutOfServicePendingStart = -1L  // req: D > DFREE per almeno 3s
         var ContainerPendingStart    = -1L  // req: D < DFREE/2 per almeno 3s
@@ -192,7 +192,12 @@ QActor cargoservice context ctxcargoservice {
     }
     Transition t0
         whenReply moverobotdone   -> pick_container
-        whenReply moverobotfailed -> handle_robot_fail
+        whenReply moverobotfailed -> pick_container_after_fail
+
+    State pick_container_after_fail {
+        println("cargoservice | WARNING: Robot move to IOPort failed/collided, but proceeding anyway...") color red
+        goto pick_container
+    }
 
     State pick_container {
         println("cargoservice | Robot at IOPort (4,0). Container picked up! IOPort is now FREE.") color magenta
@@ -205,7 +210,12 @@ QActor cargoservice context ctxcargoservice {
     }
     Transition t0
         whenReply moverobotdone   -> mark_container
-        whenReply moverobotfailed -> handle_robot_fail
+        whenReply moverobotfailed -> mark_container_after_fail
+
+    State mark_container_after_fail {
+        println("cargoservice | WARNING: Robot move to slot5 failed/collided, but proceeding anyway...") color red
+        goto mark_container
+    }
 
     State mark_container {
         println("cargoservice | At slot5. Asking markerdevice to mark container...") color magenta
@@ -224,7 +234,12 @@ QActor cargoservice context ctxcargoservice {
     }
     Transition t0
         whenReply moverobotdone   -> return_home
-        whenReply moverobotfailed -> handle_robot_fail
+        whenReply moverobotfailed -> return_home_after_fail
+
+    State return_home_after_fail {
+        println("cargoservice | WARNING: Robot move to slot failed/collided, but proceeding anyway...") color red
+        goto return_home
+    }
 
     State return_home {
         [# Hold.occupySlot(ReservedSlotId) #]
@@ -240,7 +255,7 @@ QActor cargoservice context ctxcargoservice {
     }
     Transition t0
         whenReply moverobotdone   -> finish_job
-        whenReply moverobotfailed -> handle_robot_fail
+        whenReply moverobotfailed -> handle_home_fail
 
     State finish_job {
         println("cargoservice | Job finished successfully!") color green
@@ -252,7 +267,19 @@ QActor cargoservice context ctxcargoservice {
         forward ledadapter -m led_ctrl : ledCmd(off)
         [# val statusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId) #]
         updateResource [# statusJson #]
-        
+    }
+    Goto disengaged
+
+    State handle_home_fail {
+        println("cargoservice | Robot failed to return home, but container is stored. Returning to disengaged...") color red
+        [# 
+            discardMessages = false
+            CargoState = "disengaged"
+            ReservedSlotId = -1
+        #]
+        forward ledadapter -m led_ctrl : ledCmd(off)
+        [# val statusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId) #]
+        updateResource [# statusJson #]
     }
     Goto disengaged
 

@@ -49,7 +49,7 @@ echo "Starting Docker Compose services (WEnv, mosquitto, robotoutgui)..."
 (cd "$PROJECT_DIR/sprint2/robotsmart26/yamls" && docker compose -f unibobasic26.yaml up -d)
 
 # Wait for Docker containers to start
-sleep 4
+sleep 6
 
 declare -A pids
 
@@ -58,7 +58,7 @@ echo "Starting headless Firefox as WEnv WebGL master..."
 firefox --headless -no-remote -CreateProfile "agy_test" 2>/dev/null || true
 firefox --headless -no-remote -P "agy_test" http://localhost:8090/ > /dev/null 2>&1 &
 pids[firefox]=$!
-sleep 2
+sleep 10
 
 echo "Starting RobotSmart26 base..."
 cd "$PROJECT_DIR/sprint2/robotsmart26"
@@ -203,6 +203,16 @@ if [ "$SERVICE_STATE" != "engaged" ]; then
 fi
 echo "Success: System state is engaged."
 
+# Verify load request while engaged returns retrylater
+REQ_ENGAGED_RESPONSE=$(curl -s -X POST http://localhost:8086/api/load)
+echo "POST /api/load response (while engaged): $REQ_ENGAGED_RESPONSE"
+STATUS_ENGAGED=$(echo "$REQ_ENGAGED_RESPONSE" | jq -r '.status')
+if [ "$STATUS_ENGAGED" != "retrylater" ]; then
+    echo "ERROR: Should have returned retrylater when engaged, got $STATUS_ENGAGED"
+    exit 1
+fi
+echo "Success: Load request refused with retrylater during engaged state."
+
 # Wait 32 seconds to trigger deposit timeout (the requirement is 30s)
 echo "Waiting 32 seconds for deposit timeout to expire..."
 sleep 32
@@ -254,6 +264,16 @@ if [ "$IOPORT_OCCUPIED" != "true" ]; then
     exit 1
 fi
 echo "Success: IOPortOccupied is true."
+
+# Verify load request while occupied returns retrylater
+REQ_OCCUPIED_RESPONSE=$(curl -s -X POST http://localhost:8086/api/load)
+echo "POST /api/load response (while occupied): $REQ_OCCUPIED_RESPONSE"
+STATUS_OCCUPIED=$(echo "$REQ_OCCUPIED_RESPONSE" | jq -r '.status')
+if [ "$STATUS_OCCUPIED" != "retrylater" ]; then
+    echo "ERROR: Should have returned retrylater when occupied, got $STATUS_OCCUPIED"
+    exit 1
+fi
+echo "Success: Load request refused with retrylater during occupied state."
 
 # The robot will now fetch the container, mark it in slot 5, and move it to slot 1.
 # This operation takes some time because of the pathfinder movements. Let's wait.

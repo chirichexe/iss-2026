@@ -34,7 +34,7 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 		        var ServiceWorking = true
 		        var CargoState     = "disengaged"
 		        var ReservedSlotId = -1
-		        val StepTime       = 345
+		        val StepTime       = 325
 		        var OutOfServicePendingStart = -1L
 		        var ContainerPendingStart    = -1L
 		return { //this:ActionBasciFsm
@@ -243,7 +243,17 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 					sysaction { //it:State
 					}	 	 
 					 transition(edgeName="t07",targetState="pick_container",cond=whenReply("moverobotdone"))
-					transition(edgeName="t08",targetState="handle_robot_fail",cond=whenReply("moverobotfailed"))
+					transition(edgeName="t08",targetState="pick_container_after_fail",cond=whenReply("moverobotfailed"))
+				}	 
+				state("pick_container_after_fail") { //this:State
+					action { //it:State
+						CommUtils.outred("cargoservice | WARNING: Robot move to IOPort failed/collided, but proceeding anyway...")
+						//genTimer( actor, state )
+					}
+					//After Lenzi Aug2002
+					sysaction { //it:State
+					}	 	 
+					 transition( edgeName="goto",targetState="pick_container", cond=doswitch() )
 				}	 
 				state("pick_container") { //this:State
 					action { //it:State
@@ -260,7 +270,17 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 					sysaction { //it:State
 					}	 	 
 					 transition(edgeName="t09",targetState="mark_container",cond=whenReply("moverobotdone"))
-					transition(edgeName="t010",targetState="handle_robot_fail",cond=whenReply("moverobotfailed"))
+					transition(edgeName="t010",targetState="mark_container_after_fail",cond=whenReply("moverobotfailed"))
+				}	 
+				state("mark_container_after_fail") { //this:State
+					action { //it:State
+						CommUtils.outred("cargoservice | WARNING: Robot move to slot5 failed/collided, but proceeding anyway...")
+						//genTimer( actor, state )
+					}
+					//After Lenzi Aug2002
+					sysaction { //it:State
+					}	 	 
+					 transition( edgeName="goto",targetState="mark_container", cond=doswitch() )
 				}	 
 				state("mark_container") { //this:State
 					action { //it:State
@@ -286,7 +306,17 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 					sysaction { //it:State
 					}	 	 
 					 transition(edgeName="t012",targetState="return_home",cond=whenReply("moverobotdone"))
-					transition(edgeName="t013",targetState="handle_robot_fail",cond=whenReply("moverobotfailed"))
+					transition(edgeName="t013",targetState="return_home_after_fail",cond=whenReply("moverobotfailed"))
+				}	 
+				state("return_home_after_fail") { //this:State
+					action { //it:State
+						CommUtils.outred("cargoservice | WARNING: Robot move to slot failed/collided, but proceeding anyway...")
+						//genTimer( actor, state )
+					}
+					//After Lenzi Aug2002
+					sysaction { //it:State
+					}	 	 
+					 transition( edgeName="goto",targetState="return_home", cond=doswitch() )
 				}	 
 				state("return_home") { //this:State
 					action { //it:State
@@ -305,11 +335,29 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 					sysaction { //it:State
 					}	 	 
 					 transition(edgeName="t014",targetState="finish_job",cond=whenReply("moverobotdone"))
-					transition(edgeName="t015",targetState="handle_robot_fail",cond=whenReply("moverobotfailed"))
+					transition(edgeName="t015",targetState="handle_home_fail",cond=whenReply("moverobotfailed"))
 				}	 
 				state("finish_job") { //this:State
 					action { //it:State
 						CommUtils.outgreen("cargoservice | Job finished successfully!")
+						 
+						            discardMessages = false
+						            CargoState = "disengaged"
+						            ReservedSlotId = -1
+						forward("led_ctrl", "ledCmd(off)" ,"ledadapter" ) 
+						 val statusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId)  
+						updateResourceRep( statusJson  
+						)
+						//genTimer( actor, state )
+					}
+					//After Lenzi Aug2002
+					sysaction { //it:State
+					}	 	 
+					 transition( edgeName="goto",targetState="disengaged", cond=doswitch() )
+				}	 
+				state("handle_home_fail") { //this:State
+					action { //it:State
+						CommUtils.outred("cargoservice | Robot failed to return home, but container is stored. Returning to disengaged...")
 						 
 						            discardMessages = false
 						            CargoState = "disengaged"
