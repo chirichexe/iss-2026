@@ -162,9 +162,9 @@ task dovesiamo {
 
 distributions {
     main {
-        distributionBaseName = 'cargosystem'
+        distributionBaseName = 'devices'
         contents { 
-             from './cargosystem.pl'
+             from './devices.pl'
              from './sysRules.pl'
         }
     }

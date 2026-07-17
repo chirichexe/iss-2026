@@ -1,4 +1,4 @@
-// ─── State (specchio dello stato dominio cargoservice) ────────────────────────
+// ─── Stato da inviare in JSON ──────────────────────────────────────────────────
 const state = {
   working:     true,   // workingState: "Service working" | "Out of service"
   engaged:     false,  // serviceState: "engaged" | "disengaged"
@@ -74,7 +74,7 @@ if (clearLogBtn) {
   });
 }
 
-// ─── WebSocket: riceve push CoAP → aggiorna stato e display ──────────────────
+// ─── WebSocket: riceve push CoAP -> aggiorna stato e display ──────────────────
 function setupWebSocket() {
   const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
   const host = window.location.host || "localhost:8086";
@@ -150,7 +150,7 @@ function setupWebSocket() {
   };
 }
 
-// ─── Pulsante LOAD → HTTP POST → cargoservice  (req: pushbutton → load_request)
+// ─── Pulsante LOAD -> HTTP POST -> cargoservice  (req: pushbutton -> load_request)
 async function sendLoadRequest() {
   try {
     const response = await fetch("/api/load", {

@@ -162,9 +162,9 @@ task dovesiamo {
 
 distributions {
     main {
-        distributionBaseName = 'cargosystem'
+        distributionBaseName = 'ioport'
         contents { 
-             from './cargosystem.pl'
+             from './ioport.pl'
              from './sysRules.pl'
         }
     }

@@ -127,15 +127,16 @@ Si sceglie quindi il formato *JSON*, che può essere interpretato nativamente da
 
 ```json
 {
-  "serviceState": "engaged",         // engaged, disengaged
-  "workingState": "Service working", // Service working, Out of service
-  "ioPortOccupied": true,            // true o false
-  "reservedSlot": 2,                 // slot riservato per l'operazione corrente
-  "slots": {                         // occupied, reserved, free
-    "slot1": "occupied",
-    "slot2": "reserved",
-    "slot3": "free",
-    "slot4": "occupied"
+  "working":     true,   // workingState: "Service working" | "Out of service"
+  "engaged":     false,  // serviceState: "engaged" | "disengaged"
+  "ioportBusy":  false,
+  "reservedSlot": null,
+  "slots": { 
+    "slot1": "free", 
+    "slot2": "free", 
+    "slot3": "free", 
+    "slot4": "free", 
+    "slot5": "marker"
   }
 }
 ```

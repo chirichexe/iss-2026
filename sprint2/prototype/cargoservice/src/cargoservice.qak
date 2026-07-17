@@ -22,10 +22,10 @@ Request mark_container : markContainer(none)
 Reply   marking_done   : markingDone(none) for mark_container
  
 // CONTESTI
-Context ctxcargoservice ip [host="localhost" port=8050] // Cargoservice
-Context ctxioport       ip [host="127.0.0.1" port=8051] // Ioport web facade / led
-Context ctxdevices      ip [host="127.0.0.1" port=8052] // Sonar / markerdevice
-Context ctxrobot        ip [host="127.0.0.1" port=8053] // Cargorobot
+Context ctxcargoservice ip [host="localhost" port=8050] 
+Context ctxioport       ip [host="127.0.0.1" port=8051] 
+Context ctxdevices      ip [host="127.0.0.1" port=8052] 
+Context ctxrobot        ip [host="127.0.0.1" port=8053]
 
 ExternalQActor ledadapter   context ctxioport
 ExternalQActor markerdevice context ctxdevices
