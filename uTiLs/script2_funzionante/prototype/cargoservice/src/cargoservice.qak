@@ -1,0 +1,322 @@
+System cargoservice 
+mqttBroker "localhost" : 1883 eventTopic "cargosystem"
+  
+// Customer <-> CargoService     
+Request load_request    : loadRequest(none)
+Reply   load_accepted   : loadAccepted(SLOTID) for load_request 
+Reply   load_retrylater : loadRetryLater(none) for load_request 
+Reply   load_refused    : loadRefused(none) for load_request    
+
+// Aggiornamenti Sensori e Stato 
+Event    wall_sonardata          : distance(D)  // Emesso dal sonar
+Dispatch set_service_status : setServiceStatus(STATUS) 
+Dispatch led_ctrl           : ledCmd(CMD)         
+
+// CargoService <-> CargoRobot 
+Request  moverobot       : moverobot(TARGETX, TARGETY, STEPTIME)
+Reply    moverobotdone   : moverobotok(ARG)                    for moverobot
+Reply    moverobotfailed : moverobotfailed(PLANDONE, PLANTODO) for moverobot
+
+// CargoService <-> MarkerDevice 
+Request mark_container : markContainer(none) 
+Reply   marking_done   : markingDone(none) for mark_container
+ 
+// CONTESTI
+Context ctxcargoservice ip [host="localhost" port=8050] 
+Context ctxioport       ip [host="127.0.0.1" port=8051] 
+Context ctxdevices      ip [host="127.0.0.1" port=8052] 
+Context ctxrobot        ip [host="127.0.0.1" port=8053]
+
+ExternalQActor ledadapter   context ctxioport
+ExternalQActor markerdevice context ctxdevices
+ExternalQActor cargorobot   context ctxrobot
+
+// CARGOSERVICE 
+QActor cargoservice context ctxcargoservice {
+    [#
+        var IOPortOccupied = false
+        var ServiceWorking = true
+        var CargoState     = "disengaged"
+        var ReservedSlotId = -1
+        val StepTime       = 335
+        // Timestamp dell'inizio di una lettura anomala/container sostenuta (-1 = nessuna in corso)
+        var OutOfServicePendingStart = -1L  // req: D > DFREE per almeno 3s
+        var ContainerPendingStart    = -1L  // req: D < DFREE/2 per almeno 3s
+    #]
+ 
+    State s0 initial {
+        println("cargoservice | STARTED") color magenta
+        [# val statusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId) #]
+        updateResource [# statusJson #]
+        
+    }
+    Goto disengaged
+    
+    State disengaged {
+        println("cargoservice | DISENGAGED: waiting for requests...") color blue
+        [# val statusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId) #]
+        updateResource [# statusJson #]
+        
+    }
+    Transition t0
+        whenRequest load_request -> handle_load_request
+        whenEvent   wall_sonardata    -> handle_sonar
+        whenMsg     set_service_status -> update_service
+
+    State engaged {
+        println("cargoservice | ENGAGED: waiting for container deposit or robot completion...") color blue
+        [# val statusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId) #]
+        updateResource [# statusJson #]
+        
+    }
+    Goto do_robot_job if [# IOPortOccupied && CargoState == "engaged" && ServiceWorking #] else wait_for_container
+
+    State wait_for_container {
+        println("cargoservice | Waiting for container to be deposited on IOPort...") color cyan
+    }
+    Goto engaged_loop
+
+    State engaged_loop {}
+    Transition t0
+        whenTime    30000        -> handle_deposit_timeout
+        whenRequest load_request -> handle_load_request
+        whenEvent   wall_sonardata    -> handle_sonar
+        whenMsg     set_service_status -> update_service
+
+    // GESTIONE RICHIESTE
+    
+    State handle_load_request {
+        printCurrentMessage color yellow
+        
+        if [# CargoState == "engaged" || !ServiceWorking || IOPortOccupied #] {
+            replyTo load_request with load_retrylater : loadRetryLater(none)
+        } else {
+            [# val SlotId = Hold.reserveSlot() #]
+            if [# SlotId > 0 #] {
+                [# 
+                    ReservedSlotId = SlotId
+                    CargoState     = "engaged" 
+                #]
+                forward ledadapter -m led_ctrl : ledCmd(blink)
+                [# val SlotName = "slot$ReservedSlotId" #]
+                replyTo load_request with load_accepted : loadAccepted($SlotName)
+                [# val statusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId) #]
+                updateResource [# statusJson #]
+                
+            } else {
+                replyTo load_request with load_refused : loadRefused(none)
+            }
+        }
+    }
+    Goto engaged if [# CargoState == "engaged" #] else disengaged
+
+    // GESTIONE SONAR & OUT OF SERVICE
+
+    State handle_sonar {
+        onMsg(wall_sonardata : distance(D)) {
+            [#
+                val Dist = payloadArg(0).toInt()
+                val Now  = System.currentTimeMillis()
+                val DFree = Hold.getDfree()
+                val DFreeDiv2 = DFree / 2
+
+                // Container detection: D < DFREE/2 sostenuto per 3s (req.)
+                if (Dist < DFreeDiv2) {
+                    if (ContainerPendingStart < 0L) {
+                        ContainerPendingStart = Now
+                    } else if (Now - ContainerPendingStart >= 3000L) {
+                        IOPortOccupied = true
+                        ContainerPendingStart = -1L
+                    }
+                } else {
+                    ContainerPendingStart = -1L
+                    IOPortOccupied = false
+                }
+
+                // Out-of-service: D > DFREE sostenuto per 3s (req.)
+                if (Dist > DFree) {
+                    if (ServiceWorking) {
+                        if (OutOfServicePendingStart < 0L) {
+                            OutOfServicePendingStart = Now
+                        } else if (Now - OutOfServicePendingStart >= 3000L) {
+                            ServiceWorking = false
+                            OutOfServicePendingStart = -1L
+                            println("cargoservice | Sonar D>DFREE ($Dist > $DFree) sostenuto per 3s -> OUT OF SERVICE!")
+                        }
+                    }
+                } else {
+                    OutOfServicePendingStart = -1L
+                    if (!ServiceWorking) {
+                        ServiceWorking = true
+                        println("cargoservice | Sonar D<=DFREE ($Dist <= $DFree) -> SERVICE WORKING again!")
+                    }
+                }
+
+                val statusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId)
+            #]
+            updateResource [# statusJson #]
+        }
+    }
+    Goto do_robot_job if [# IOPortOccupied && CargoState == "engaged" && ServiceWorking #] else returnToState
+
+    State update_service {
+        onMsg(set_service_status : setServiceStatus(S)) {
+            [# val status = payloadArg(0) #]
+            if [# status == "outofservice" && ServiceWorking #] {
+                [# ServiceWorking = false #]
+                println("cargoservice | setServiceStatus outofservice -> OUT OF SERVICE!") color red
+                [# val statusJson = Hold.toJson(CargoState, "Out of service", IOPortOccupied, ReservedSlotId) #]
+                updateResource [# statusJson #]
+                
+            }
+            if [# status == "working" && !ServiceWorking #] {
+                [# ServiceWorking = true #]
+                println("cargoservice | setServiceStatus working -> SERVICE WORKING!") color green
+                [# val statusJson = Hold.toJson(CargoState, "Service working", IOPortOccupied, ReservedSlotId) #]
+                updateResource [# statusJson #]
+                
+            }
+        }
+    }
+    Goto returnToState
+
+    State returnToState {}
+    Goto engaged if [# CargoState == "engaged" #] else disengaged
+
+    // GESTIONE ROBOT E MARKER
+    
+    State do_robot_job {
+        [# discardMessages = true #]
+        println("cargoservice | Container inside sensor_area! Robot moving to IOPort (4,0) to pick it up...") color magenta
+        request cargorobot -m moverobot : moverobot(4, 0, $StepTime)
+    }
+    Transition t0
+        whenReply moverobotdone   -> pick_container
+        whenReply moverobotfailed -> pick_container_after_fail
+
+    State pick_container_after_fail {
+        println("cargoservice | WARNING: Robot move to IOPort failed/collided, but proceeding anyway...") color red
+        goto pick_container
+    }
+
+    State pick_container {
+        println("cargoservice | Robot at IOPort (4,0). Container picked up! IOPort is now FREE.") color magenta
+        [# IOPortOccupied = false #]
+        [# val statusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId) #]
+        updateResource [# statusJson #]
+        
+        println("cargoservice | Moving container to slot5 (2,5) for marking...") color magenta
+        request cargorobot -m moverobot : moverobot(2, 5, $StepTime)
+    }
+    Transition t0
+        whenReply moverobotdone   -> mark_container
+        whenReply moverobotfailed -> mark_container_after_fail
+
+    State mark_container_after_fail {
+        println("cargoservice | WARNING: Robot move to slot5 failed/collided, but proceeding anyway...") color red
+        goto mark_container
+    }
+
+    State mark_container {
+        println("cargoservice | At slot5. Asking markerdevice to mark container...") color magenta
+        request markerdevice -m mark_container : markContainer(none)
+    }
+    Transition t0
+        whenReply marking_done -> move_to_reserved_slot
+
+    State move_to_reserved_slot {
+        [# 
+            val DestX = Hold.getSlotX(ReservedSlotId)
+            val DestY = Hold.getSlotY(ReservedSlotId)
+        #]
+        println("cargoservice | Marked! Moving container to slot$ReservedSlotId ($DestY, $DestX)...") color magenta
+        request cargorobot -m moverobot : moverobot($DestY, $DestX, $StepTime)
+    }
+    Transition t0
+        whenReply moverobotdone   -> return_home
+        whenReply moverobotfailed -> return_home_after_fail
+
+    State return_home_after_fail {
+        println("cargoservice | WARNING: Robot move to slot failed/collided, but proceeding anyway...") color red
+        goto return_home
+    }
+
+    State return_home {
+        [# Hold.occupySlot(ReservedSlotId) #]
+        [# val statusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId) #]
+        updateResource [# statusJson #]
+        
+        [# 
+            val HomeX = Hold.getHomeX()
+            val HomeY = Hold.getHomeY()
+        #]
+        println("cargoservice | Container stored in slot$ReservedSlotId! Returning robot to HOME ($HomeY, $HomeX)...") color magenta
+        request cargorobot -m moverobot : moverobot($HomeY, $HomeX, $StepTime)
+    }
+    Transition t0
+        whenReply moverobotdone   -> finish_job
+        whenReply moverobotfailed -> handle_home_fail
+
+    State finish_job {
+        println("cargoservice | Job finished successfully!") color green
+        [# 
+            discardMessages = false
+            CargoState = "disengaged"
+            ReservedSlotId = -1
+        #]
+        forward ledadapter -m led_ctrl : ledCmd(off)
+        [# val statusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId) #]
+        updateResource [# statusJson #]
+    }
+    Goto disengaged
+
+    State handle_home_fail {
+        println("cargoservice | Robot failed to return home, but container is stored. Returning to disengaged...") color red
+        [# 
+            discardMessages = false
+            CargoState = "disengaged"
+            ReservedSlotId = -1
+        #]
+        forward ledadapter -m led_ctrl : ledCmd(off)
+        [# val statusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId) #]
+        updateResource [# statusJson #]
+    }
+    Goto disengaged
+
+    State handle_robot_fail {
+        println("cargoservice | Robot move failed! Aborting job and returning to disengaged...") color red
+        [# discardMessages = false #]
+        if [# ReservedSlotId != -1 #] {
+            [# Hold.freeSlot(ReservedSlotId) #]
+        }
+        [# 
+            CargoState = "disengaged"
+            ReservedSlotId = -1
+            IOPortOccupied = false
+        #]
+        forward ledadapter -m led_ctrl : ledCmd(off)
+        [# val statusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId) #]
+        updateResource [# statusJson #]
+        
+    }
+    Goto disengaged
+
+    State handle_deposit_timeout {
+        if [# CargoState == "engaged" && !IOPortOccupied #] {
+            println("cargoservice | Deposit timeout! Freeing reserved slot$ReservedSlotId.") color red
+            [# 
+                discardMessages = false
+                Hold.freeSlot(ReservedSlotId) 
+            #]
+            [# 
+                CargoState = "disengaged"
+                ReservedSlotId = -1
+            #]
+            forward ledadapter -m led_ctrl : ledCmd(off)
+            [# val statusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId) #]
+            updateResource [# statusJson #]
+            
+        }
+    }
+    Goto disengaged if [# CargoState == "disengaged" #] else engaged
+}
