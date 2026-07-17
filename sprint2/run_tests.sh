@@ -71,7 +71,7 @@ cd "$PROJECT_DIR/sprint2/prototype/cargoservice"
 pids[cargoservice]=$!
 
 echo "Starting CargoRobot wrapper..."
-cd "$PROJECT_DIR/sprint2/prototype/robot"
+cd "$PROJECT_DIR/sprint2/prototype/cargorobot"
 ./gradlew run --no-daemon > "$LOGS_DIR/cargorobot.log" 2>&1 &
 pids[cargorobot]=$!
 
@@ -80,10 +80,10 @@ cd "$PROJECT_DIR/sprint2/prototype/ioport"
 ./gradlew runIoport --no-daemon > "$LOGS_DIR/ioport.log" 2>&1 &
 pids[ioport]=$!
 
-echo "Starting GuiServer web interface..."
-cd "$PROJECT_DIR/sprint2/prototype/guiserver"
-./gradlew run --no-daemon > "$LOGS_DIR/guiserver.log" 2>&1 &
-pids[guiserver]=$!
+echo "Starting ioport-backend web interface..."
+cd "$PROJECT_DIR/sprint2/prototype/ioport-backend"
+./gradlew run --no-daemon > "$LOGS_DIR/ioport-backend.log" 2>&1 &
+pids[ioport-backend]=$!
 
 echo "Starting Devices context (configured to SONAR_TOPIC=sensore/sonar/test)..."
 cd "$PROJECT_DIR/sprint2/prototype/devices"
@@ -133,19 +133,19 @@ while ! (echo > /dev/tcp/127.0.0.1/8052) >/dev/null 2>&1; do
 done
 echo "devices context is online."
 
-# Wait for robot (port 8053)
+# Wait for cargorobot (port 8053)
 while ! (echo > /dev/tcp/127.0.0.1/8053) >/dev/null 2>&1; do
-    echo "Waiting for robot context on port 8053..."
+    echo "Waiting for cargorobot context on port 8053..."
     sleep 2
 done
-echo "robot context is online."
+echo "cargorobot context is online."
 
-# Wait for guiserver (port 8086)
+# Wait for ioport-backend (port 8086)
 while ! (echo > /dev/tcp/127.0.0.1/8086) >/dev/null 2>&1; do
-    echo "Waiting for guiserver on port 8086..."
+    echo "Waiting for ioport-backend on port 8086..."
     sleep 2
 done
-echo "guiserver is online."
+echo "ioport-backend is online."
 
 # Wait an additional 4 seconds for CoAP observer relation to be established
 sleep 4

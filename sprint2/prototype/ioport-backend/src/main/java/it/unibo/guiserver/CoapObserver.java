@@ -42,6 +42,7 @@ public class CoapObserver {
                             }
                         });
                     } catch (Exception e) {
+                        System.err.println("CoapObserver | Exception during observe: " + e.getMessage());
                         relation = null;
                     }
                 }

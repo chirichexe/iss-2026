@@ -21,7 +21,10 @@ public class JavalinGuiHandler {
     }
 
     public void start() {
-        File webDir = new File("web/ioport");
+        File webDir = new File("../ioport-frontend/web/ioport");
+        if (!webDir.exists()) {
+            webDir = new File("web/ioport");
+        }
         String absWebDir = webDir.exists() ? webDir.getAbsolutePath() : "web/ioport";
         System.out.println("JavalinGuiHandler | Serving static web files from: " + absWebDir);
 

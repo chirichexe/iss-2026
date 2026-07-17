@@ -76,7 +76,7 @@ echo "    Attesa avvio CargoService (4 secondi)..."
 sleep 4
 
 # TERMINALE 4: Wrapper Trasportatore del Robot (cargorobot)
-open_terminal "4_CargoRobot" "$PROJECT_DIR/sprint2/prototype/robot" "./gradlew run --no-daemon"
+open_terminal "4_CargoRobot" "$PROJECT_DIR/sprint2/prototype/cargorobot" "./gradlew run --no-daemon"
 echo "    Attesa avvio CargoRobot (3 secondi)..."
 sleep 3
 
@@ -86,8 +86,8 @@ echo "    Attesa avvio Ioport context (3 secondi)..."
 sleep 3
 
 # TERMINALE 6: Server Esterno Web GUI Inbound Adapter su porta 8086 (guiserver26qak0)
-open_terminal "6_GuiServer_Web" "$PROJECT_DIR/sprint2/prototype/guiserver" "./gradlew run --no-daemon"
-echo "    Attesa avvio GuiServer (3 secondi)..."
+open_terminal "6_Ioport_Backend" "$PROJECT_DIR/sprint2/prototype/ioport-backend" "./gradlew run --no-daemon"
+echo "    Attesa avvio ioport-backend (3 secondi)..."
 sleep 3
 
 # TERMINALE 7: Dispositivi Sonar e Marker per il test fisico (devices)

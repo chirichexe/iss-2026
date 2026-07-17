@@ -1,4 +1,4 @@
-System cargosystem 
+System cargoservice 
 mqttBroker "localhost" : 1883 eventTopic "cargosystem"
   
 // Customer <-> CargoService     

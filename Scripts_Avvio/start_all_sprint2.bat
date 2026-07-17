@@ -52,7 +52,7 @@ timeout /t 4 /nobreak >nul
 
 REM TERMINALE 4: Wrapper Trasportatore del Robot (cargorobot)
 echo  -> Avvio [4_CargoRobot]...
-start "4_CargoRobot" /D "%PROJECT_DIR%\sprint2\prototype\robot" cmd /k "gradlew.bat run --no-daemon"
+start "4_CargoRobot" /D "%PROJECT_DIR%\sprint2\prototype\cargorobot" cmd /k "gradlew.bat run --no-daemon"
 echo     Attesa avvio CargoRobot (3 secondi)...
 timeout /t 3 /nobreak >nul
 
@@ -62,10 +62,10 @@ start "5_Ioport_LedMock" /D "%PROJECT_DIR%\sprint2\prototype\ioport" cmd /k "gra
 echo     Attesa avvio Ioport context (3 secondi)...
 timeout /t 3 /nobreak >nul
 
-REM TERMINALE 6: Server Intermedio Web GUI su porta 8086 (IOPortServer)
-echo  -> Avvio [6_IOPortServer_Web]...
-start "6_IOPortServer_Web" /D "%PROJECT_DIR%\sprint2\prototype\ioport" cmd /k "runIOPortServer.bat"
-echo     Attesa avvio IOPortServer (3 secondi)...
+REM TERMINALE 6: Server Esterno Web GUI su porta 8086 (ioport-backend)
+echo  -> Avvio [6_Ioport_Backend]...
+start "6_Ioport_Backend" /D "%PROJECT_DIR%\sprint2\prototype\ioport-backend" cmd /k "gradlew.bat run --no-daemon"
+echo     Attesa avvio ioport-backend (3 secondi)...
 timeout /t 3 /nobreak >nul
 
 REM TERMINALE 7: Dispositivi Sonar e Marker per il test fisico (devices)
