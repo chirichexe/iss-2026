@@ -34,8 +34,31 @@ QActor sonaradapter context ctxdevices {
     State s0 initial {
         [#
             val topic = System.getenv("SONAR_TOPIC") ?: "sensore/sonar"
-            subscribe(topic)
-            println("sonaradapter | STARTED - MQTT input topic $topic")
+            val brokerAddr = context!!.mqttAddr
+            if (brokerAddr.isNotEmpty()) {
+                val sonarMqtt = unibo.basicomm23.mqtt.MqttConnection("sonaradapter_raw", brokerAddr)
+                val self = myself
+                sonarMqtt.subscribe(topic, object : org.eclipse.paho.client.mqttv3.MqttCallback {
+                    override fun messageArrived(t: String, message: org.eclipse.paho.client.mqttv3.MqttMessage) {
+                        val rawStr = message.toString().trim()
+                        val distance = rawStr.toDoubleOrNull()?.toInt()
+                        if (distance != null) {
+                            val event = it.unibo.kactor.MsgUtil.buildEvent("sonaradapter", "kernel_rawmsg", "kernel_rawmsg('$rawStr')")
+                            kotlinx.coroutines.GlobalScope.launch { self.actor.send(event) }
+                        } else {
+                            unibo.basicomm23.utils.CommUtils.outred("sonaradapter | Ignored invalid raw MQTT sonar payload: $rawStr")
+                        }
+                    }
+                    override fun connectionLost(cause: Throwable?) {
+                        unibo.basicomm23.utils.CommUtils.outred("sonaradapter | MQTT connection lost to $topic: $cause")
+                    }
+                    override fun deliveryComplete(token: org.eclipse.paho.client.mqttv3.IMqttDeliveryToken?) {}
+                })
+                unibo.basicomm23.utils.CommUtils.outgreen("sonaradapter | STARTED - MQTT input topic $topic (dedicated client, no ApplMessage parse errors)")
+            } else {
+                subscribe(topic)
+                println("sonaradapter | STARTED - MQTT input topic $topic (standard subscribe)")
+            }
         #]
     }
     Goto work

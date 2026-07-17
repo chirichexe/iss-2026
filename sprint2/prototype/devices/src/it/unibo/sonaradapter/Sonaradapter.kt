@@ -6,16 +6,21 @@ import alice.tuprolog.*
 import unibo.basicomm23.*
 import unibo.basicomm23.interfaces.*
 import unibo.basicomm23.utils.*
+import unibo.basicomm23.mqtt.MqttConnection
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.GlobalScope
 import it.unibo.kactor.sysUtil.createActor   //Sept2023
 //Sept2024
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory 
 import org.json.simple.parser.JSONParser
 import org.json.simple.JSONObject
+import org.eclipse.paho.client.mqttv3.MqttCallback
+import org.eclipse.paho.client.mqttv3.MqttMessage
+import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken
 
 
 //User imports JAN2024
@@ -28,52 +33,81 @@ class Sonaradapter ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 	}
 	override fun getBody() : (ActorBasicFsm.() -> Unit){
 		//val interruptedStateTransitions = mutableListOf<Transition>()
-		//IF actor.withobj !== null val actor.withobj.name� = actor.withobj.method�ENDIF
+		//IF actor.withobj !== null val actor.withobj.name§ = actor.withobj.method§ENDIF
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
 						
 						            val topic = System.getenv("SONAR_TOPIC") ?: "sensore/sonar"
-						            subscribe(topic)
-						            println("sonaradapter | STARTED - MQTT input topic $topic")
-						//genTimer( actor, state )
+						            
+						            // Use a dedicated MqttConnection with a custom callback to avoid
+						            // the "Double cannot be cast to Struct" error that occurs when
+						            // ActorBasic.messageArrived tries to parse a raw numeric payload
+						            // as an ApplMessage via tuProlog Term.createTerm().
+						            val brokerAddr = context!!.mqttAddr
+						            if (brokerAddr.isNotEmpty()) {
+						                val sonarMqtt = MqttConnection("sonaradapter_raw", brokerAddr)
+						                val self = myself
+						                sonarMqtt.subscribe(topic, object : MqttCallback {
+						                    override fun messageArrived(t: String, message: MqttMessage) {
+						                        val rawStr = message.toString().trim()
+						                        val distance = rawStr.toDoubleOrNull()?.toInt()
+						                        if (distance != null) {
+						                            val event = MsgUtil.buildEvent("sonaradapter", "kernel_rawmsg", "kernel_rawmsg('$rawStr')")
+						                            GlobalScope.launch { self.actor.send(event) }
+						                        } else {
+						                            CommUtils.outred("sonaradapter | Ignored invalid raw MQTT sonar payload: $rawStr")
+						                        }
+						                    }
+						                    override fun connectionLost(cause: Throwable?) {
+						                        CommUtils.outred("sonaradapter | MQTT connection lost to $topic: $cause")
+						                    }
+						                    override fun deliveryComplete(token: IMqttDeliveryToken?) {}
+						                })
+						                CommUtils.outgreen("sonaradapter | STARTED - MQTT input topic $topic (dedicated client, no ApplMessage parse errors)")
+						            } else {
+						                // Fallback: no MQTT broker configured, use standard subscribe
+						                subscribe(topic)
+						                println("sonaradapter | STARTED - MQTT input topic $topic (standard subscribe)")
+						            }
+					//genTimer( actor, state )
+				}
+				//After Lenzi Aug2002
+				sysaction { //it:State
+				}	 	 
+				 transition( edgeName="goto",targetState="work", cond=doswitch() )
+			}	 
+			state("work") { //this:State
+				action { //it:State
+					//genTimer( actor, state )
+				}
+				//After Lenzi Aug2002
+				sysaction { //it:State
+				}	 	 
+				 transition(edgeName="t00",targetState="handle_sonar_payload",cond=whenEvent("kernel_rawmsg"))
+			}	 
+			state("handle_sonar_payload") { //this:State
+				action { //it:State
+					if( checkMsgContent( Term.createTerm("kernel_rawmsg(D)"), Term.createTerm("kernel_rawmsg(D)"), 
+					                        currentMsg.msgContent()) ) { //set msgArgList
+							
+							                val RawDistance = payloadArg(0).trim()
+							                val Distance = RawDistance.toDoubleOrNull()?.toInt()
+							if(  Distance != null  
+							 ){emit("wall_sonardata", "distance($Distance)" ) 
+							CommUtils.outcyan("sonaradapter | MQTT sensore/sonar=$RawDistance -> wall_sonardata distance($Distance)")
+							}
+							else
+							 {CommUtils.outred("sonaradapter | Ignored invalid MQTT sonar payload: $RawDistance")
+							 }
 					}
-					//After Lenzi Aug2002
-					sysaction { //it:State
-					}	 	 
-					 transition( edgeName="goto",targetState="work", cond=doswitch() )
-				}	 
-				state("work") { //this:State
-					action { //it:State
-						//genTimer( actor, state )
-					}
-					//After Lenzi Aug2002
-					sysaction { //it:State
-					}	 	 
-					 transition(edgeName="t00",targetState="handle_sonar_payload",cond=whenEvent("kernel_rawmsg"))
-				}	 
-				state("handle_sonar_payload") { //this:State
-					action { //it:State
-						if( checkMsgContent( Term.createTerm("kernel_rawmsg(D)"), Term.createTerm("kernel_rawmsg(D)"), 
-						                        currentMsg.msgContent()) ) { //set msgArgList
-								
-								                val RawDistance = payloadArg(0).trim()
-								                val Distance = RawDistance.toDoubleOrNull()?.toInt()
-								if(  Distance != null  
-								 ){emit("wall_sonardata", "distance($Distance)" ) 
-								CommUtils.outcyan("sonaradapter | MQTT sensore/sonar=$RawDistance -> wall_sonardata distance($Distance)")
-								}
-								else
-								 {CommUtils.outred("sonaradapter | Ignored invalid MQTT sonar payload: $RawDistance")
-								 }
-						}
-						//genTimer( actor, state )
-					}
-					//After Lenzi Aug2002
-					sysaction { //it:State
-					}	 	 
-					 transition( edgeName="goto",targetState="work", cond=doswitch() )
-				}	 
-			}
+					//genTimer( actor, state )
+				}
+				//After Lenzi Aug2002
+				sysaction { //it:State
+				}	 	 
+				 transition( edgeName="goto",targetState="work", cond=doswitch() )
+			}	 
 		}
+	}
 } 
