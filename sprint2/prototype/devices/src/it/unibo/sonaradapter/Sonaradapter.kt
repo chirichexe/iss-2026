@@ -32,33 +32,7 @@ class Sonaradapter ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
-						
-						            val topic = System.getenv("SONAR_TOPIC") ?: "sensore/sonar"
-						            val brokerAddr = context!!.mqttAddr
-						            if (brokerAddr.isNotEmpty()) {
-						                val sonarMqtt = unibo.basicomm23.mqtt.MqttConnection("sonaradapter_raw", brokerAddr)
-						                val self = myself
-						                sonarMqtt.subscribe(topic, object : org.eclipse.paho.client.mqttv3.MqttCallback {
-						                    override fun messageArrived(t: String, message: org.eclipse.paho.client.mqttv3.MqttMessage) {
-						                        val rawStr = message.toString().trim()
-						                        val distance = rawStr.toDoubleOrNull()?.toInt()
-						                        if (distance != null) {
-						                            val event = MsgUtil.buildEvent("sonaradapter", "kernel_rawmsg", "kernel_rawmsg('$rawStr')")
-						                            kotlinx.coroutines.GlobalScope.launch { self.actor.send(event) }
-						                        } else {
-						                            unibo.basicomm23.utils.CommUtils.outred("sonaradapter | Ignored invalid raw MQTT sonar payload: $rawStr")
-						                        }
-						                    }
-						                    override fun connectionLost(cause: Throwable?) {
-						                        unibo.basicomm23.utils.CommUtils.outred("sonaradapter | MQTT connection lost to $topic: $cause")
-						                    }
-						                    override fun deliveryComplete(token: org.eclipse.paho.client.mqttv3.IMqttDeliveryToken?) {}
-						                })
-						                unibo.basicomm23.utils.CommUtils.outgreen("sonaradapter | STARTED - MQTT input topic $topic (dedicated client, no ApplMessage parse errors)")
-						            } else {
-						                subscribe(topic)
-						                println("sonaradapter | STARTED - MQTT input topic $topic (standard subscribe)")
-						            }
+						CommUtils.outgreen("sonaradapter | STARTED - Listening transparently to MQTT event wall_sonardata")
 						//genTimer( actor, state )
 					}
 					//After Lenzi Aug2002
@@ -73,22 +47,14 @@ class Sonaradapter ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 					//After Lenzi Aug2002
 					sysaction { //it:State
 					}	 	 
-					 transition(edgeName="t00",targetState="handle_sonar_payload",cond=whenEvent("kernel_rawmsg"))
+					 transition(edgeName="t00",targetState="handle_sonar_payload",cond=whenEvent("wall_sonardata"))
 				}	 
 				state("handle_sonar_payload") { //this:State
 					action { //it:State
-						if( checkMsgContent( Term.createTerm("kernel_rawmsg(D)"), Term.createTerm("kernel_rawmsg(D)"), 
+						if( checkMsgContent( Term.createTerm("distance(D)"), Term.createTerm("distance(D)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
-								
-								                val RawDistance = payloadArg(0).trim()
-								                val Distance = RawDistance.toDoubleOrNull()?.toInt()
-								if(  Distance != null  
-								 ){emit("wall_sonardata", "distance($Distance)" ) 
-								CommUtils.outcyan("sonaradapter | PALLE MQTT sensore/sonar=$RawDistance -> wall_sonardata distance($Distance)")
-								}
-								else
-								 {CommUtils.outred("sonaradapter | Ignored invalid MQTT sonar payload: $RawDistance")
-								 }
+								 val Distance = payloadArg(0)  
+								CommUtils.outcyan("sonaradapter | Received wall_sonardata distance($Distance) via MQTT")
 						}
 						//genTimer( actor, state )
 					}

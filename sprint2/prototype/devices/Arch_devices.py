@@ -30,6 +30,5 @@ with Diagram('devicesArch', show=False, outformat='png', graph_attr=graphattr) a
      with Cluster('ctxdevices', graph_attr=nodeattr):
           sonaradapter=Custom('sonaradapter','./qakicons/symActorWithobjSmall.png')
           markerdevice=Custom('markerdevice','./qakicons/symActorWithobjSmall.png')
-     sys >> Edge( label='kernel_rawmsg', **evattr, decorate='true', fontcolor='darkgreen') >> sonaradapter
-     sonaradapter >> Edge( label='wall_sonardata', **eventedgeattr, decorate='true', fontcolor='red') >> sys
+     sys >> Edge( label='wall_sonardata', **evattr, decorate='true', fontcolor='darkgreen') >> sonaradapter
 diag

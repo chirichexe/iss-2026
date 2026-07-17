@@ -6,7 +6,7 @@ from wifi_config import MQTT_BROKER, PASSWORD, SSID
 
 # config
 CLIENT_ID = 'esp32_sonar_node'
-TOPIC_PUB = b'sensore/sonar'
+TOPIC_PUB = b'cargosystem'  # Allineato al broker QAK
 TOPIC_SUB = b'comando/led'
 
 # pins
@@ -15,6 +15,7 @@ echo = machine.Pin(25, machine.Pin.IN)
 led = machine.Pin(2, machine.Pin.OUT)
 
 led_state = 'off'
+msg_seq = 0  # Contatore sequenza messaggi QAK
 
 def sub_cb(topic, msg):
     global led_state
@@ -42,7 +43,7 @@ def connect_mqtt():
     client.subscribe(TOPIC_SUB)
     return client
 
-#init
+# init
 connect_wifi()
 client = connect_mqtt()
 
@@ -62,10 +63,15 @@ while True:
         trigger.value(0)
         
         duration = machine.time_pulse_us(echo, 1, 30000)
-        dist = (duration * 0.0343) / 2 if duration >= 0 else 0
+        dist = int((duration * 0.0343) / 2) if duration >= 0 else 0
+        
+        # Generazione dell'ApplMessage QAK per l'evento 'wall_sonardata'
+        # Sintassi: msg(MSGID, MSGTYPE, SENDER, RECEIVER, CONTENT, SEQNUM)
+        qak_msg = "msg(wall_sonardata,event,esp32_sonar,none,distance({}),{})".format(dist, msg_seq)
+        msg_seq += 1
         
         # publish data
-        client.publish(TOPIC_PUB, str(dist))
+        client.publish(TOPIC_PUB, qak_msg.encode('utf-8'))
         
         time.sleep(0.5)
         

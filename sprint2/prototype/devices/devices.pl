@@ -7,7 +7,6 @@ reply( load_accepted, loadAccepted(SLOTID) ).  %%for load_request
 reply( load_retrylater, loadRetryLater(none) ).  %%for load_request
 reply( load_refused, loadRefused(none) ).  %%for load_request
 event( wall_sonardata, distance(D) ).
-event( kernel_rawmsg, kernel_rawmsg(D) ).
 dispatch( set_service_status, setServiceStatus(STATUS) ).
 dispatch( led_ctrl, ledCmd(CMD) ).
 request( moverobot, moverobot(TARGETX,TARGETY,STEPTIME) ).

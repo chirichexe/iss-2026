@@ -1,7 +1,6 @@
 System devices
 mqttBroker "localhost" : 1883 eventTopic "cargosystem"
 
- 
 // Customer <-> CargoService  
 Request load_request    : loadRequest(none)
 Reply   load_accepted   : loadAccepted(SLOTID) for load_request 
@@ -9,8 +8,8 @@ Reply   load_retrylater : loadRetryLater(none) for load_request
 Reply   load_refused    : loadRefused(none) for load_request    
  
 // Aggiornamenti Sensori e Stato  
-Event    wall_sonardata          : distance(D)  // Emesso dal sonar
-Event    kernel_rawmsg      : kernel_rawmsg(D) // Payload MQTT raw ricevuto da sensore/sonar
+// Il sonar esterno deve pubblicare l'evento 'wall_sonardata' direttamente sul broker
+Event    wall_sonardata     : distance(D)  
 Dispatch set_service_status : setServiceStatus(STATUS) 
 Dispatch led_ctrl           : ledCmd(CMD)         
 
@@ -24,66 +23,33 @@ Request mark_container : markContainer(none)
 Reply   marking_done   : markingDone(none) for mark_container
 
 // CONTESTI 
-Context ctxcargoservice ip [host="127.0.0.1" port=8050] // Cargoservice
-Context ctxioport       ip [host="127.0.0.1" port=8051] // Ioport web / led 
-Context ctxdevices      ip [host="localhost" port=8052] // Sonar / markerdevice
-Context ctxrobot        ip [host="127.0.0.1" port=8053] // Cargorobot
+Context ctxcargoservice ip [host="127.0.0.1" port=8050] 
+Context ctxioport       ip [host="127.0.0.1" port=8051] 
+Context ctxdevices      ip [host="localhost" port=8052] 
+Context ctxrobot        ip [host="127.0.0.1" port=8053] 
 
-// SONAR ADAPTER: si sottoscrive al topic "sensore/sonar" e traduce i payload raw in eventi sonardata.
+// SONAR ADAPTER: Modificato secondo specifica QAK26.
+// Sfrutta la subscribe implicita generata dal runtime sul broker MQTT tramite 'whenEvent'.
 QActor sonaradapter context ctxdevices {
     State s0 initial {
-        [#
-            val topic = System.getenv("SONAR_TOPIC") ?: "sensore/sonar"
-            val brokerAddr = context!!.mqttAddr
-            if (brokerAddr.isNotEmpty()) {
-                val sonarMqtt = unibo.basicomm23.mqtt.MqttConnection("sonaradapter_raw", brokerAddr)
-                val self = myself
-                sonarMqtt.subscribe(topic, object : org.eclipse.paho.client.mqttv3.MqttCallback {
-                    override fun messageArrived(t: String, message: org.eclipse.paho.client.mqttv3.MqttMessage) {
-                        val rawStr = message.toString().trim()
-                        val distance = rawStr.toDoubleOrNull()?.toInt()
-                        if (distance != null) {
-                            val event = MsgUtil.buildEvent("sonaradapter", "kernel_rawmsg", "kernel_rawmsg('$rawStr')")
-                            kotlinx.coroutines.GlobalScope.launch { self.actor.send(event) }
-                        } else {
-                            unibo.basicomm23.utils.CommUtils.outred("sonaradapter | Ignored invalid raw MQTT sonar payload: $rawStr")
-                        }
-                    }
-                    override fun connectionLost(cause: Throwable?) {
-                        unibo.basicomm23.utils.CommUtils.outred("sonaradapter | MQTT connection lost to $topic: $cause")
-                    }
-                    override fun deliveryComplete(token: org.eclipse.paho.client.mqttv3.IMqttDeliveryToken?) {}
-                })
-                unibo.basicomm23.utils.CommUtils.outgreen("sonaradapter | STARTED - MQTT input topic $topic (dedicated client, no ApplMessage parse errors)")
-            } else {
-                subscribe(topic)
-                println("sonaradapter | STARTED - MQTT input topic $topic (standard subscribe)")
-            }
-        #]
+        println("sonaradapter | STARTED - Listening transparently to MQTT event wall_sonardata") color green
     }
     Goto work
 
     State work { }
     Transition t0
-        whenEvent kernel_rawmsg -> handle_sonar_payload
+        whenEvent wall_sonardata -> handle_sonar_payload
 
     State handle_sonar_payload {
-        onMsg(kernel_rawmsg : kernel_rawmsg(D)) {
-            [#
-                val RawDistance = payloadArg(0).trim()
-                val Distance = RawDistance.toDoubleOrNull()?.toInt()
-            #]
-            if [# Distance != null #] {
-                emit wall_sonardata : distance($Distance)
-                println("sonaradapter | PALLE MQTT sensore/sonar=$RawDistance -> wall_sonardata distance($Distance)") color cyan
-            } else {
-                println("sonaradapter | Ignored invalid MQTT sonar payload: $RawDistance") color red
-            }
+        onMsg(wall_sonardata : distance(D)) {
+            [# val Distance = payloadArg(0) #]
+            println("sonaradapter | Received wall_sonardata distance($Distance) via MQTT") color cyan
+            // Qui puoi inserire eventuale logica di dispatching verso il CargoService, 
+            // oppure lasciare che CargoService osservi direttamente l'evento dal broker.
         }
     }
     Goto work
 }
-
 
 // MARKER DEVICE
 QActor markerdevice context ctxdevices {
