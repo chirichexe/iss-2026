@@ -96,7 +96,7 @@ Sarà necessario inoltre, in base ai requisiti, decidere come e dove implementar
 = Problem analysis <model>
 // =============================================================================
 
-Come definito precedentemente, bisogna sostituire progressivamente i componenti simulati con componenti accessibili attraverso tecnologie compatibili con la loro natura:
+Come definito precedentemente, bisogna sostituire progressivamente i componenti simulati con componenti accessibili attraverso tecnologie compatibili con la loro natura
 
 // =============================================================================
 == Osservabilità dello stato della Hold e considerazioni sulla Web GUI
@@ -104,7 +104,7 @@ Come definito precedentemente, bisogna sostituire progressivamente i componenti 
 
 Nello Sprint 1, l'IOPort era modellato come un attore QAK "mock" all'interno dello stesso contesto dell hold. Questa vicinanza tecnologica permetteva all'IOPort di reagire direttamente ai singoli eventi e messaggi asincroni scambiati sulla rete di attori. 
 
-Adesso l'IOPort evolve in una Web GUI eseguita in un browser web esterno. Questa transizione fisica e architetturale solleva tre problematiche fondamentali che rendono i messaggi QAK nativi inadeguati per l'aggiornamento dell'interfaccia:
+Adesso l'IOPort evolve in una Web GUI eseguita in un browser web esterno. Questa transizione fisica e architetturale solleva due problematiche fondamentali che rendono i messaggi QAK nativi inadeguati per l'aggiornamento dell'interfaccia:
 
 1. I browser non comprendono lo scambio di messaggi nativi QAK e non possono partecipare direttamente alla topologia di rete del modello ad attori da esso implementato.
 
@@ -129,6 +129,13 @@ Lo stato dinamico della *Hold* e del sistema viene astratto e centralizzato in u
 }
 ```
 
+Il codice della classe `Hold` si trova al seguente #link("https://github.com/chirichexe/iss-2026/blob/main/sprint2/prototype/cargoservice/src/Hold.java")[link].
+
+```java
+public static String toJson(String serviceState, String workingState, boolean ioPortOccupied, int reservedSlot) {
+    return INSTANCE.doToJson(serviceState, workingState, ioPortOccupied, reservedSlot);
+}
+```
 
 Il cargoservice si assume la responsabilità di rigenerare questa stringa JSON e di notificarla all'esterno ogni volta che si verifica una variazione significativa del sistema (es. transizione tra gli stati engaged/disengaged, variazione delle distanze del sonar, ingresso/uscita dallo stato Out of service o completamento del deposito).
 
@@ -143,6 +150,8 @@ Il runtime QAK permette a un attore di esporre nativamente il proprio stato come
 - ricevere una notifica quando il suo contenuto viene aggiornato.
 
 Il *cargoservice* espone quindi il documento JSON mediante la propria risorsa CoAP, aggiornandola attraverso `updateResource(...)`.
+
+Il codice di *cargoservice* si trova al seguente #link("https://github.com/chirichexe/iss-2026/blob/main/sprint2/prototype/cargoservice/src/cargoservice.qak")[link].
 
 La scelta di CoAP riguarda la comunicazione interna tra il sistema QAK e il componente che serve la Web GUI. Non è invece possibile utilizzare direttamente CoAP dal browser in modo portabile, poiché i browser non espongono normalmente API native per questo protocollo.
 
