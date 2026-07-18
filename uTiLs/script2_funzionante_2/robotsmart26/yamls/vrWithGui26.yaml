@@ -1,0 +1,30 @@
+services:
+  wenv:
+    image: docker.io/natbodocker/virtualrobotdisi26:1.0
+    #image: virtualrobotdisi26:1.0
+    ports:
+     - 8090:8090
+     - 8091:8091
+    networks:
+     - iss-network
+  
+  robotoutgui25:
+    container_name: robotoutgui25
+    image: docker.io/natbodocker/robotoutgui25:1.0
+    #image: robotoutgui25:1.0
+    ports:
+     - 8085:8085/tcp
+    networks:
+     - iss-network
+
+networks:
+    iss-network:
+     external: true
+
+## docker-compose -f vrWithGui26.yaml up
+## docker-compose down
+## docker-compose run --service-ports wenv    starts wenv
+
+## docker network ls
+## docker network create iss-network
+## docker network rm x
