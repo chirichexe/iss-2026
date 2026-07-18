@@ -1,4 +1,29 @@
-#!/bin/bash
+echo "=============================================================================="
+echo "Build applicazioni Gradle..."
+echo "=============================================================================="
+
+(
+    cd ioport-backend
+    ./gradlew distTar
+)
+
+(
+    cd cargoservice
+    ./gradlew distTar
+)
+
+(
+    cd cargorobot
+    ./gradlew distTar
+)
+
+(
+    cd devices
+    ./gradlew distTar
+)
+
+echo "Build Gradle completata"
+
 echo "=============================================================================="
 echo "Avvio sistema Sprint 2 (Containerizzato) in corso..."
 echo "=============================================================================="
