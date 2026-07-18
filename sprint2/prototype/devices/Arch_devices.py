@@ -28,8 +28,10 @@ with Diagram('devicesArch', show=False, outformat='png', graph_attr=graphattr) a
      with Cluster('ctxdevices', graph_attr=nodeattr):
           sonaradapter=Custom('sonaradapter','./qakicons/symActorWithobjSmall.png')
           markerdevice=Custom('markerdevice','./qakicons/symActorWithobjSmall.png')
+          ledadapter=Custom('ledadapter','./qakicons/symActorWithobjSmall.png')
      with Cluster('ctxcargoservice', graph_attr=nodeattr):
           cargoservice=Custom('cargoservice(ext)','./qakicons/externalQActor.png')
      sys >> Edge( label='wall_sonardata', **evattr, decorate='true', fontcolor='darkgreen') >> sonaradapter
+     ledadapter >> Edge( label='led_event', **eventedgeattr, decorate='true', fontcolor='red') >> sys
      sonaradapter >> Edge(color='blue', style='solid',  decorate='true', label='<incoming_sonar &nbsp; >',  fontcolor='blue') >> cargoservice
 diag

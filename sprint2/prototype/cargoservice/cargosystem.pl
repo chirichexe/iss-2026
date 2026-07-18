@@ -16,10 +16,9 @@ request( mark_container, markContainer(none) ).
 reply( marking_done, markingDone(none) ).  %%for mark_container
 %====================================================================================
 context(ctxcargoservice, "localhost",  "TCP", "8050").
-context(ctxioport, "127.0.0.1",  "TCP", "8051").
 context(ctxdevices, "127.0.0.1",  "TCP", "8052").
 context(ctxrobot, "127.0.0.1",  "TCP", "8053").
- qactor( ledadapter, ctxioport, "external").
+ qactor( ledadapter, ctxdevices, "external").
   qactor( markerdevice, ctxdevices, "external").
   qactor( cargorobot, ctxrobot, "external").
   qactor( cargoservice, ctxcargoservice, "it.unibo.cargoservice.Cargoservice").

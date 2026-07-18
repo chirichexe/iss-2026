@@ -11,7 +11,6 @@ reply( moverobotdone, moverobotok(ARG) ).  %%for moverobot
 reply( moverobotfailed, moverobotfailed(PLANDONE,PLANTODO) ).  %%for moverobot
 %====================================================================================
 context(ctxcargoservice, "127.0.0.1",  "TCP", "8050").
-context(ctxioport, "127.0.0.1",  "TCP", "8051").
 context(ctxdevices, "127.0.0.1",  "TCP", "8052").
 context(ctxrobot, "localhost",  "TCP", "8053").
 context(ctxrobotsmart, "127.0.0.1",  "TCP", "8020").

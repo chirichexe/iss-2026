@@ -2,11 +2,7 @@ System cargorobot
 mqttBroker "localhost" : 1883 eventTopic "cargosystem"
  
  
-// Customer <-> CargoService    
-Request load_request    : loadRequest(none)
-Reply   load_accepted   : loadAccepted(SLOTID) for load_request 
-Reply   load_retrylater : loadRetryLater(none) for load_request 
-Reply   load_refused    : loadRefused(none) for load_request    
+// Messages for cargorobot
 
 // CargoService <-> CargoRobot  
 Request  moverobot       : moverobot(TARGETX, TARGETY, STEPTIME)
@@ -15,7 +11,6 @@ Reply    moverobotfailed : moverobotfailed(PLANDONE, PLANTODO) for moverobot
 
 // CONTESTI
 Context ctxcargoservice ip [host="127.0.0.1" port=8050]
-Context ctxioport       ip [host="127.0.0.1" port=8051]
 Context ctxdevices      ip [host="127.0.0.1" port=8052]
 Context ctxrobot        ip [host="localhost" port=8053]
 Context ctxrobotsmart   ip [host="127.0.0.1" port=8020] 

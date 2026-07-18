@@ -47,15 +47,12 @@ class Ledadapter ( name: String, scope: CoroutineScope, isconfined: Boolean=fals
 					//After Lenzi Aug2002
 					sysaction { //it:State
 					}	 	 
-					 transition(edgeName="t00",targetState="handle_led_cmd",cond=whenDispatch("led_ctrl"))
+					 transition(edgeName="t02",targetState="handle_led_cmd",cond=whenDispatch("led_ctrl"))
 				}	 
 				state("handle_led_cmd") { //this:State
 					action { //it:State
-						if( checkMsgContent( Term.createTerm("ledCmd(CMD)"), Term.createTerm("ledCmd(CMD)"), 
-						                        currentMsg.msgContent()) ) { //set msgArgList
-								 val Command = payloadArg(0)  
-								CommUtils.outblue("ledadapter | Processed TCP dispatch: $Command. Emitting event to MQTT...")
-						}
+						CommUtils.outblue("ledadapter | Publishing LED command on MQTT")
+						emit("led_event", "ledCmd(CMD)" ) 
 						//genTimer( actor, state )
 					}
 					//After Lenzi Aug2002

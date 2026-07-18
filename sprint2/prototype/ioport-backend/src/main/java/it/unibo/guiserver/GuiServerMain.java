@@ -10,7 +10,7 @@ public class GuiServerMain {
 
     public static void main(String[] args) {
         System.out.println("=========================================================================");
-        System.out.println("GuiServerMain | Starting External Web Facade Server (guiserver26qak0)...");
+        System.out.println("GuiServerMain | Starting External Web Server (guiserver26qak0)...        ");
         System.out.println("=========================================================================");
 
         int port = 8086;

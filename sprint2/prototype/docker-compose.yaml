@@ -92,17 +92,6 @@ services:
       - robotsmart26
       - cargoservice
 
-  ioport:
-    container_name: ioport
-    build:
-      context: ./ioport
-    network_mode: host
-    environment:
-      - MQTTBROKER=localhost
-    depends_on:
-      - mosquitto
-      - cargoservice
-
   devices:
     container_name: devices
     build:
