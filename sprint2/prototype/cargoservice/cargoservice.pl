@@ -8,7 +8,7 @@ reply( load_retrylater, loadRetryLater(none) ).  %%for load_request
 reply( load_refused, loadRefused(none) ).  %%for load_request
 dispatch( incoming_sonar, distance(D) ).
 dispatch( set_service_status, setServiceStatus(STATUS) ).
-dispatch( led_ctrl, ledCmd(CMD) ).
+event( led_ctrl, ledCmd(CMD) ).
 dispatch( deposit_timeout_msg, depositTimeout(none) ).
 request( moverobot, moverobot(TARGETX,TARGETY,STEPTIME) ).
 reply( moverobotdone, moverobotok(ARG) ).  %%for moverobot

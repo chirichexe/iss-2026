@@ -114,7 +114,7 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 						                             forward("deposit_timeout_msg", "depositTimeout(none)", "cargoservice")
 						                         }
 						                     }
-						 forward("led_ctrl", "ledCmd(blink)" ,"ledadapter" ) 
+						 emit("led_ctrl", "ledCmd(blink)" ) 
 						  val SlotName = "slot$ReservedSlotId"  
 						 answer("load_request", "load_accepted", "loadAccepted($SlotName)"   )  
 						  val statusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId)  
@@ -342,7 +342,7 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 						            ReservedSlotId = -1
 						            DepositTimeoutStart = -1L
 						            DepositTimeoutOccurred = false
-						forward("led_ctrl", "ledCmd(off)" ,"ledadapter" ) 
+						emit("led_ctrl", "ledCmd(off)" ) 
 						 val statusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId)  
 						updateResourceRep( statusJson  
 						)
@@ -362,7 +362,7 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 						            ReservedSlotId = -1
 						            DepositTimeoutStart = -1L
 						            DepositTimeoutOccurred = false
-						forward("led_ctrl", "ledCmd(off)" ,"ledadapter" ) 
+						emit("led_ctrl", "ledCmd(off)" ) 
 						 val statusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId)  
 						updateResourceRep( statusJson  
 						)
@@ -384,7 +384,7 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 						                ReservedSlotId = -1
 						                DepositTimeoutStart = -1L
 						                DepositTimeoutOccurred = false
-						forward("led_ctrl", "ledCmd(off)" ,"ledadapter" ) 
+						emit("led_ctrl", "ledCmd(off)" ) 
 						 val statusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId)  
 						updateResourceRep( statusJson  
 						)

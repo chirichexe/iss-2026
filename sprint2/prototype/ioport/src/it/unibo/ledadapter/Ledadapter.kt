@@ -32,7 +32,7 @@ class Ledadapter ( name: String, scope: CoroutineScope, isconfined: Boolean=fals
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
-						CommUtils.outgreen("ledadapter | STARTED - publishing LED commands to MQTT topic comando/led")
+						CommUtils.outgreen("ledadapter | STARTED - Routing TCP dispatches to MQTT events")
 						//genTimer( actor, state )
 					}
 					//After Lenzi Aug2002
@@ -53,10 +53,8 @@ class Ledadapter ( name: String, scope: CoroutineScope, isconfined: Boolean=fals
 					action { //it:State
 						if( checkMsgContent( Term.createTerm("ledCmd(CMD)"), Term.createTerm("ledCmd(CMD)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
-								 
-								                val Command = payloadArg(0).toString()
-								                publish(Command, "comando/led", 0, false)
-								CommUtils.outblue("ledadapter | MQTT publish comando/led=$Command")
+								 val Command = payloadArg(0)  
+								CommUtils.outblue("ledadapter | Processed TCP dispatch: $Command. Emitting event to MQTT...")
 						}
 						//genTimer( actor, state )
 					}

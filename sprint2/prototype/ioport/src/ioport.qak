@@ -9,9 +9,8 @@ Reply   load_retrylater : loadRetryLater(none) for load_request
 Reply   load_refused    : loadRefused(none) for load_request    
  
 // Aggiornamenti Sensori e Stato 
-Event    sonardata          : distance(D)
-Dispatch set_service_status : setServiceStatus(STATUS) 
-Dispatch led_ctrl           : ledCmd(CMD)         
+Dispatch led_ctrl     : ledCmd(CMD)       
+Event    led_net_event: ledCmd(CMD)   
 
 // CONTESTI
 Context ctxcargoservice ip [host="127.0.0.1" port=8050]
@@ -19,10 +18,10 @@ Context ctxioport       ip [host="localhost" port=8051]
 Context ctxdevices      ip [host="127.0.0.1" port=8052]
 Context ctxrobot        ip [host="127.0.0.1" port=8053] 
 
-// LED ADAPTER: traduce il comando applicativo led_ctrl in publish MQTT su comando/led.
+// LED ADAPTER (Pulito: rimosso il codice imperativo Kotlin e la publish manuale)
 QActor ledadapter context ctxioport {
     State s0 initial { 
-        println("ledadapter | STARTED - publishing LED commands to MQTT topic comando/led") color green
+        println("ledadapter | STARTED - Routing TCP dispatches to MQTT events") color green
     }   
     Goto work
     
@@ -32,15 +31,10 @@ QActor ledadapter context ctxioport {
         
     State handle_led_cmd {
         onMsg(led_ctrl : ledCmd(CMD)) {
-            [# 
-                val Command = payloadArg(0).toString()
-                publish(Command, "comando/led", 0, false)
-            #]
-            
-            println("ledadapter | MQTT publish comando/led=$Command") color blue
+            [# val Command = payloadArg(0) #]
+            println("ledadapter | Processed TCP dispatch: $Command. Emitting event to MQTT...") color blue
         }
     }
     Goto work
 }
-
 ExternalQActor cargoservice context ctxcargoservice

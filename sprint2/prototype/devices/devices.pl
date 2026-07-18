@@ -1,7 +1,7 @@
 %====================================================================================
 % devices description   
 %====================================================================================
-mqttBroker("localhost", "1883", "sonarevents").
+mqttBroker("localhost", "1883", "cargosystem").
 event( wall_sonardata, distance(D) ).
 dispatch( incoming_sonar, distance(D) ).
 request( mark_container, markContainer(none) ).

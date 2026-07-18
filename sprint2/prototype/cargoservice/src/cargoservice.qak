@@ -10,7 +10,7 @@ Reply   load_refused    : loadRefused(none) for load_request
 // Flusso Sensori e Stato (Ricevuto da SonarAdapter)
 Dispatch incoming_sonar     : distance(D)  
 Dispatch set_service_status : setServiceStatus(STATUS) 
-Dispatch led_ctrl           : ledCmd(CMD)         
+Event led_ctrl : ledCmd(CMD)       
 Dispatch deposit_timeout_msg: depositTimeout(none)
 
 // CargoService <-> CargoRobot 
@@ -96,7 +96,7 @@ QActor cargoservice context ctxcargoservice {
                         }
                     }
                 #]
-                forward ledadapter -m led_ctrl : ledCmd(blink)
+                emit led_ctrl : ledCmd(blink)
                 [# val SlotName = "slot$ReservedSlotId" #]
                 replyTo load_request with load_accepted : loadAccepted($SlotName)
                 [# val statusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId) #]
@@ -258,7 +258,7 @@ QActor cargoservice context ctxcargoservice {
             DepositTimeoutStart = -1L
             DepositTimeoutOccurred = false
         #]
-        forward ledadapter -m led_ctrl : ledCmd(off)
+        emit led_ctrl : ledCmd(off)
         [# val statusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId) #]
         updateResource [# statusJson #]
     }
@@ -273,7 +273,7 @@ QActor cargoservice context ctxcargoservice {
             DepositTimeoutStart = -1L
             DepositTimeoutOccurred = false
         #]
-        forward ledadapter -m led_ctrl : ledCmd(off)
+        emit led_ctrl : ledCmd(off)
         [# val statusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId) #]
         updateResource [# statusJson #]
     }
@@ -290,7 +290,7 @@ QActor cargoservice context ctxcargoservice {
                 DepositTimeoutStart = -1L
                 DepositTimeoutOccurred = false
             #]
-            forward ledadapter -m led_ctrl : ledCmd(off)
+            emit led_ctrl : ledCmd(off)
             [# val statusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId) #]
             updateResource [# statusJson #]
         }
