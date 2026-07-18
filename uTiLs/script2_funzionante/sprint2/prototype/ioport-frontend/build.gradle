@@ -1,5 +1,0 @@
-plugins {
-    id 'base'
-}
-
-version = '1.0'
