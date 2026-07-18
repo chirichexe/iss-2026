@@ -89,7 +89,13 @@ Sarà necessario inoltre, in base ai requisiti, decidere come e dove implementar
 = Problem analysis <model>
 // =============================================================================
 
-Come definito precedentemente, bisogna sostituire progressivamente i componenti simulati con componenti accessibili attraverso tecnologie compatibili con la loro natura
+Come definito precedentemente, bisogna sostituire progressivamente i componenti simulati con componenti accessibili attraverso tecnologie compatibili con la loro natura.
+
+// =============================================================================
+== OPicoW vs Esp32
+// =============================================================================
+
+?????????????????????????????????????
 
 // =============================================================================
 == Osservabilità dello stato della Hold e considerazioni sulla Web GUI
@@ -105,7 +111,7 @@ Adesso l'IOPort evolve in una Web GUI eseguita in un browser web esterno. Questa
 
 Fornire un'unica struttura dati descrittiva potrà consentire di disaccoppiare la Web GUI dalla logica interna degli attori. Il frontend si limiterà ad associare i dati ricevuti sui componenti grafici. Il *cargoservice* continuerà a gestire le transizioni di stato.
 
-Lo stato dinamico della *Hold* e del sistema viene astratto e centralizzato in una rappresentazione serializzabile in formato *JSON* (mediante `toJson`), indipendente dal linguaggio di programmazione e direttamente interpretabile dal motore JavaScript del client.
+Lo stato dinamico della *Hold* e del sistema viene astratto e centralizzato in una rappresentazione serializzabile in formato *JSON* (mediante il metodo `toJson`), indipendente dal linguaggio di programmazione e direttamente interpretabile dal motore del client da noi scelto, ovvero JavaScript.
 
 ```java
 public static String toJson(String serviceState, String workingState, boolean ioPortOccupied, int reservedSlot) {
@@ -145,17 +151,35 @@ Tale soluzione risulta però inefficiente, poiché genera richieste anche quando
 Per evitare questo problema viene utilizzato CoAP, il quale supporta nativamente il meccanismo *Observe*, che permette a un client di sottoscriversi a una risorsa e ricevere automaticamente una notifica solo quando il suo contenuto cambia.
 
 Il runtime QAK sfrutta questa funzionalità permettendo a un attore di esporre il proprio stato come risorsa CoAP osservabile. 
-Il *cargoservice* rende quindi disponibile il proprio stato sotto forma di documento JSON, aggiornando la risorsa tramite la primitiva `updateResource(...)`.
+Il *cargoservice* rende quindi disponibile il proprio stato sotto forma di documento JSON, aggiornando la risorsa (unicamente quando avviene una variazione significativa) tramite la primitiva `updateResource(...)`.
 
-Il codice dell'attore *cargoservice* è disponibile al seguente 
+Esempio: trasizione stato engaged/disengaged
+```qak
+State disengaged {
+    println("cargoservice | DISENGAGED: waiting for requests...") color blue
+    [# val statusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId) #]
+    updateResource [# statusJson #]
+}
+Transition t0
+    whenRequest load_request       -> handle_load_request
+    whenMsg     incoming_sonar     -> handle_sonar
+
+State engaged {
+    println("cargoservice | ENGAGED: evaluating next step...") color blue
+    [# val statusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId) #]
+    updateResource [# statusJson #]
+}
+Goto do_robot_job if [# IOPortOccupied && CargoState == "engaged" && ServiceWorking #] else wait_for_container
+```
+
+Il codice completo dell'attore *cargoservice* è disponibile al seguente 
 #link("https://github.com/chirichexe/iss-2026/blob/main/sprint2/prototype/cargoservice/src/cargoservice.qak")[link].
 
-Poiché i browser non supportano direttamente CoAP in modo portabile, viene introdotto un componente intermediario, denominato *web server* o *IOPort server*, che:
+Poiché i browser non supportano direttamente CoAP in modo portabile, viene introdotto un componente intermediario, denominato *IOPort backend*, che dovrà:
 
-- osserva la risorsa CoAP del *cargoservice*;
-- riceve gli aggiornamenti tramite il meccanismo *Observe*;
-- espone tali informazioni alla Web GUI tramite un protocollo compatibile con il browser;
-- inoltra al *cargoservice* le richieste provenienti dalla GUI.
+- osservare la risorsa CoAP del *cargoservice*, ricevendo gli aggiornamenti in formato JSON tramite il meccanismo *Observe*;
+- esporre tali informazioni alla Web GUI tramite un protocollo compatibile con il browser, la cui scelta è definita nella sezione successiva;
+- inoltrare al *cargoservice* le richieste provenienti dalla GUI.
 
 // =============================================================================
 == Realizzazione dell'IOPort come Web GUI
@@ -163,29 +187,19 @@ Poiché i browser non supportano direttamente CoAP in modo portabile, viene intr
 
 L'IOPort richiesto dalla committente è costituito logicamente da:
 
-- un pushbutton, utilizzato dal cliente per inviare una `load_request`;
+- un pushbutton, utilizzato dal cliente per inviare una richiesta di carico di un container;
 - un display, utilizzato per mostrare la risposta alla richiesta e lo stato corrente della hold.
 
 La sua implementazione viene suddivisa in due parti:
 
-- una pagina web eseguita nel browser (disponibile al seguente #link("https://github.com/chirichexe/iss-2026/blob/main/sprint2/prototype/ioport-frontend/")[link]);
-- un server intermediario che collega il browser al sistema QAK (disponibile al seguente #link("https://github.com/chirichexe/iss-2026/blob/main/sprint2/prototype/ioport-backend/")[link]).
-
-La GUI non contiene la logica del ciclo di carico e non mantiene autonomamente lo stato della hold. Essa si limita a:
-
-- inviare il comando associato alla pressione del pushbutton;
-- visualizzare la risposta ricevuta;
-- aggiornare il display quando cambia lo stato pubblicato dal *cargoservice*.
+- una pagina web eseguita nel browser (disponibile al seguente #link("https://github.com/chirichexe/iss-2026/blob/main/sprint2/prototype/ioport-frontend/")[link]). Si utilizza il motore JavaScript nativo per la gestione della logica di interazione con l'utente e per la visualizzazione dello stato del sistema. I dati verranno visualizzati su una pagina HTML.
+- un server intermediario (IOPort backend) che collega il browser al sistema QAK (disponibile al seguente #link("https://github.com/chirichexe/iss-2026/blob/main/sprint2/prototype/ioport-backend/")[link]) e che funge da web server per la pagina web. Si è scelto di utilizzare Javalin, un framework leggero per la creazione di web server in Java, che permette di gestire facilmente le richieste HTTP. Per implementare il meccanismo di Observe di CoAP si utilizzano specifiche funzioni di libreria (il codice della gestione dell'Observer si trova al seguente #link("https://github.com/chirichexe/iss-2026/blob/main/sprint2/prototype/ioport-backend/src/main/java/it/unibo/guiserver/CoapObserver.java")[link]).
 
 === Invio della load_request
 
 Quando il cliente preme il pulsante, la GUI invia una richiesta HTTP `POST` al server intermediario.
 
-Il server traduce tale richiesta in una `load_request` indirizzata al *cargoservice* e attende una delle risposte già definite nello Sprint 1 (il codice della gestione della `load_request` si trova al seguente #link("https://github.com/chirichexe/iss-2026/blob/main/sprint2/prototype/ioport-backend/src/main/java/it/unibo/guiserver/HttpController.java")[link]):
-
-- `load_accepted`;
-- `load_retrylater`;
-- `load_refused`.
+Il server traduce tale richiesta in una `load_request` indirizzata al *cargoservice* e attende una delle risposte già definite nello Sprint 0 (il codice della gestione della `load_request` si trova al seguente #link("https://github.com/chirichexe/iss-2026/blob/main/sprint2/prototype/ioport-backend/src/main/java/it/unibo/guiserver/HttpController.java")[link]):
 
 La risposta viene quindi restituita alla GUI e mostrata sul display.
 
@@ -193,25 +207,21 @@ Questa soluzione mantiene invariato il protocollo applicativo QAK già validato 
 
 === Aggiornamento del display
 
-L'aggiornamento dello stato non dovrebbe dipendere da interrogazioni periodiche effettuate dal browser, poiché il polling introdurrebbe richieste ripetute anche in assenza di cambiamenti.
+Per effettuare l'aggiornamento dello stato sul display si potrebbe:
+1. utilizzare un polling periodico da parte della GUI, che interroga il server per verificare eventuali variazioni dello stato;
+2. utilizzare websocket per ricevere notifiche push dal server ogni volta che lo stato cambia.
 
-Si sceglie pertanto una comunicazione push mediante WebSocket:
-
-1. il server osserva la risorsa CoAP del *cargoservice* mediate il meccanismo *Observe* (il codice della gestione dell'osservazione si trova al seguente #link("https://github.com/chirichexe/iss-2026/blob/main/sprint2/prototype/ioport-backend/src/main/java/it/unibo/guiserver/CoapObserver.java")[link]);
-2. quando la risorsa cambia, il server riceve il nuovo JSON;
-3. il server inoltra l'aggiornamento ai browser connessi tramite WebSocket (il codice della gestione del WebSocket si trova al seguente #link("https://github.com/chirichexe/iss-2026/blob/main/sprint2/prototype/ioport-backend/src/main/java/it/unibo/guiserver/WsController.java")[link]);
-4. la GUI aggiorna il display.
-
-Il server intermediario svolge quindi una funzione di adattamento tra tre differenti modalità di comunicazione:
-
-- HTTP per i comandi provenienti dalla GUI;
-- CoAP Observe per osservare lo stato del *cargoservice*;
-- WebSocket per inviare aggiornamenti asincroni al browser.
+Si sceglie pertanto una comunicazione push mediante WebSocket in quanto più efficiente e reattiva.
+In questo modo il server, dopo aver ricevuto l'aggiornamento dello stato del *cargoservice* tramite CoAP Observe, può inoltrare immediatamente le informazioni alla GUI senza che quest'ultima debba richiederle periodicamente (il codice della gestione del WebSocket si trova al seguente #link("https://github.com/chirichexe/iss-2026/blob/main/sprint2/prototype/ioport-backend/src/main/java/it/unibo/guiserver/WsController.java")[link]).
 
 #figure(
   image("../../utils/static/IOPort-logic.png", width: 80%),
   caption: [Architettura dell'IOPort server]
 )
+
+?????????????????????????????????????????????????????????????????????
+SCRIVERE IL FATTO CHE ABBIAMO ELIMINATO L'ATTORE IOPORT E IL CONTESTO
+?????????????????????????????????????????????????????????????????????
 
 // =============================================================================
 == Integrazione del sonar reale
