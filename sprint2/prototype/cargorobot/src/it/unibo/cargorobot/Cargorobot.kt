@@ -65,13 +65,17 @@ class Cargorobot ( name: String, scope: CoroutineScope, isconfined: Boolean=fals
 						if( checkMsgContent( Term.createTerm("moverobot(TARGETX,TARGETY,STEPTIME)"), Term.createTerm("moverobot(X,Y,TIME)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								 
-								               TargetX = payloadArg(0) 
-								               TargetY = payloadArg(1) 
-								               StepTime = payloadArg(2) 
+								               val Tx = payloadArg(0) 
+								               val Ty = payloadArg(1) 
+								               val St = payloadArg(2) 
+								               
+								               TargetX = Tx
+								               TargetY = Ty
+								               StepTime = St
 								               MoveInProgress = true
 								if(  !Stopped  
-								 ){CommUtils.outcyan("cargorobot | Inoltro moverobot($TargetX, $TargetY, $StepTime) a robotsmart via TCP...")
-								request("moverobot", "moverobot($TargetX,$TargetY,$StepTime)" ,"robotsmart" )  
+								 ){CommUtils.outcyan("cargorobot | Inoltro moverobot($Tx, $Ty, $St) a robotsmart via TCP...")
+								request("moverobot", "moverobot($Tx,$Ty,$St)" ,"robotsmart" )  
 								}
 								else
 								 {CommUtils.outyellow("cargorobot | Ricevuto moverobot ma sono in STOP. Memorizzo e attendo resume.")

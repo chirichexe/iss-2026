@@ -1,7 +1,7 @@
 %====================================================================================
 % cargorobot description   
 %====================================================================================
-mqttBroker("localhost", "1883", "cargosystem").
+mqttBroker("localhost", "1883", "robotsmart26in").
 request( moverobot, moverobot(TARGETX,TARGETY,STEPTIME) ).
 reply( moverobotdone, moverobotok(ARG) ).  %%for moverobot
 reply( moverobotfailed, moverobotfailed(PLANDONE,PLANTODO) ).  %%for moverobot

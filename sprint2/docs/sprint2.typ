@@ -91,11 +91,10 @@ Sarà necessario inoltre, in base ai requisiti, decidere come e dove implementar
 
 Come definito precedentemente, bisogna sostituire progressivamente i componenti simulati con componenti accessibili attraverso tecnologie compatibili con la loro natura.
 
-// =============================================================================
-== OPicoW vs Esp32
-// =============================================================================
+#nota("Il nostro team di sviluppo ha utilizzato una scheda *ESP32* invece del *Raspberry Pi Pico W* indicato dalla committente. L'architettura resta sostanzialmente invariata: anche ESP32 ha connettività ad internet, supporta MicroPython, ha un LED, dispone dei GPIO necessari per il sensore HC-SR04 e offre prestazioni generalmente superiori.
 
-?????????????????????????????????????
+L'unica differenza riguarda aspetti implementativi, come la diversa numerazione dei pin e l'assenza di moduli specifici del Pico W (ad esempio rp2). Tuttavia, tali differenze non incidono sul progetto.")
+
 
 // =============================================================================
 == Osservabilità dello stato della Hold e considerazioni sulla Web GUI
@@ -103,13 +102,9 @@ Come definito precedentemente, bisogna sostituire progressivamente i componenti 
 
 Nello Sprint 1, l'IOPort era modellato come un attore QAK "mock" all'interno dello stesso contesto dell hold. Questa vicinanza tecnologica permetteva all'IOPort di reagire direttamente ai singoli eventi e messaggi asincroni scambiati sulla rete di attori. 
 
-Adesso l'IOPort evolve in una Web GUI eseguita in un browser web esterno. Questa transizione fisica e architetturale solleva due problematiche fondamentali che rendono i messaggi QAK nativi inadeguati per l'aggiornamento dell'interfaccia:
+Adesso l'IOPort evolve in una Web GUI eseguita in un browser web esterno. Questa transizione fisica e architetturale solleva una problematica fondamentale che rende i messaggi QAK nativi inadeguati per l'aggiornamento dell'interfaccia:
 
-1. I browser non comprendono lo scambio di messaggi nativi QAK e non possono partecipare direttamente alla topologia di rete del modello ad attori da esso implementato.
-
-2. Per mostrare in tempo reale lo stato della *Hold*, lo stato *Out of service* o l'occupazione dell'IOPort, la GUI necessita di una rappresentazione dello stato del sistema consistente e sincronizzata in un dato istante, piuttosto che di un flusso di messaggi frammentati da ricostruire ed elaborare lato client.
-
-Fornire un'unica struttura dati descrittiva potrà consentire di disaccoppiare la Web GUI dalla logica interna degli attori. Il frontend si limiterà ad associare i dati ricevuti sui componenti grafici. Il *cargoservice* continuerà a gestire le transizioni di stato.
+Se infatti il modello QAK descrive l'evoluzione del sistema tramite *messaggi*, una Web GUI deve invece rappresentare lo stato corrente del sistema in un *determinato istante*. Ricostruire tale stato elaborando l'intera sequenza dei messaggi risulterebbe complesso e renderebbe il frontend dipendente dalla logica degli attori. È quindi necessario introdurre una rappresentazione esplicita e serializzata dello stato del sistema, così da lasciare alla GUI l'unico ruolo di associare i dati ricevuti sui componenti grafici. Il *cargoservice* continuerà a gestire le transizioni di stato.
 
 Lo stato dinamico della *Hold* e del sistema viene astratto e centralizzato in una rappresentazione serializzabile in formato *JSON* (mediante il metodo `toJson`), indipendente dal linguaggio di programmazione e direttamente interpretabile dal motore del client da noi scelto, ovvero JavaScript.
 
@@ -148,9 +143,8 @@ Una possibile soluzione sarebbe utilizzare un approccio basato su polling, in cu
 
 Tale soluzione risulta però inefficiente, poiché genera richieste anche quando lo stato del sistema rimane invariato, aumentando il traffico di rete e il carico sui componenti coinvolti.
 
-Per evitare questo problema viene utilizzato CoAP, il quale supporta nativamente il meccanismo *Observe*, che permette a un client di sottoscriversi a una risorsa e ricevere automaticamente una notifica solo quando il suo contenuto cambia.
+Per evitare questo problema viene utilizzato CoAP, il quale supporta nativamente il meccanismo *Observe*, che permette a un client di sottoscriversi a una risorsa e ricevere automaticamente una notifica solo quando il suo contenuto cambia. Tale soluzione è poi coerente con il runtime QAK, il quale rende osservabili le risorse degli attori mediante il suddetto protocollo.
 
-Il runtime QAK sfrutta questa funzionalità permettendo a un attore di esporre il proprio stato come risorsa CoAP osservabile. 
 Il *cargoservice* rende quindi disponibile il proprio stato sotto forma di documento JSON, aggiornando la risorsa (unicamente quando avviene una variazione significativa) tramite la primitiva `updateResource(...)`.
 
 Esempio: trasizione stato engaged/disengaged
@@ -160,10 +154,7 @@ State disengaged {
     [# val statusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId) #]
     updateResource [# statusJson #]
 }
-Transition t0
-    whenRequest load_request       -> handle_load_request
-    whenMsg     incoming_sonar     -> handle_sonar
-
+// ...
 State engaged {
     println("cargoservice | ENGAGED: evaluating next step...") color blue
     [# val statusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId) #]
@@ -219,63 +210,105 @@ In questo modo il server, dopo aver ricevuto l'aggiornamento dello stato del *ca
   caption: [Architettura dell'IOPort server]
 )
 
-?????????????????????????????????????????????????????????????????????
-SCRIVERE IL FATTO CHE ABBIAMO ELIMINATO L'ATTORE IOPORT E IL CONTESTO
-?????????????????????????????????????????????????????????????????????
+=== Evoluzione dell'IOPort
+
+Nei primi sprint l'IOPort era stata modellata come un attore QAK esclusivamente per simulare il comportamento dell'interfaccia utente durante la prototipazione del sistema, verificando velocemente l'interazione con il cargoservice. Con l'introduzione della Web GUI questa modellazione non risulta più necessaria. Il precedente attore QAK viene perciò rimosso e sostituito da una architettura client-server composta da frontend e backend (il quale interagisce con il cargoservice).
+
+Il backend assume il ruolo precedentemente svolto dall'attore IOPort, quindi traduce le richieste HTTP della GUI nelle corrispondenti Request QAK verso il cargoservice e propaga verso il browser gli aggiornamenti ricevuti tramite CoAP Observe
+
+Il contesto "ctxioport" rappresentava il nodo di esecuzione dell'attore ioport ma, poichè ora l'interfaccia utente è realizzata come applicazione web esterna al sistema QAK, essa non necessita più di un context dedicato. Il backend IOPort costituisce un processo separato che comunica con il sistema mediante protocolli standard: HTTP, WebSocket e CoAP.
+
 
 // =============================================================================
 == Integrazione del sonar reale
 // =============================================================================
 
-Nello Sprint 1 il sonar era rappresentato da `sonarmock`, che emetteva eventi `sonardata`. La logica del *cargoservice* dipende quindi dal contenuto delle misurazioni, ma non dalla concreta implementazione del dispositivo che le produce.
+Il sonar, nello sprint precedente, era rappresentato dall'attore `sonarmock` il quale emetteva eventi di tipo `sonardata` ricevuti direttamente dal `cargoservice`. Adesso, poichè il sonar fisico è collegato all'ESP32, questo non è più realizzabile. Lo script sulL'ESP32 ha l'unico compito di leggere periodicamente la distanza e rendere disponibili le misurazioni al sistema distribuito;
 
-Nello Sprint 2 il sonar fisico è collegato al PicoW. Il software eseguito sul dispositivo deve:
+un protocollo deve essere interoperabile e sufficientemente leggero per un dispositivo IoT. Si sceglie MQTT, basato sul modello publish/subscribe e verranno pubblicate le misurazioni su un topic dedicato.
 
-- leggere periodicamente la distanza;
-- rendere disponibili le misurazioni al sistema distribuito;
-- rimanere indipendente dall'implementazione interna del *cargoservice*.
+Il link allo script può essere trovato: QUA
 
-Il PicoW e il sistema QAK operano su piattaforme differenti. È pertanto necessario utilizzare un protocollo interoperabile e sufficientemente leggero per un dispositivo IoT.
+?????????????????????????????????????????????????????????????????
+PERCHE USIAMO EVENT PER RICEZIONE INVIO MQTT E DISPATCH PER INVIO DATI TRA ATTORI
+?????????????????????????????????????????????????????????????????
 
-Si sceglie MQTT, basato sul modello publish/subscribe. Il PicoW pubblica le misurazioni su un topic dedicato, mentre il sistema software si sottoscrive al medesimo topic e le traduce nel messaggio `sonardata` utilizzato dal *cargoservice*.
 
-La corrisponenza tra topic MQTT e messaggio QAK deve essere configurata esplicitamente. In questo modo la logica applicativa del *cargoservice* può continuare a elaborare `sonardata` senza dipendere dal linguaggio o dalla piattaforma utilizzati dal dispositivo fisico.
+Per far ricevere ora i messaggi al cargoservice le possibilità sono due:
 
-Il sonar conserva quindi una responsabilità limitata:
+1. modificare il cargoservice affinché riceva direttamente messaggi MQTT. Questa soluzione renderebbe però il cargoservice dipendente dal protocollo di comunicazione utilizzato dal dispositivo fisico, riducendone la riusabilità e introducendo dettagli infrastrutturali nella logica applicativa
 
-- misurare la distanza;
-- pubblicare la misura.
+2. Si introduce quindi un componente dedicato, denominato *sonaradapter*, che svolge esclusivamente il compito di integrazione tra il dispositivo fisico e il sistema esistente. Esso, similmente al mock riceve le misurazioni pubblicate dall'ESP32 tramite MQTT, converte il payload ricevuto nel formato previsto dal modello e inoltra le informazioni al cargoservice mediante il dispatch incoming_sonar.
 
-L'interpretazione applicativa della distanza rimane invece responsabilità del *cargoservice*.
+In questo modo il cargoservice continua a ricevere esclusivamente messaggi QAK e rimane completamente indipendente dal protocollo utilizzato dal dispositivo fisico. 
+
+
+
+Si è scelto di distinguere i due messaggi.
+```
+Event wall_sonardata
+Dispatch incoming_sonar
+```
+
+wall_sonardata rappresenta il dato proveniente dal mondo fisico ed è strettamente legato al protocollo MQTT.
+
+incoming_sonar rappresenta invece il protocollo interno del sistema software.
 
 // =============================================================================
 == Validazione temporale delle misure sonar
 // =============================================================================
 
-I requisiti non associano un cambiamento di stato a una singola misura istantanea. La presenza del container e il possibile guasto del sonar devono essere riconosciuti soltanto quando la relativa condizione permane per almeno tre secondi.
+Da requisiti, una singola misura del sonar non comporta necessariamente una transizione dello stato. Sia la *presenza del container* sia la condizione di *Out of service* devono essere riconosciute solo quando la relativa condizione permane per almeno *tre secondi* consecutivi.
 
-Occorre quindi distinguere:
+Dal punto di vista applicativo è quindi necessario distinguere tre intervalli di misura:
 
-- `D < D_FREE/2`: possibile presenza del container;
-- `D > D_FREE`: possibile condizione di guasto;
-- valori intermedi: assenza di una delle due condizioni precedenti.
+1. `D < DFREE / 2` che indica una possibile presenza del container davanti all'IOPort;
+2. `D > DFREE` che indica una possibile condizione di malfunzionamento del sistema di carico;
+3. valori intermedi, che non soddisfano nessuna delle due condizioni precedenti.
 
-Una singola misura non è sufficiente a produrre una transizione. La condizione deve essere confermata attraverso misure consecutive per l'intervallo temporale richiesto.
+Una possibile soluzione sarebbe demandare questa validazione direttamente all'ESP32, facendogli pubblicare solamente eventi già validati temporalmente. In questo modo però l'accoppiamento del dispositivo con il dominio applicativo aumenta notevolmente.
 
-La responsabilità della validazione temporale può essere collocata:
+Si preferisce pertanto mantenere quindi l'ESP32 una semplice componente di acquisizione dati. Sarà quindi il cargoservice a dover memorizzare:
 
-- sul PicoW, che pubblica soltanto condizioni già validate;
-- nel sistema QAK, che riceve tutte le misurazioni e gestisce il tempo di permanenza.
+1. l'istante in cui viene rilevata per la prima volta la condizione D < DFREE/2;
+2. l'istante in cui viene rilevata per la prima volta la condizione D > DFREE;
+3. l'annullamento del conteggio quando la misura torna nell'intervallo normale.
 
-Per mantenere il dispositivo focalizzato sull'acquisizione dei dati e centralizzare nel *cargoservice* le decisioni applicative, si sceglie di trasmettere le misurazioni grezze e di effettuare la validazione temporale lato sistema software.
+Solo quando una delle due condizioni permane per almeno tre secondi consecutivi viene effettivamente effettuata una transizione di stato.
 
-Il *cargoservice* deve quindi mantenere separatamente:
+Il Codice può essere trovato QUI
 
-- l'istante di inizio della condizione `D < D_FREE/2`;
-- l'istante di inizio della condizione `D > D_FREE`;
-- l'eventuale annullamento del conteggio quando la condizione non è più verificata.
+```
+[# val now = System.currentTimeMillis() #]
 
-Solo dopo il superamento dell'intervallo stabilito viene aggiornato lo stato del sistema.
+if (distance < DFREE/2) {
+    if (ContainerDetectedSince == 0L)
+        ContainerDetectedSince = now
+}
+else {
+    ContainerDetectedSince = 0L
+}
+```
+
+QuALCHE ALTRO SNIPPET
+
+Il timer non viene riavviato ad ogni misura. Viene registrato solamente il primo istante in cui la condizione diventa vera.
+```
+[# val elapsed = now - ContainerDetectedSince #]
+
+if (elapsed >= 3000) {
+    IOPortOccupied = true
+}
+```
+
+Se una misura interrompe la continuità della condizione, il conteggio viene annullato e dovrà eventualmente ripartire dalla misura successiva.
+```
+if (distance >= DFREE/2) {
+    ContainerDetectedSince = 0L
+}
+```
+
+Lo stesso identico schema vale per lo stato Out of service, sostituendo la condizione D > DFREE e la variabile che memorizza il tempo di inizio del possibile guasto.
 
 // =============================================================================
 == Integrazione del LED reale
