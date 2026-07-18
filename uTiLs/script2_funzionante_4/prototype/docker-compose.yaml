@@ -1,0 +1,129 @@
+## ==============================================================================
+## docker-compose.yaml — Avvia tutti i microservizi del prototype-docker (Sprint 2)
+##
+## Prerequisiti:
+##   docker network create iss-network
+##
+## Nota: i microservizi QAK (cargoservice, cargorobot, ioport, devices) e
+##   ioport-backend usano network_mode: host perché il codice sorgente hardcoda
+##   localhost / 127.0.0.1 per la comunicazione inter-context TCP e CoAP.
+##   I servizi infrastrutturali (mosquitto, wenv, robotoutgui25, robotsmart26)
+##   girano su iss-network con port mapping verso l'host.
+##
+## Avvio:
+##   cd sprint2/prototype-docker
+##   docker compose up
+##
+## Stop:
+##   docker compose down
+## ==============================================================================
+
+services:
+
+  # ─── INFRASTRUTTURA ──────────────────────────────────────────────────────────
+
+  mosquitto:
+    image: eclipse-mosquitto:1.6.15
+    container_name: mosquitto
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    networks:
+      - iss-network
+
+  wenv:
+    container_name: wenv
+    image: docker.io/natbodocker/virtualrobotdisi25:2.2
+    ports:
+      - "8090:8090"
+      - "8091:8091/tcp"
+      - "8091:8091/udp"
+    networks:
+      - iss-network
+
+  robotoutgui25:
+    container_name: robotoutgui25
+    image: docker.io/natbodocker/robotoutgui25:1.0
+    ports:
+      - "8085:8085/tcp"
+    networks:
+      - iss-network
+
+  # ─── ROBOTSMART26 ───────────────────────────────────────────────────────────
+
+  robotsmart26:
+    container_name: robotsmart26
+    image: docker.io/natbodocker/robotsmart26:1.0
+    mem_limit: 512m
+    ports:
+      - "8020:8020/tcp"
+      - "8020:8020/udp"
+    environment:
+      - VIRTUAL_ENV=wenv
+      - MQTTBROKER=mosquitto
+    depends_on:
+      - wenv
+      - mosquitto
+    networks:
+      - iss-network
+
+  # ─── MICROSERVIZI APPLICATIVI (network_mode: host) ───────────────────────────
+
+  cargoservice:
+    container_name: cargoservice
+    build:
+      context: ./cargoservice
+    network_mode: host
+    environment:
+      - MQTTBROKER=localhost
+    depends_on:
+      - mosquitto
+      - robotsmart26
+
+  cargorobot:
+    container_name: cargorobot
+    build:
+      context: ./cargorobot
+    network_mode: host
+    environment:
+      - MQTTBROKER=localhost
+    depends_on:
+      - mosquitto
+      - robotsmart26
+      - cargoservice
+
+  ioport:
+    container_name: ioport
+    build:
+      context: ./ioport
+    network_mode: host
+    environment:
+      - MQTTBROKER=localhost
+    depends_on:
+      - mosquitto
+      - cargoservice
+
+  devices:
+    container_name: devices
+    build:
+      context: ./devices
+    network_mode: host
+    environment:
+      - MQTTBROKER=localhost
+    depends_on:
+      - mosquitto
+      - cargoservice
+
+  ioport-backend:
+    container_name: ioport-backend
+    build:
+      context: ./ioport-backend
+    network_mode: host
+    volumes:
+      - ./ioport-frontend/web:/ioport-backend-1.0/bin/../ioport-frontend/web:ro
+    depends_on:
+      - cargoservice
+
+networks:
+  iss-network:
+    external: true
