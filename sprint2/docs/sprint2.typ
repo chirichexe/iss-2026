@@ -1,5 +1,5 @@
 // -----------------------------------------------------------------------------
-//  Sprint 2 esame Natali
+//  Sprint 2 esame natali
 // -----------------------------------------------------------------------------
 
 #import "../../shared/template.typ": iss-template, iss-table, nota, domanda
@@ -97,7 +97,8 @@ In particolare, per lo Sprint 2 restano centrali le seguenti conclusioni:
 
 Dai requisiti si comprende come sul display dell'IoPort bisogna mostrare, oltre ai messaggi del display attualmente modellati come "Response" di QAK, lo stato corrente della Hold, che attualmente è auto-contenuto dal POJO. Bisognerà quindi riflettere su dei meccanismi di invio di aggiornamenti dello stato dalla Hold alla GUI dell'IoPort.
 
-Sarà necessario inoltre, in base ai requisiti, decidere come e dove implementare la persistenza della misura per 3 secondi nelle fasi di ...
+Il messaggio *"Out of service"* se il sensore sonar misura la distanza del container dal sonar stesso D > D#sub[FREE] per almeno 3 secondi.
+- Il sensore associato all'IOPort è un dispositivo (un sonar) utilizzato per rilevare la presenza di un container, quando misura una distanza D, tale che D < D#sub[FREE]/2, per un tempo ragionevole (ad esempio 3 secondi).
 
 // =============================================================================
 = Problem analysis <model>
@@ -105,62 +106,43 @@ Sarà necessario inoltre, in base ai requisiti, decidere come e dove implementar
 
 Come definito precedentemente, bisogna sostituire progressivamente i componenti simulati con componenti accessibili attraverso tecnologie compatibili con la loro natura:
 
-NOTA: SI HA A DISPOSIZIONE un ESP32 e non un PicoW
-
 // =============================================================================
 == Osservabilità dello stato della Hold e considerazioni sulla Web GUI
 // =============================================================================
 
-Nello Sprint 1, l'IOPort era modellato come un *attore QAK mock* all'interno dello *stesso contesto della Hold*. 
-Questa vicinanza gli permetteva di reagire direttamente ai messaggi scambiati sulla rete di attori.
+Nello Sprint 1, l'IOPort era modellato come un attore QAK "mock" all'interno dello stesso contesto dell hold. Questa vicinanza tecnologica permetteva all'IOPort di reagire direttamente ai singoli eventi e messaggi asincroni scambiati sulla rete di attori. 
 
-Con l'evoluzione del sistema, l'IOPort diventerà una Web GUI eseguita in un browser esterno, introducendo così due 
-problematiche che rendono i messaggi QAK nativi *inadatti* all'aggiornamento dell'interfaccia:
+Adesso l'IOPort evolve in una Web GUI eseguita in un browser web esterno. Questa transizione fisica e architetturale solleva tre problematiche fondamentali che rendono i messaggi QAK nativi inadeguati per l'aggiornamento dell'interfaccia:
 
-1. I browser *non comprendono* il protocollo di messaggistica QAK e non possono partecipare direttamente alla rete di attori.
-2. Per rappresentare in tempo reale lo stato della Hold, la condizione Out of Service e l'occupazione dell'IOPort, la GUI necessita 
-di una vista consistente e sincronizzata del sistema in un determinato istante, anziché di una sequenza di messaggi da ricostruire ed elaborare lato client.
+1. I browser non comprendono lo scambio di messaggi nativi QAK e non possono partecipare direttamente alla topologia di rete del modello ad attori da esso implementato.
 
-Per questo motivo lo stato dinamico del sistema andrà centralizzato in un'*unica rappresentazione* indipendente dall'implementazione interna degli attori e facilmente interpretabile dal client. In questo modo la Web GUI rimane disaccoppiata dalla logica applicativa, mentre il cargoservice continua a essere l'unico responsabile della gestione delle transizioni di stato e dell'aggiornamento della rappresentazione condivisa.
+2. Per mostrare in tempo reale lo stato della *Hold*, lo stato *Out of service* o l'occupazione dell'IOPort, la GUI necessita di una rappresentazione dello stato del sistema consistente e sincronizzata in un dato istante, piuttosto che di un flusso di messaggi frammentati da ricostruire ed elaborare lato client.
 
-Si sceglie quindi il formato *JSON*, che può essere interpretato nativamente da JavaScript, tecnologia scelta per l'implementazione della *Web GUI*.
+Fornire un'unica struttura dati descrittiva potrà consentire di disaccoppiare la Web GUI dalla logica interna degli attori. Il frontend si limiterà ad associare i dati ricevuti sui componenti grafici. Il *cargoservice* continuerà a gestire le transizioni di stato.
+
+Lo stato dinamico della *Hold* e del sistema viene astratto e centralizzato in una rappresentazione serializzabile in formato *JSON*, indipendente dal linguaggio di programmazione e direttamente interpretabile dal motore JavaScript del client.
 
 ```json
 {
-  "working":     true,   // workingState: "Service working" | "Out of service"
-  "engaged":     false,  // serviceState: "engaged" | "disengaged"
-  "ioportBusy":  false,
-  "reservedSlot": null,
-  "slots": { 
-    "slot1": "free", 
-    "slot2": "free", 
-    "slot3": "free", 
-    "slot4": "free", 
-    "slot5": "marker"
+  "serviceState": "engaged",         // engaged, disengaged
+  "workingState": "Service working", // Service working, Out of service
+  "ioPortOccupied": true,            // true o false
+  "reservedSlot": 2,                 // slot riservato per l'operazione corrente
+  "slots": {                         // occupied, reserved, free
+    "slot1": "occupied",  
+    "slot2": "reserved",
+    "slot3": "free",
+    "slot4": "occupied"
   }
 }
 ```
 
+
+Il cargoservice si assume la responsabilità di rigenerare questa stringa JSON e di notificarla all'esterno ogni volta che si verifica una variazione significativa del sistema (es. transizione tra gli stati engaged/disengaged, variazione delle distanze del sonar, ingresso/uscita dallo stato Out of service o completamento del deposito).
+
 // =============================================================================
-== Realizzazione dell'IOPort come Web GUI
+== Protocolli per l'esposizione dello stato mediante
 // =============================================================================
-
-
-Bisognerà quindi avere un server IOPOrt (middleware), denominato nel seguito *web server* o *IOPort server*,  che 
-
-1. riceve i dati da cargoservice
-2. Serve la pagina HTML CSS JAVASCRIPT
-2. aggiorna la pagina in base agli aggiornamenti
-
-Si sceglie di sviluppare questo server in javalin (?) 
-
-```java
-SNIPPET
-```
-
-=== Come ricevere dati da cargoservice?
-
-ANALIZZA ALTRE SCELTE PROGETTUALI ad es. POLLING
 
 Il runtime QAK permette a un attore di esporre nativamente il proprio stato come risorsa CoAP osservabile. Questa possibilità risulta adatta al problema poiché consente a un componente esterno di:
 
@@ -168,41 +150,38 @@ Il runtime QAK permette a un attore di esporre nativamente il proprio stato come
 - osservare la risorsa;
 - ricevere una notifica quando il suo contenuto viene aggiornato.
 
- - osservare la risorsa CoAP del *cargoservice*;
-- tradurre gli aggiornamenti ricevuti in messaggi compatibili con il browser;
-- ricevere dalla GUI le richieste dell'utente;
-- inoltrare tali richieste al *cargoservice*.
+Il *cargoservice* espone quindi il documento JSON mediante la propria risorsa CoAP, aggiornandola attraverso `updateResource(...)`.
 
-Il *cargoservice* dovrà quindi esporre i dati JSON mediante la propria risorsa CoAP
+La scelta di CoAP riguarda la comunicazione interna tra il sistema QAK e il componente che serve la Web GUI. Non è invece possibile utilizzare direttamente CoAP dal browser in modo portabile, poiché i browser non espongono normalmente API native per questo protocollo.
 
-```qak
-SNIPPET
-```
+È quindi necessario introdurre un componente intermediario, denominato nel seguito *web server* o *IOPort server*, che svolga le seguenti funzioni:
 
-=== Come aggiornare dinamicamente la Web GUI?
+* osservare la risorsa CoAP del *cargoservice*;
+* tradurre gli aggiornamenti ricevuti in messaggi compatibili con il browser;
+* ricevere dalla GUI le richieste dell'utente;
+* inoltrare tali richieste al *cargoservice*.
 
+// =============================================================================
+== Realizzazione dell'IOPort come Web GUI
+// =============================================================================
 
-Ricordiamo che l'IOPort richiesto dalla committente è costituito logicamente da:
+L'IOPort richiesto dalla committente è costituito logicamente da:
 
 - un pushbutton, utilizzato dal cliente per inviare una `load_request`;
 - un display, utilizzato per mostrare la risposta alla richiesta e lo stato corrente della hold.
 
+La sua implementazione viene suddivisa in due parti:
 
-Essa si limita a:
+- una pagina web eseguita nel browser;
+- un server intermediario che collega il browser al sistema QAK.
+
+La GUI non contiene la logica del ciclo di carico e non mantiene autonomamente lo stato della hold. Essa si limita a:
 
 - inviare il comando associato alla pressione del pushbutton;
 - visualizzare la risposta ricevuta;
-. aggiornare il display quando cambia lo stato pubblicato dal *cargoservice*.
+- aggiornare il display quando cambia lo stato pubblicato dal *cargoservice*.
 
-Non parlerà direttamente col cargoservice ma con quel middleware
-
-Per i dati da "visualizzare": 
-L'aggiornamento dello stato non dovrebbe dipendere da interrogazioni periodiche effettuate dal browser, poiché il polling introdurrebbe richieste ripetute anche in assenza di cambiamenti. usiamo WebSocket
-
-Per invece le richieste: usiamo richieste HTTP, si sceglie la POST
-
-
-==== Invio della load_request
+=== Invio della load_request
 
 Quando il cliente preme il pulsante, la GUI invia una richiesta HTTP `POST` al server intermediario.
 
@@ -216,29 +195,38 @@ La risposta viene quindi restituita alla GUI e mostrata sul display.
 
 Questa soluzione mantiene invariato il protocollo applicativo QAK già validato nello Sprint 1: HTTP viene utilizzato soltanto nel tratto browser-server, mentre l'interazione con il *cargoservice* continua a essere espressa mediante i messaggi del modello.
 
-==== Aggiornamento del display
+=== Aggiornamento del display
+
+L'aggiornamento dello stato non dovrebbe dipendere da interrogazioni periodiche effettuate dal browser, poiché il polling introdurrebbe richieste ripetute anche in assenza di cambiamenti.
+
+Si sceglie pertanto una comunicazione push mediante WebSocket:
 
 1. il server osserva la risorsa CoAP del *cargoservice*;
 2. quando la risorsa cambia, il server riceve il nuovo JSON;
 3. il server inoltra l'aggiornamento ai browser connessi tramite WebSocket;
 4. la GUI aggiorna il display.
 
+Il server intermediario svolge quindi una funzione di adattamento tra tre differenti modalità di comunicazione:
+
+- HTTP per i comandi provenienti dalla GUI;
+- CoAP Observe per osservare lo stato del *cargoservice*;
+- WebSocket per inviare aggiornamenti asincroni al browser.
 
 // =============================================================================
 == Integrazione del sonar reale
 // =============================================================================
 
-Nello Sprint 1 il sonar era rappresentato da *sonarmock*, che emetteva eventi di tipo *sonardata*. La logica del *cargoservice* dipende quindi dal contenuto delle misurazioni, ma non dalla concreta implementazione del dispositivo che le produce.
+Nello Sprint 1 il sonar era rappresentato da `sonarmock`, che emetteva eventi `sonardata`. La logica del *cargoservice* dipende quindi dal contenuto delle misurazioni, ma non dalla concreta implementazione del dispositivo che le produce.
 
-Nello Sprint 2 il sonar fisico è collegato al ESP32. Il software eseguito sul dispositivo deve:
+Nello Sprint 2 il sonar fisico è collegato al PicoW. Il software eseguito sul dispositivo deve:
 
 - leggere periodicamente la distanza;
 - rendere disponibili le misurazioni al sistema distribuito;
 - rimanere indipendente dall'implementazione interna del *cargoservice*.
 
-L'ESP32 e il sistema QAK operano su piattaforme differenti. È pertanto necessario utilizzare un protocollo interoperabile e sufficientemente leggero per un dispositivo IoT.
+Il PicoW e il sistema QAK operano su piattaforme differenti. È pertanto necessario utilizzare un protocollo interoperabile e sufficientemente leggero per un dispositivo IoT.
 
-Si sceglie MQTT, basato sul modello publish/subscribe. L'ESP32 pubblica le misurazioni su un topic dedicato, mentre il sistema software si sottoscrive al medesimo topic e le traduce nel messaggio `sonardata` utilizzato dal *cargoservice*.
+Si sceglie MQTT, basato sul modello publish/subscribe. Il PicoW pubblica le misurazioni su un topic dedicato, mentre il sistema software si sottoscrive al medesimo topic e le traduce nel messaggio `sonardata` utilizzato dal *cargoservice*.
 
 La corrisponenza tra topic MQTT e messaggio QAK deve essere configurata esplicitamente. In questo modo la logica applicativa del *cargoservice* può continuare a elaborare `sonardata` senza dipendere dal linguaggio o dalla piattaforma utilizzati dal dispositivo fisico.
 
@@ -265,7 +253,7 @@ Una singola misura non è sufficiente a produrre una transizione. La condizione 
 
 La responsabilità della validazione temporale può essere collocata:
 
-- sul ESP32, che pubblica soltanto condizioni già validate;
+- sul PicoW, che pubblica soltanto condizioni già validate;
 - nel sistema QAK, che riceve tutte le misurazioni e gestisce il tempo di permanenza.
 
 Per mantenere il dispositivo focalizzato sull'acquisizione dei dati e centralizzare nel *cargoservice* le decisioni applicative, si sceglie di trasmettere le misurazioni grezze e di effettuare la validazione temporale lato sistema software.
@@ -290,20 +278,20 @@ Dispatch led_ctrl : ledCmd(CMD)
 
 Il comando rappresentava le operazioni logiche `on`, `off` e `blink`.
 
-Nello Sprint 2 il LED è fisicamente collegato al ESP32. Anche in questo caso è necessario evitare che il *cargoservice* dipenda dai dettagli hardware del dispositivo.
+Nello Sprint 2 il LED è fisicamente collegato al PicoW. Anche in questo caso è necessario evitare che il *cargoservice* dipenda dai dettagli hardware del dispositivo.
 
-Il messaggio `led_ctrl` viene pertanto mantenuto come interfaccia logica. Un componente di integrazione riceve il comando e lo pubblica su un topic MQTT dedicato al LED. Il software sul ESP32 si sottoscrive al topic e traduce il valore ricevuto nell'operazione hardware corrispondente.
+Il messaggio `led_ctrl` viene pertanto mantenuto come interfaccia logica. Un componente di integrazione riceve il comando e lo pubblica su un topic MQTT dedicato al LED. Il software sul PicoW si sottoscrive al topic e traduce il valore ricevuto nell'operazione hardware corrispondente.
 
 La catena logica diventa quindi:
 
 ```text
-cargoservice -> led_ctrl -> adattatore MQTT -> ESP32 -> LED
+cargoservice -> led_ctrl -> adattatore MQTT -> PicoW -> LED
 ```
 
 In questo modo:
 
 - il *cargoservice* continua a utilizzare lo stesso comando definito nello Sprint 1;
-- la gestione elettrica del LED rimane confinata sul ESP32;
+- la gestione elettrica del LED rimane confinata sul PicoW;
 - il componente fisico può essere sostituito senza modificare la logica applicativa.
 
 // =============================================================================
@@ -368,8 +356,8 @@ Rispetto allo Sprint 1 vengono introdotti i seguenti elementi:
 
 - una Web GUI che realizza l'IOCome posso evolvere lo sprint1 naturalmente nello sprint2?Port;
 - un server intermediario per HTTP, WebSocket e osservazione CoAP;
-- un broker MQTT per la comunicazione con L'ESP32;
-- il software sul ESP32 per il sonar e il LED;
+- un broker MQTT per la comunicazione con il PicoW;
+- il software sul PicoW per il sonar e il LED;
 - un componente di adattamento tra MQTT e i messaggi QAK;
 - la pubblicazione dello stato del *cargoservice* come risorsa CoAP osservabile.
 
