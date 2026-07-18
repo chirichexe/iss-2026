@@ -86,6 +86,7 @@ L'azienda richiede di realizzare un servizio denominato *cargoservice* con il se
 
 L'analisi dei requisiti è stata svolta nello #link("https://github.com/chirichexe/iss-2026/blob/main/sprint0/docs/sprint0.pdf")[Sprint 0] e approfondita nello #link("https://github.com/chirichexe/iss-2026/blob/main/sprint1/docs/sprint1.pdf")[Sprint 1]. Tali risultati vengono assunti come validi anche per lo Sprint 2.
 
+/*
 In particolare, per lo Sprint 2 restano centrali le seguenti conclusioni:
 
 - il *cargoservice* Resta l'orchestratore del ciclo di carico;
@@ -98,6 +99,7 @@ In particolare, per lo Sprint 2 restano centrali le seguenti conclusioni:
 Dai requisiti si comprende come sul display dell'IoPort bisogna mostrare, oltre ai messaggi del display attualmente modellati come "Response" di QAK, lo stato corrente della Hold, che attualmente è auto-contenuto dal POJO. Bisognerà quindi riflettere su dei meccanismi di invio di aggiornamenti dello stato dalla Hold alla GUI dell'IoPort.
 
 Sarà necessario inoltre, in base ai requisiti, decidere come e dove implementare la persistenza della misura per 3 secondi nelle fasi di ...
+*/
 
 // =============================================================================
 = Problem analysis <model>
