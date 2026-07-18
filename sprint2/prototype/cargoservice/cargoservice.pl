@@ -9,6 +9,8 @@ reply( load_refused, loadRefused(none) ).  %%for load_request
 dispatch( incoming_sonar, distance(D) ).
 dispatch( led_ctrl, ledCmd(CMD) ).
 dispatch( deposit_timeout_msg, depositTimeout(none) ).
+dispatch( stop_robot, stop(none) ).
+dispatch( resume_robot, resume(none) ).
 request( moverobot, moverobot(TARGETX,TARGETY,STEPTIME) ).
 reply( moverobotdone, moverobotok(ARG) ).  %%for moverobot
 reply( moverobotfailed, moverobotfailed(PLANDONE,PLANTODO) ).  %%for moverobot
