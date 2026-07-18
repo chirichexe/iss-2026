@@ -46,13 +46,6 @@ Si stima una durata di circa *30 ore* complessive di lavoro, corrispondenti a ci
 
 I requisiti del progetto sono riportati nel documento disponibile al seguente #link("https://anatali.github.io/issLab2026/_static/docs/Protobook.pdf#page=331")[link].
 
-Per comodità si riporta anche l'allegato con i requisiti forniti dalla committente.
-
-#figure(
-  image("../../shared/requisiti_committente.png"),
-  caption: [Requisiti forniti dalla committente.]
-)
-
 L'azienda richiede di realizzare un servizio denominato *cargoservice* con il seguente funzionamento:
 
 - Gli slot1-4 rappresentano le aree della hold riservate per immagazzinare ciascuno un container.
@@ -112,8 +105,15 @@ Adesso l'IOPort evolve in una Web GUI eseguita in un browser web esterno. Questa
 
 Fornire un'unica struttura dati descrittiva potrà consentire di disaccoppiare la Web GUI dalla logica interna degli attori. Il frontend si limiterà ad associare i dati ricevuti sui componenti grafici. Il *cargoservice* continuerà a gestire le transizioni di stato.
 
-Lo stato dinamico della *Hold* e del sistema viene astratto e centralizzato in una rappresentazione serializzabile in formato *JSON*, indipendente dal linguaggio di programmazione e direttamente interpretabile dal motore JavaScript del client.
+Lo stato dinamico della *Hold* e del sistema viene astratto e centralizzato in una rappresentazione serializzabile in formato *JSON* (mediante `toJson`), indipendente dal linguaggio di programmazione e direttamente interpretabile dal motore JavaScript del client.
 
+```java
+public static String toJson(String serviceState, String workingState, boolean ioPortOccupied, int reservedSlot) {
+    return INSTANCE.doToJson(serviceState, workingState, ioPortOccupied, reservedSlot);
+}
+```
+
+Esempio di JSON creato dal metodo `toJson`:
 ```json
 {
   "serviceState": "engaged",         // engaged, disengaged
@@ -131,36 +131,31 @@ Lo stato dinamico della *Hold* e del sistema viene astratto e centralizzato in u
 
 Il codice della classe `Hold` si trova al seguente #link("https://github.com/chirichexe/iss-2026/blob/main/sprint2/prototype/cargoservice/src/Hold.java")[link].
 
-```java
-public static String toJson(String serviceState, String workingState, boolean ioPortOccupied, int reservedSlot) {
-    return INSTANCE.doToJson(serviceState, workingState, ioPortOccupied, reservedSlot);
-}
-```
-
 Il cargoservice si assume la responsabilità di rigenerare questa stringa JSON e di notificarla all'esterno ogni volta che si verifica una variazione significativa del sistema (es. transizione tra gli stati engaged/disengaged, variazione delle distanze del sonar, ingresso/uscita dallo stato Out of service o completamento del deposito).
 
 // =============================================================================
-== Protocolli per l'esposizione dello stato mediante
+== Protocolli per l'esposizione dello stato
 // =============================================================================
 
-Il runtime QAK permette a un attore di esporre nativamente il proprio stato come risorsa CoAP osservabile. Questa possibilità risulta adatta al problema poiché consente a un componente esterno di:
+La Web GUI deve poter visualizzare lo stato corrente del *cargoservice* e ricevere gli aggiornamenti quando questo cambia. 
+Una possibile soluzione sarebbe utilizzare un approccio basato su polling, in cui la GUI interroga periodicamente il server per verificare eventuali variazioni.
 
-- recuperare lo stato corrente del sistema;
-- osservare la risorsa;
-- ricevere una notifica quando il suo contenuto viene aggiornato.
+Tale soluzione risulta però inefficiente, poiché genera richieste anche quando lo stato del sistema rimane invariato, aumentando il traffico di rete e il carico sui componenti coinvolti.
 
-Il *cargoservice* espone quindi il documento JSON mediante la propria risorsa CoAP, aggiornandola attraverso `updateResource(...)`.
+Per evitare questo problema viene utilizzato CoAP, il quale supporta nativamente il meccanismo *Observe*, che permette a un client di sottoscriversi a una risorsa e ricevere automaticamente una notifica solo quando il suo contenuto cambia.
 
-Il codice di *cargoservice* si trova al seguente #link("https://github.com/chirichexe/iss-2026/blob/main/sprint2/prototype/cargoservice/src/cargoservice.qak")[link].
+Il runtime QAK sfrutta questa funzionalità permettendo a un attore di esporre il proprio stato come risorsa CoAP osservabile. 
+Il *cargoservice* rende quindi disponibile il proprio stato sotto forma di documento JSON, aggiornando la risorsa tramite la primitiva `updateResource(...)`.
 
-La scelta di CoAP riguarda la comunicazione interna tra il sistema QAK e il componente che serve la Web GUI. Non è invece possibile utilizzare direttamente CoAP dal browser in modo portabile, poiché i browser non espongono normalmente API native per questo protocollo.
+Il codice dell'attore *cargoservice* è disponibile al seguente 
+#link("https://github.com/chirichexe/iss-2026/blob/main/sprint2/prototype/cargoservice/src/cargoservice.qak")[link].
 
-È quindi necessario introdurre un componente intermediario, denominato nel seguito *web server* o *IOPort server*, che svolga le seguenti funzioni:
+Poiché i browser non supportano direttamente CoAP in modo portabile, viene introdotto un componente intermediario, denominato *web server* o *IOPort server*, che:
 
-* osservare la risorsa CoAP del *cargoservice*;
-* tradurre gli aggiornamenti ricevuti in messaggi compatibili con il browser;
-* ricevere dalla GUI le richieste dell'utente;
-* inoltrare tali richieste al *cargoservice*.
+- osserva la risorsa CoAP del *cargoservice*;
+- riceve gli aggiornamenti tramite il meccanismo *Observe*;
+- espone tali informazioni alla Web GUI tramite un protocollo compatibile con il browser;
+- inoltra al *cargoservice* le richieste provenienti dalla GUI.
 
 // =============================================================================
 == Realizzazione dell'IOPort come Web GUI
@@ -173,8 +168,8 @@ L'IOPort richiesto dalla committente è costituito logicamente da:
 
 La sua implementazione viene suddivisa in due parti:
 
-- una pagina web eseguita nel browser;
-- un server intermediario che collega il browser al sistema QAK.
+- una pagina web eseguita nel browser (disponibile al seguente #link("https://github.com/chirichexe/iss-2026/blob/main/sprint2/prototype/ioport-frontend/")[link]);
+- un server intermediario che collega il browser al sistema QAK (disponibile al seguente #link("https://github.com/chirichexe/iss-2026/blob/main/sprint2/prototype/ioport-backend/")[link]).
 
 La GUI non contiene la logica del ciclo di carico e non mantiene autonomamente lo stato della hold. Essa si limita a:
 
@@ -186,7 +181,7 @@ La GUI non contiene la logica del ciclo di carico e non mantiene autonomamente l
 
 Quando il cliente preme il pulsante, la GUI invia una richiesta HTTP `POST` al server intermediario.
 
-Il server traduce tale richiesta in una `load_request` indirizzata al *cargoservice* e attende una delle risposte già definite nello Sprint 1:
+Il server traduce tale richiesta in una `load_request` indirizzata al *cargoservice* e attende una delle risposte già definite nello Sprint 1 (il codice della gestione della `load_request` si trova al seguente #link("https://github.com/chirichexe/iss-2026/blob/main/sprint2/prototype/ioport-backend/src/main/java/it/unibo/guiserver/HttpController.java")[link]):
 
 - `load_accepted`;
 - `load_retrylater`;
@@ -202,9 +197,9 @@ L'aggiornamento dello stato non dovrebbe dipendere da interrogazioni periodiche 
 
 Si sceglie pertanto una comunicazione push mediante WebSocket:
 
-1. il server osserva la risorsa CoAP del *cargoservice*;
+1. il server osserva la risorsa CoAP del *cargoservice* mediate il meccanismo *Observe* (il codice della gestione dell'osservazione si trova al seguente #link("https://github.com/chirichexe/iss-2026/blob/main/sprint2/prototype/ioport-backend/src/main/java/it/unibo/guiserver/CoapObserver.java")[link]);
 2. quando la risorsa cambia, il server riceve il nuovo JSON;
-3. il server inoltra l'aggiornamento ai browser connessi tramite WebSocket;
+3. il server inoltra l'aggiornamento ai browser connessi tramite WebSocket (il codice della gestione del WebSocket si trova al seguente #link("https://github.com/chirichexe/iss-2026/blob/main/sprint2/prototype/ioport-backend/src/main/java/it/unibo/guiserver/WsController.java")[link]);
 4. la GUI aggiorna il display.
 
 Il server intermediario svolge quindi una funzione di adattamento tra tre differenti modalità di comunicazione:
@@ -212,6 +207,11 @@ Il server intermediario svolge quindi una funzione di adattamento tra tre differ
 - HTTP per i comandi provenienti dalla GUI;
 - CoAP Observe per osservare lo stato del *cargoservice*;
 - WebSocket per inviare aggiornamenti asincroni al browser.
+
+#figure(
+  image("../../utils/static/IOPort-logic.png", width: 80%),
+  caption: [Architettura dell'IOPort server]
+)
 
 // =============================================================================
 == Integrazione del sonar reale
