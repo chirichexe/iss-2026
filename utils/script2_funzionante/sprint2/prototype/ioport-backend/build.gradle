@@ -1,0 +1,63 @@
+plugins {
+    id 'application'
+    id 'java'
+    id 'eclipse'
+}
+
+version '1.0'
+
+java {
+    toolchain.languageVersion.set(JavaLanguageVersion.of(17))
+}
+
+repositories {
+    mavenCentral()
+    flatDir { dirs '../../../unibolibs' }
+}
+
+dependencies {
+    implementation 'com.google.guava:guava:30.1.1-jre'
+
+    // HTTP & Javalin
+    implementation 'org.apache.httpcomponents:httpclient:4.5.13'
+    implementation 'io.javalin:javalin:5.6.3'
+    implementation 'org.slf4j:slf4j-api:2.0.7'
+    implementation 'ch.qos.logback:logback-classic:1.2.11'
+
+    // MQTT (Required by QAK dependencies even though MQTT observer is removed)
+    implementation group: 'org.eclipse.paho', name: 'org.eclipse.paho.client.mqttv3', version: '1.2.5'
+
+    // JSON
+    implementation 'com.googlecode.json-simple:json-simple:1.1.1'
+    implementation group: 'org.json', name: 'json', version: '20180130'
+
+    // CoAP
+    implementation group: 'org.eclipse.californium', name: 'californium-core', version: '3.5.0'
+    implementation group: 'org.eclipse.californium', name: 'californium-proxy2', version: '3.5.0'
+
+    // Kotlin Coroutines & Stdlib (required by unibo libraries)
+    implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.22'
+    implementation group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-core', version: '1.7.3'
+
+    // UNIBO libraries
+    implementation name: 'uniboInterfaces'
+    implementation name: '2p301'
+    implementation name: 'unibo.qakactor23-5.0'
+    implementation name: 'unibo.basicomm23-1.0'
+}
+
+application {
+    mainClass = 'it.unibo.guiserver.GuiServerMain'
+}
+
+jar {
+    duplicatesStrategy(DuplicatesStrategy.EXCLUDE)
+    from sourceSets.main.allSource
+    manifest {
+        attributes 'Main-Class': 'it.unibo.guiserver.GuiServerMain'
+    }
+}
+
+run {
+    standardInput = System.in
+}
