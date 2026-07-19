@@ -1,0 +1,124 @@
+## ==============================================================================
+## docker-compose.yaml — prototypetest (1 Attore per Contesto e per Progetto)
+## ==============================================================================
+
+services:
+
+  # ─── INFRASTRUTTURA ──────────────────────────────────────────────────────────
+
+  mosquitto:
+    image: eclipse-mosquitto:1.6.15
+    container_name: mosquitto
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    networks:
+      - iss-network
+
+  wenv:
+    container_name: wenv
+    image: docker.io/natbodocker/virtualrobotdisi25:2.2
+    ports:
+      - "8090:8090"
+      - "8091:8091/tcp"
+      - "8091:8091/udp"
+    networks:
+      - iss-network
+
+  robotoutgui25:
+    container_name: robotoutgui25
+    image: docker.io/natbodocker/robotoutgui25:1.0
+    ports:
+      - "8085:8085/tcp"
+    networks:
+      - iss-network
+
+  # ─── ROBOTSMART26 ───────────────────────────────────────────────────────────
+
+  robotsmart26:
+    container_name: robotsmart26
+    image: docker.io/natbodocker/robotsmart26:1.0
+    mem_limit: 512m
+    ports:
+      - "8020:8020/tcp"
+      - "8020:8020/udp"
+    environment:
+      - VIRTUAL_ENV=wenv
+      - MQTTBROKER=mosquitto
+    depends_on:
+      - wenv
+      - mosquitto
+    networks:
+      - iss-network
+
+  # ─── MICROSERVIZI APPLICATIVI (1 Attore per Progetto/Contesto) ───────────────
+
+  cargoservice:
+    container_name: cargoservice
+    build:
+      context: ./cargoservice
+    network_mode: host
+    environment:
+      - MQTTBROKER=localhost
+    depends_on:
+      - mosquitto
+      - robotsmart26
+
+  cargorobot:
+    container_name: cargorobot
+    build:
+      context: ./cargorobot
+    network_mode: host
+    environment:
+      - MQTTBROKER=localhost
+    depends_on:
+      - mosquitto
+      - robotsmart26
+      - cargoservice
+
+  sonaradapter:
+    container_name: sonaradapter
+    build:
+      context: ./sonaradapter
+    network_mode: host
+    environment:
+      - MQTTBROKER=localhost
+    depends_on:
+      - mosquitto
+      - cargoservice
+
+  markerdevice:
+    container_name: markerdevice
+    build:
+      context: ./markerdevice
+    network_mode: host
+    environment:
+      - MQTTBROKER=localhost
+    depends_on:
+      - mosquitto
+      - cargoservice
+
+  ledadapter:
+    container_name: ledadapter
+    build:
+      context: ./ledadapter
+    network_mode: host
+    environment:
+      - MQTTBROKER=localhost
+    depends_on:
+      - mosquitto
+      - cargoservice
+
+  ioport-backend:
+    container_name: ioport-backend
+    build:
+      context: ./ioport-backend
+    network_mode: host
+    volumes:
+      - ./ioport-frontend/web:/ioport-backend-1.0/bin/../ioport-frontend/web:ro
+    depends_on:
+      - cargoservice
+
+networks:
+  iss-network:
+    external: true

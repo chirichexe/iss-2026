@@ -2,14 +2,15 @@ import time
 import threading
 import paho.mqtt.client as mqtt
 
-# Configurazione unificata secondo il metamodello QAK
-MQTT_BROKER = "localhost" # Modifica se il broker è su un'altra macchina
-TOPIC_GLOBAL = "cargosystem"
-CLIENT_ID = "esp32_sonar_simulator"
+# Configurazione MQTT per prototypetest (Topic Sonar su cargosystem, LED su leddata)
+MQTT_BROKER = "localhost"
+TOPIC_SONAR = "cargosystem"
+TOPIC_LED   = "leddata"
+CLIENT_ID   = "esp32_sonar_simulator"
 
 led_state = 'off'
 msg_seq = 0
-current_dist = 60 # Distanza di default (sicura)
+current_dist = 100 # Distanza di default (IOPort libera: DFREE/2 <= 100 <= DFREE)
 
 def parse_qak_event(msg_str, event_id):
     """
@@ -57,7 +58,7 @@ def on_message(client, userdata, msg):
 
 def on_connect(client, userdata, flags, rc):
     print(f"Connesso al broker MQTT {MQTT_BROKER} (Codice: {rc})")
-    client.subscribe(TOPIC_GLOBAL)
+    client.subscribe(TOPIC_LED) # Ascolta le notifiche LED sul canale dedicato
 
 def input_thread():
     """Thread per permettere di variare la distanza simulata in tempo reale"""
@@ -103,8 +104,8 @@ try:
         qak_msg = "msg(wall_sonardata,event,esp32_sonar,none,distance({}),{})".format(current_dist, msg_seq)
         msg_seq += 1
         
-        # Pubblicazione sul canale centralizzato
-        client.publish(TOPIC_GLOBAL, qak_msg)
+        # Pubblicazione sul canale sonar (cargosystem)
+        client.publish(TOPIC_SONAR, qak_msg)
         
         time.sleep(0.5)
 except KeyboardInterrupt:

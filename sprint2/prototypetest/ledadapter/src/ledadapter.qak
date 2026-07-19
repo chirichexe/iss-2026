@@ -1,0 +1,29 @@
+System ledadapter
+mqttBroker "localhost" : 1883 eventTopic "leddata"
+
+Dispatch led_ctrl  : ledCmd(CMD)
+Event    led_event : ledCmd(CMD)
+
+Context ctxledadapter ip [host="localhost" port=8055]
+
+QActor ledadapter context ctxledadapter {
+
+    State s0 initial {
+        println("ledadapter | STARTED - Routing TCP dispatches to MQTT events on topic leddata") color green
+    }
+    Goto work
+
+    State work { }
+    Transition t0
+        whenMsg led_ctrl -> handle_led_cmd
+
+    State handle_led_cmd {
+        onMsg(led_ctrl : ledCmd(CMD)) {
+            [# val CMD = payloadArg(0) #]
+            println("ledadapter | Publishing LED command on MQTT topic leddata: $CMD") color blue
+            emit led_event : ledCmd($CMD)
+        }
+    }
+
+    Goto work
+}
