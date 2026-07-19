@@ -64,7 +64,7 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 				}	 
 				state("engaged") { //this:State
 					action { //it:State
-						CommUtils.outblue("cargojewish | ENGAGED: evaluating next step...")
+						CommUtils.outblue("cargoservice | ENGAGED: evaluating next step...")
 						 val statusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId)  
 						updateResourceRep( statusJson  
 						)

@@ -1,21 +1,20 @@
 %====================================================================================
 % cargoservice description   
 %====================================================================================
-mqttBroker("localhost", "1883", "cargosystem").
 request( load_request, loadRequest(none) ).
 reply( load_accepted, loadAccepted(SLOTID) ).  %%for load_request
 reply( load_retrylater, loadRetryLater(none) ).  %%for load_request
 reply( load_refused, loadRefused(none) ).  %%for load_request
 dispatch( incoming_sonar, distance(D) ).
 dispatch( led_ctrl, ledCmd(CMD) ).
-dispatch( deposit_timeout_msg, depositTimeout(none) ).
-dispatch( stop_robot, stop(none) ).
-dispatch( resume_robot, resume(none) ).
+request( mark_container, markContainer(none) ).
+reply( marking_done, markingDone(none) ).  %%for mark_container
 request( moverobot, moverobot(TARGETX,TARGETY,STEPTIME) ).
 reply( moverobotdone, moverobotok(ARG) ).  %%for moverobot
 reply( moverobotfailed, moverobotfailed(PLANDONE,PLANTODO) ).  %%for moverobot
-request( mark_container, markContainer(none) ).
-reply( marking_done, markingDone(none) ).  %%for mark_container
+dispatch( stop_robot, stop(none) ).
+dispatch( resume_robot, resume(none) ).
+dispatch( deposit_timeout_msg, depositTimeout(none) ).
 %====================================================================================
 context(ctxcargoservice, "localhost",  "TCP", "8050").
 context(ctxdevices, "127.0.0.1",  "TCP", "8052").

@@ -1,35 +1,36 @@
 System cargoservice 
-mqttBroker "localhost" : 1883 eventTopic "cargosystem"
   
-// Interfaccia Client <-> CargoService     
+// IoPort <-> CargoService     
 Request load_request    : loadRequest(none)
 Reply   load_accepted   : loadAccepted(SLOTID) for load_request 
 Reply   load_retrylater : loadRetryLater(none) for load_request 
 Reply   load_refused    : loadRefused(none) for load_request    
 
-// Flusso Sensori e Stato (Ricevuto da SonarAdapter)
+// Devices <-> CargoService
+// dati ricevuti dal sonar
 Dispatch incoming_sonar     : distance(D)  
-Dispatch led_ctrl : ledCmd(CMD)       
-Dispatch deposit_timeout_msg: depositTimeout(none)
+// invio comandi al led
+Dispatch led_ctrl : ledCmd(CMD)
+// comunicazione con markerdevice
+Request mark_container : markContainer(none) 
+Reply   marking_done   : markingDone(none) for mark_container
 
-Dispatch stop_robot : stop(none)
-Dispatch resume_robot : resume(none)
-
-
-// CargoService <-> CargoRobot 
+// CargoRobot <-> CargoService
 Request  moverobot       : moverobot(TARGETX, TARGETY, STEPTIME)
 Reply    moverobotdone   : moverobotok(ARG)                    for moverobot
 Reply    moverobotfailed : moverobotfailed(PLANDONE, PLANTODO) for moverobot
+Dispatch stop_robot : stop(none)
+Dispatch resume_robot : resume(none)
 
-// CargoService <-> MarkerDevice 
-Request mark_container : markContainer(none) 
-Reply   marking_done   : markingDone(none) for mark_container
+// utilities
+Dispatch deposit_timeout_msg: depositTimeout(none)
  
-// CONTESTI
+// Contesti
 Context ctxcargoservice ip [host="localhost" port=8050] 
 Context ctxdevices      ip [host="127.0.0.1" port=8052] 
 Context ctxrobot        ip [host="127.0.0.1" port=8053]
 
+// Attori Esterni
 ExternalQActor ledadapter   context ctxdevices
 ExternalQActor markerdevice context ctxdevices
 ExternalQActor cargorobot   context ctxrobot
@@ -61,7 +62,7 @@ QActor cargoservice context ctxcargoservice {
         whenMsg     incoming_sonar     -> handle_sonar
 
     State engaged {
-        println("cargojewish | ENGAGED: evaluating next step...") color blue
+        println("cargoservice | ENGAGED: evaluating next step...") color blue
         [# val statusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId) #]
         updateResource [# statusJson #]
     }

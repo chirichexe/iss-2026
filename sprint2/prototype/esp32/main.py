@@ -6,7 +6,7 @@ from wifi_config import MQTT_BROKER, PASSWORD, SSID
 
 # Canali MQTT separati
 CLIENT_ID   = 'esp32_sonar_node'
-TOPIC_SONAR = b'cargosystem' # Canale per l'invio misurazioni sonar
+TOPIC_SONAR = b'sonardata' # Canale per l'invio misurazioni sonar
 TOPIC_LED   = b'leddata'     # Canale dedicato per la ricezione notifiche LED
 
 # Pins
