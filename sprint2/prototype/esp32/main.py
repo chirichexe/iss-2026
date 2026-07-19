@@ -4,10 +4,9 @@ import network
 from umqtt.simple import MQTTClient
 from wifi_config import MQTT_BROKER, PASSWORD, SSID
 
-# Canali MQTT separati
 CLIENT_ID   = 'esp32_sonar_node'
-TOPIC_SONAR = b'sonardata' # Canale per l'invio misurazioni sonar
-TOPIC_LED   = b'leddata'     # Canale dedicato per la ricezione notifiche LED
+TOPIC_SONAR = b'sonardata'   # invio misurazioni sonar
+TOPIC_LED   = b'leddata'     # ricezione notifiche LED
 
 # Pins
 trigger = machine.Pin(26, machine.Pin.OUT)
@@ -15,13 +14,11 @@ echo = machine.Pin(25, machine.Pin.IN)
 led = machine.Pin(2, machine.Pin.OUT)
 
 led_state = 'off'
-msg_seq = 0  # Contatore sequenza messaggi QAK
+msg_seq = 0 
 
 def parse_qak_event(msg_str, event_id):
     """
-    Parsifica un messaggio stringa in formato QAK ApplMessage.
-    Sintassi standard: msg(MSGID, MSGTYPE, SENDER, RECEIVER, CONTENT, SEQNUM)
-    Esempio atteso: msg(led_ctrl, event, ..., ..., ledCmd(CMD), ...)
+    Sintassi standard messaggi QAK: msg(MSGID, MSGTYPE, SENDER, RECEIVER, CONTENT, SEQNUM)
     """
     try:
         if not msg_str.startswith("msg(") or not msg_str.endswith(")"):
@@ -73,7 +70,7 @@ def connect_mqtt():
     client = MQTTClient(CLIENT_ID, MQTT_BROKER)
     client.set_callback(sub_cb)
     client.connect()
-    client.subscribe(TOPIC_LED) # Ascolta solo sul canale LED dedicato
+    client.subscribe(TOPIC_LED) 
     return client
 
 # Inizializzazione
@@ -107,7 +104,7 @@ while True:
         qak_msg = "msg(wall_sonardata,event,esp32_sonar,none,distance({}),{})".format(dist, msg_seq)
         msg_seq += 1
         
-        # Pubblicazione sul canale sonar (cargosystem)
+        # Pubblicazione sul canale sonar
         client.publish(TOPIC_SONAR, qak_msg.encode('utf-8'))
         
         time.sleep(0.5)
