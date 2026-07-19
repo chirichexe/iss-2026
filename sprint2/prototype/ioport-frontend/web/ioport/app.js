@@ -40,7 +40,7 @@ function startReservationTimer(slot) {
     if (!reservationTimer) return;
     reservationTimer.hidden = false;
     reservationTimer.textContent =
-      `${secondsLeft}s — ${slotLabel} riservato. Posizionare il container nell'area IOPort prima della scadenza del timer`;
+      `${secondsLeft}s - ${slotLabel} riservato. Posizionare il container nell'area IOPort prima della scadenza del timer`;
   };
 
   updateTimer();

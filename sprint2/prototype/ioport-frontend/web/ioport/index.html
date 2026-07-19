@@ -14,17 +14,14 @@
           <h1 id="ioport-title">IOPort</h1>
         </div>
         <div class="system-status" aria-label="Stato del sistema">
-          <span class="status-caption">Servizio</span>
           <span id="service-indicator" class="status-pill working">Service working</span>
-          <span class="status-caption">Area IOPort</span>
           <span id="ioport-state" class="status-pill free">IOPort libero</span>
         </div>
       </header>
 
       <section class="panel command-panel" aria-labelledby="command-title">
         <div class="panel-heading">
-          <p class="eyebrow">Comando</p>
-          <h2 id="command-title">Richiesta di carico</h2>
+          <h2 id="command-title">Load Request</h2>
           <p>Invia una nuova richiesta al CargoService.</p>
         </div>
         <button id="load-button" class="load-button" type="button">
@@ -36,23 +33,18 @@
       <section class="panel display-panel" aria-labelledby="display-title">
         <div class="panel-heading display-heading">
           <div>
-            <p class="eyebrow">Display</p>
-            <h2 id="display-title">Monitor IOPort</h2>
+            <h2 id="display-title">Display IOPort</h2>
           </div>
-          <span class="live-indicator"><span aria-hidden="true"></span>Aggiornamento live</span>
         </div>
 
         <div class="display-sections">
           <section class="message-section" aria-labelledby="messages-title">
             <div class="section-heading">
-              <span class="section-icon" aria-hidden="true">↓</span>
               <div>
-                <p class="section-kicker">Ricezione</p>
                 <h3 id="messages-title">Messaggi</h3>
               </div>
             </div>
             <div class="display" role="status" aria-live="polite">
-              <span class="display-label">Ultimo messaggio ricevuto</span>
               <strong id="display-message">Service working</strong>
               <p id="reservation-timer" class="reservation-timer" hidden aria-live="off"></p>
             </div>
@@ -60,10 +52,8 @@
 
           <section class="hold-section" aria-labelledby="hold-title">
             <div class="section-heading">
-              <span class="section-icon" aria-hidden="true">▦</span>
               <div>
-                <p class="section-kicker">Hold</p>
-                <h3 id="hold-title">Stato slot</h3>
+                <h3 id="hold-title">Stato Hold</h3>
               </div>
             </div>
 
