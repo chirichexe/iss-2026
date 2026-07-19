@@ -162,7 +162,6 @@ QActor cargoservice context ctxcargoservice {
 
     // GESTIONE ROBOT E MARKER
     State do_robot_job {
-        [# discardMessages = true #]
         println("cargoservice | Container inside area! Robot moving to IOPort (4,0)...") color magenta
         request cargorobot -m moverobot : moverobot(4, 0, $StepTime)
     }
@@ -444,7 +443,6 @@ QActor cargoservice context ctxcargoservice {
     State finish_job {
         println("cargoservice | Job finished successfully!") color green
         [# 
-            discardMessages = false
             CargoState = "disengaged"
             ReservedSlotId = -1
         #]
@@ -457,7 +455,6 @@ QActor cargoservice context ctxcargoservice {
     State handle_home_fail {
         println("cargoservice | Robot failed to return home. Resetting state...") color red
         [# 
-            discardMessages = false
             CargoState = "disengaged"
             ReservedSlotId = -1
         #]
@@ -471,7 +468,6 @@ QActor cargoservice context ctxcargoservice {
         if [# CargoState == "engaged" && !IOPortOccupied #] {
             println("cargoservice | Deposit timeout! Freeing reserved slot$ReservedSlotId.") color red
             [# 
-                discardMessages = false
                 Hold.freeSlot(ReservedSlotId) 
                 CargoState = "disengaged"
                 ReservedSlotId = -1

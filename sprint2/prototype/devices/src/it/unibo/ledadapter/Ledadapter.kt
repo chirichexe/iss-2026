@@ -32,7 +32,7 @@ class Ledadapter ( name: String, scope: CoroutineScope, isconfined: Boolean=fals
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
-						CommUtils.outgreen("ledadapter | STARTED - Routing TCP dispatches to MQTT events")
+						CommUtils.outgreen("ledadapter | STARTED - Routing dispatches to MQTT events on topic: leddata")
 						//genTimer( actor, state )
 					}
 					//After Lenzi Aug2002

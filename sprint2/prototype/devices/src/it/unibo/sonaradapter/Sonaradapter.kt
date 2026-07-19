@@ -33,7 +33,7 @@ class Sonaradapter ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 				state("s0") { //this:State
 					action { //it:State
 						subscribe(  "sonardata" ) //mqtt.subscribe(this,topic)
-						CommUtils.outgreen("sonaradapter | STARTED - Listening to MQTT event wall_sonardata on cargosystem")
+						CommUtils.outgreen("sonaradapter | STARTED - Listening to MQTT event wall_sonardata on topic: sonardata")
 						//genTimer( actor, state )
 					}
 					//After Lenzi Aug2002

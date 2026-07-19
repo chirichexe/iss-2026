@@ -1,8 +1,5 @@
 System cargorobot 
 mqttBroker "localhost" : 1883 eventTopic "robotsmart26in"
- 
- 
-// Messages for cargorobot
 
 // CargoService <-> CargoRobot  
 Request  moverobot       : moverobot(TARGETX, TARGETY, STEPTIME)
@@ -15,14 +12,13 @@ Event    alarm        : alarm(X)
 
 // CONTESTI
 Context ctxcargoservice ip [host="127.0.0.1" port=8050]
-Context ctxdevices      ip [host="127.0.0.1" port=8052]
 Context ctxrobot        ip [host="localhost" port=8053]
 Context ctxrobotsmart   ip [host="127.0.0.1" port=8020] 
 
 ExternalQActor cargoservice context ctxcargoservice
 ExternalQActor robotsmart   context ctxrobotsmart
 
-// CARGOROBOT (Puro wrapper bridge di dominio per robotsmart26)
+// CARGOROBOT
 QActor cargorobot context ctxrobot {
     [#
         var TargetX = ""

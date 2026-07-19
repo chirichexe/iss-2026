@@ -202,7 +202,6 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 				}	 
 				state("do_robot_job") { //this:State
 					action { //it:State
-						 discardMessages = true  
 						CommUtils.outmagenta("cargoservice | Container inside area! Robot moving to IOPort (4,0)...")
 						request("moverobot", "moverobot(4,0,$StepTime)" ,"cargorobot" )  
 						//genTimer( actor, state )
@@ -561,7 +560,6 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 					action { //it:State
 						CommUtils.outgreen("cargoservice | Job finished successfully!")
 						 
-						            discardMessages = false
 						            CargoState = "disengaged"
 						            ReservedSlotId = -1
 						forward("led_ctrl", "ledCmd(off)" ,"ledadapter" ) 
@@ -579,7 +577,6 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 					action { //it:State
 						CommUtils.outred("cargoservice | Robot failed to return home. Resetting state...")
 						 
-						            discardMessages = false
 						            CargoState = "disengaged"
 						            ReservedSlotId = -1
 						forward("led_ctrl", "ledCmd(off)" ,"ledadapter" ) 
@@ -598,7 +595,6 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 						if(  CargoState == "engaged" && !IOPortOccupied  
 						 ){CommUtils.outred("cargoservice | Deposit timeout! Freeing reserved slot$ReservedSlotId.")
 						 
-						                discardMessages = false
 						                Hold.freeSlot(ReservedSlotId) 
 						                CargoState = "disengaged"
 						                ReservedSlotId = -1

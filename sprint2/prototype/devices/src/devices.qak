@@ -1,16 +1,15 @@
 System devices
-// Allineato al topic centralizzato del sistema
 mqttBroker "localhost" : 1883 eventTopic "leddata"
   
-// Interfaccia Sensori (Esterna via MQTT -> Interna via Dispatch)
+// Interfaccia Sonar (MQTT Event -> Dispatch verso CargoService)
 Event    wall_sonardata : distance(D)  
 Dispatch incoming_sonar : distance(D)
 
-// Interfaccia Marker
+// Interfaccia Marker device (Simulato come Request / Reply verso CargoService)
 Request mark_container : markContainer(none)
 Reply   marking_done   : markingDone(none) for mark_container
 
-// Interfaccia LED
+// Interfaccia LED (Dispatch da CargoService -> MQTT Event)
 Dispatch led_ctrl     : ledCmd(CMD)
 Event    led_event     : ledCmd(CMD)
 
@@ -24,7 +23,7 @@ ExternalQActor cargoservice context ctxcargoservice
 QActor sonaradapter context ctxdevices {
     State s0 initial {
         subscribe "sonardata"
-        println("sonaradapter | STARTED - Listening to MQTT event wall_sonardata on cargosystem") color green
+        println("sonaradapter | STARTED - Listening to MQTT event wall_sonardata on topic: sonardata") color green
     }
     Goto work
 
@@ -68,7 +67,7 @@ QActor markerdevice context ctxdevices {
 QActor ledadapter context ctxdevices {
 
     State s0 initial {
-        println("ledadapter | STARTED - Routing TCP dispatches to MQTT events") color green
+        println("ledadapter | STARTED - Routing dispatches to MQTT events on topic: leddata") color green
     }
     Goto work
 
