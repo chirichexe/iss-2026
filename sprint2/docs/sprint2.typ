@@ -106,6 +106,8 @@ Adesso l'IOPort evolve in una Web GUI eseguita in un browser web esterno. Questa
 
 Se infatti il modello QAK descrive l'evoluzione del sistema tramite *messaggi*, una Web GUI deve invece rappresentare lo stato corrente del sistema in un *determinato istante*. Ricostruire tale stato elaborando l'intera sequenza dei messaggi risulterebbe complesso e renderebbe il frontend dipendente dalla logica degli attori. È quindi necessario introdurre una rappresentazione esplicita e serializzata dello stato del sistema, così da lasciare alla GUI l'unico ruolo di associare i dati ricevuti sui componenti grafici. Il *cargoservice* continuerà a gestire le transizioni di stato.
 
+Bisogna considerare lo *stato della Hold* come una vera e propria risorsa del sistema, mantenuta dal cargoservice e resa disponibile ai componenti esterni. Questa soluzione separa chiaramente responsabilità e livelli di astrazione: il cargoservice continua ad essere l'unico responsabile dell'evoluzione dello stato, mentre la GUI si limita esclusivamente alla sua rappresentazione grafica.
+
 Lo stato dinamico della *Hold* e del sistema viene astratto e centralizzato in una rappresentazione serializzabile in formato *JSON* (mediante il metodo `toJson`), indipendente dal linguaggio di programmazione e direttamente interpretabile dal motore del client da noi scelto, ovvero JavaScript.
 
 ```java
@@ -138,12 +140,17 @@ Il cargoservice si assume la responsabilità di rigenerare questa stringa JSON e
 == Protocolli per l'esposizione dello stato
 // =============================================================================
 
-La Web GUI deve poter visualizzare lo stato corrente del *cargoservice* e ricevere gli aggiornamenti quando questo cambia. 
-Una possibile soluzione sarebbe utilizzare un approccio basato su polling, in cui la GUI interroga periodicamente il server per verificare eventuali variazioni.
+Una volta stabilito che lo stato del *cargoservice* e della *Hold* debbano essere rappresentati come una risorsa osservabile, occorre individuare il protocollo più adatto per renderla disponibile all'esterno del sistema.
 
-Tale soluzione risulta però inefficiente, poiché genera richieste anche quando lo stato del sistema rimane invariato, aumentando il traffico di rete e il carico sui componenti coinvolti.
+La Web GUI deve infatti poter ricevere gli aggiornamenti quando esso cambia.
 
-Per evitare questo problema viene utilizzato CoAP, il quale supporta nativamente il meccanismo *Observe*, che permette a un client di sottoscriversi a una risorsa e ricevere automaticamente una notifica solo quando il suo contenuto cambia. Tale soluzione è poi coerente con il runtime QAK, il quale rende osservabili le risorse degli attori mediante il suddetto protocollo.
+Le principali alternative sono:
+
+1. Utilizzare *HTTP tradizionale*, interrogando periodicamente il cargoservice mediante richieste GET (polling). Tale soluzione risulta però inefficiente, poiché genera richieste anche quando lo stato del sistema rimane invariato, aumentando il traffico di rete e il carico sui componenti coinvolti.
+
+2. Utilizzare *MQTT* pubblicando un messaggio ogni volta che lo stato cambia. MQTT, nonostante permetta notifiche push, richiede di modellare lo stato come una sequenza di pubblicazioni su topic. Tale approccio risulta meno naturale poiché lo stato della Hold rappresenta una risorsa persistente piuttosto che una successione di eventi.
+
+3. Utilizzare *CoAP* sfruttando il meccanismo Observe già supportato dal runtime QAK. questo approccio risulta particolarmente adatto poiché il runtime QAK permette già di esporre le risorse degli attori mediante il protocollo Observe. Il *cargoservice* può quindi limitarsi ad aggiornare la propria risorsa ogni volta che lo stato cambia, i client si "iscriveranno" ad essa ricevendo automaticamente la nuova rappresentazione. Si sceglie pertanto la seguente soluzione.
 
 Il *cargoservice* rende quindi disponibile il proprio stato sotto forma di documento JSON, aggiornando la risorsa (unicamente quando avviene una variazione significativa) tramite la primitiva `updateResource(...)`.
 
@@ -166,10 +173,18 @@ Goto do_robot_job if [# IOPortOccupied && CargoState == "engaged" && ServiceWork
 Il codice completo dell'attore *cargoservice* è disponibile al seguente 
 #link("https://github.com/chirichexe/iss-2026/blob/main/sprint2/prototype/cargoservice/src/cargoservice.qak")[link].
 
-Poiché i browser non supportano direttamente CoAP in modo portabile, viene introdotto un componente intermediario, denominato *IOPort backend*, che dovrà:
+Rimane da risolvere il problema della comunicazione tra il mondo QAK e il browser.
+
+Una prima possibilità sarebbe consentire alla Web GUI di osservare direttamente la risorsa CoAP del cargoservice.
+
+Tale soluzione non risulta però praticabile poiché i browser moderni non supportano nativamente il protocollo CoAP.
+
+Una seconda possibilità consiste nell'introdurre un componente intermedio che osservi la risorsa CoAP e renda disponibili gli aggiornamenti mediante protocolli compatibili con il browser, dando inoltre il vantaggio di mantenere tutta la logica di integrazione in un unico componente, lasciando indipendenti sia il cargoservice sia la GUI.
+
+Viene perciò introdotto un server chiamato *ioport-backend* con il compito di:
 
 - osservare la risorsa CoAP del *cargoservice*, ricevendo gli aggiornamenti in formato JSON tramite il meccanismo *Observe*;
-- esporre tali informazioni alla Web GUI tramite un protocollo compatibile con il browser, la cui scelta è definita nella sezione successiva;
+- esporre tali informazioni alla Web GUI tramite un protocollo la cui scelta è definita nella sezione successiva;
 - inoltrare al *cargoservice* le richieste provenienti dalla GUI.
 
 // =============================================================================
@@ -199,11 +214,14 @@ Questa soluzione mantiene invariato il protocollo applicativo QAK già validato 
 === Aggiornamento del display
 
 Per effettuare l'aggiornamento dello stato sul display si potrebbe:
-1. utilizzare un polling periodico da parte della GUI, che interroga il server per verificare eventuali variazioni dello stato;
-2. utilizzare websocket per ricevere notifiche push dal server ogni volta che lo stato cambia.
 
-Si sceglie pertanto una comunicazione push mediante WebSocket in quanto più efficiente e reattiva.
-In questo modo il server, dopo aver ricevuto l'aggiornamento dello stato del *cargoservice* tramite CoAP Observe, può inoltrare immediatamente le informazioni alla GUI senza che quest'ultima debba richiederle periodicamente (il codice della gestione del WebSocket si trova al seguente #link("https://github.com/chirichexe/iss-2026/blob/main/sprint2/prototype/ioport-backend/src/main/java/it/unibo/guiserver/WsController.java")[link]).
+1. utilizzare un polling periodico da parte della GUI, che interroga il server per verificare eventuali variazioni dello stato, anche in questo caso, notoriamente pesante come meccanismo;
+
+2. utilizzare WebSocket, che realizza invece una comunicazione bidirezionale permanente, permettendo al server di notificare immediatamente ogni aggiornamento ricevuto tramite CoAP Observe.
+
+Si sceglie pertanto tale soluzione in quanto più efficiente e reattiva.
+
+In questo modo il server, dopo aver ricevuto l'aggiornamento dello stato del *cargoservice* può inoltrare immediatamente le informazioni alla GUI senza che quest'ultima debba richiederle periodicamente (il codice della gestione del WebSocket si trova al seguente #link("https://github.com/chirichexe/iss-2026/blob/main/sprint2/prototype/ioport-backend/src/main/java/it/unibo/guiserver/WsController.java")[link]).
 
 #figure(
   image("../../utils/static/IOPort-logic.png", width: 80%),
@@ -238,7 +256,7 @@ Per far ricevere ora i messaggi al cargoservice le possibilità sono due:
 
 1. modificare il cargoservice affinché riceva direttamente messaggi MQTT. Questa soluzione renderebbe però il cargoservice dipendente dal protocollo di comunicazione utilizzato dal dispositivo fisico, riducendone la riusabilità e introducendo dettagli infrastrutturali nella logica applicativa
 
-2. Si introduce quindi un componente dedicato, denominato *sonaradapter*, che svolge esclusivamente il compito di integrazione tra il dispositivo fisico e il sistema esistente. Esso, similmente al mock riceve le misurazioni pubblicate dall'ESP32 tramite MQTT, converte il payload ricevuto nel formato previsto dal modello e inoltra le informazioni al cargoservice mediante il dispatch incoming_sonar.
+2. Si introduce quindi un *adapter*, un componente dedicato (*sonaradapter*) che svolge esclusivamente il compito di integrazione tra il dispositivo fisico e il sistema esistente. Esso, similmente al mock riceve le misurazioni pubblicate dall'ESP32 tramite MQTT, converte il payload ricevuto nel formato previsto dal modello e inoltra le informazioni al cargoservice mediante il dispatch incoming_sonar.
 
 In questo modo il cargoservice continua a ricevere esclusivamente messaggi QAK e rimane completamente indipendente dal protocollo utilizzato dal dispositivo fisico. 
 
@@ -253,6 +271,8 @@ Dispatch incoming_sonar
 wall_sonardata rappresenta il dato proveniente dal mondo fisico ed è strettamente legato al protocollo MQTT.
 
 incoming_sonar rappresenta invece il protocollo interno del sistema software.
+
+INSERISCI SNIPPET COMPLETO DELL ADAPTER + PARTE IN CUI IL CRGOSERVICE LO USA
 
 // =============================================================================
 == Validazione temporale delle misure sonar
@@ -314,17 +334,17 @@ Lo stesso identico schema vale per lo stato Out of service, sostituendo la condi
 == Integrazione del LED reale
 // =============================================================================
 
-Nello Sprint 1 il *cargoservice* inviava a `ledmock` il dispatch:
+Anche il LED costituisce un dispositivo fisico e pone il medesimo problema di integrazione affrontato per il sonar.
+
+La soluzione più valida resta, come nel sonar, l'introduzione di un *adapter* che traduca i comandi logici nel protocollo MQTT, evitando che soa il cargoservice a controllare direttamente il dispositivo.
+
+Nello Sprint 1 il *cargoservice* inviava a `ledmock` il dispatch che rappresentava le operazioni logiche di `off` e `blink`. Esso viene mantenuto come interfaccia logica utilizzata da cargoservice.
 
 ```qak
 Dispatch led_ctrl : ledCmd(CMD)
 ```
 
-Il comando rappresentava le operazioni logiche `on`, `off` e `blink`.
-
-Nello Sprint 2 il LED è fisicamente collegato al PicoW. Anche in questo caso è necessario evitare che il *cargoservice* dipenda dai dettagli hardware del dispositivo.
-
-Il messaggio `led_ctrl` viene pertanto mantenuto come interfaccia logica. Un componente di integrazione riceve il comando e lo pubblica su un topic MQTT dedicato al LED. Il software sul PicoW si sottoscrive al topic e traduce il valore ricevuto nell'operazione hardware corrispondente.
+L'adapter riceve il comando e lo pubblica su un topic MQTT dedicato al LED. Il software sull'ESP32 si sottoscrive al topic e traduce il valore ricevuto nell'operazione hardware corrispondente.
 
 La catena logica diventa quindi:
 
@@ -332,11 +352,7 @@ La catena logica diventa quindi:
 cargoservice -> led_ctrl -> adattatore MQTT -> PicoW -> LED
 ```
 
-In questo modo:
-
-- il *cargoservice* continua a utilizzare lo stesso comando definito nello Sprint 1;
-- la gestione elettrica del LED rimane confinata sul PicoW;
-- il componente fisico può essere sostituito senza modificare la logica applicativa.
+INSERISCI SNIPPET COMPLETO DELL ADAPTER + PARTE IN CUI IL CRGOSERVICE LO USA
 
 // =============================================================================
 == Gestione dello stato Out of service
