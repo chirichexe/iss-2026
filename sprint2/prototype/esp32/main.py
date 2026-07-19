@@ -4,9 +4,10 @@ import network
 from umqtt.simple import MQTTClient
 from wifi_config import MQTT_BROKER, PASSWORD, SSID
 
-# Configurazione unificata secondo il metamodello QAK
-CLIENT_ID = 'esp32_sonar_node'
-TOPIC_GLOBAL = b'cargosystem' # Topic centralizzato dichiarato nel file .qak
+# Canali MQTT separati
+CLIENT_ID   = 'esp32_sonar_node'
+TOPIC_SONAR = b'cargosystem' # Canale per l'invio misurazioni sonar
+TOPIC_LED   = b'leddata'     # Canale dedicato per la ricezione notifiche LED
 
 # Pins
 trigger = machine.Pin(26, machine.Pin.OUT)
@@ -72,7 +73,7 @@ def connect_mqtt():
     client = MQTTClient(CLIENT_ID, MQTT_BROKER)
     client.set_callback(sub_cb)
     client.connect()
-    client.subscribe(TOPIC_GLOBAL) # Ascolta sullo stesso topic centralizzato
+    client.subscribe(TOPIC_LED) # Ascolta solo sul canale LED dedicato
     return client
 
 # Inizializzazione
@@ -106,8 +107,8 @@ while True:
         qak_msg = "msg(wall_sonardata,event,esp32_sonar,none,distance({}),{})".format(dist, msg_seq)
         msg_seq += 1
         
-        # Pubblicazione sul canale centralizzato
-        client.publish(TOPIC_GLOBAL, qak_msg.encode('utf-8'))
+        # Pubblicazione sul canale sonar (cargosystem)
+        client.publish(TOPIC_SONAR, qak_msg.encode('utf-8'))
         
         time.sleep(0.5)
         

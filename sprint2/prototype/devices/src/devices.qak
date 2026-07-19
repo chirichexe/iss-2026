@@ -1,6 +1,6 @@
 System devices
 // Allineato al topic centralizzato del sistema
-mqttBroker "localhost" : 1883 eventTopic "cargosystem"
+mqttBroker "localhost" : 1883 eventTopic "leddata"
   
 // Interfaccia Sensori (Esterna via MQTT -> Interna via Dispatch)
 Event    wall_sonardata : distance(D)  
@@ -23,6 +23,7 @@ ExternalQActor cargoservice context ctxcargoservice
 // SONAR ADAPTER
 QActor sonaradapter context ctxdevices {
     State s0 initial {
+        subscribe "cargosystem"
         println("sonaradapter | STARTED - Listening to MQTT event wall_sonardata on cargosystem") color green
     }
     Goto work
