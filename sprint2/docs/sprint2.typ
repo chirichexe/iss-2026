@@ -80,12 +80,6 @@ L'azienda richiede di realizzare un servizio denominato *cargoservice* con il se
 
 L'analisi dei requisiti è stata svolta nello #link("https://github.com/chirichexe/iss-2026/blob/main/sprint0/docs/sprint0.pdf")[Sprint 0] e approfondita nello #link("https://github.com/chirichexe/iss-2026/blob/main/sprint1/docs/sprint1.pdf")[Sprint 1]. Tali risultati vengono assunti come validi anche per lo Sprint 2.
 
-/*
-Dai requisiti si comprende come sul display dell'IoPort bisogna mostrare, oltre ai messaggi del display attualmente modellati come "Response" di QAK, lo stato corrente della Hold, che attualmente è auto-contenuto dal POJO. Bisognerà quindi riflettere su dei meccanismi di invio di aggiornamenti dello stato dalla Hold alla GUI dell'IoPort.
-
-Sarà necessario inoltre, in base ai requisiti, decidere come e dove implementare la persistenza della misura per 3 secondi nelle fasi di ...
-*/
-
 // =============================================================================
 = Problem analysis <model>
 // =============================================================================
@@ -95,7 +89,6 @@ Come definito precedentemente, bisogna sostituire progressivamente i componenti 
 #nota("Il nostro team di sviluppo ha utilizzato una scheda *ESP32* invece del *Raspberry Pi Pico W* indicato dalla committente. L'architettura resta sostanzialmente invariata: anche ESP32 ha connettività ad internet, supporta MicroPython, ha un LED, dispone dei GPIO necessari per il sensore HC-SR04 e offre prestazioni generalmente superiori.
 
 L'unica differenza riguarda aspetti implementativi, come la diversa numerazione dei pin e l'assenza di moduli specifici del Pico W (ad esempio rp2). Tuttavia, tali differenze non incidono sul progetto.")
-
 
 // =============================================================================
 == Osservabilità dello stato della Hold e considerazioni sulla Web GUI
@@ -230,11 +223,9 @@ Il backend assume il ruolo precedentemente svolto dall'attore IOPort, quindi tra
 
 Il contesto "ctxioport" rappresentava il nodo di esecuzione dell'attore ioport ma, poichè ora l'interfaccia utente è realizzata come applicazione web esterna al sistema QAK, essa non necessita più di un context dedicato. Il backend IOPort costituisce un processo separato che comunica con il sistema mediante protocolli standard: HTTP, WebSocket e CoAP.
 
-
 // =============================================================================
 == Integrazione del sonar reale
 // =============================================================================
-
 
 
 E DENTRO PYTHON RIVEDERE UN ATTIMO
@@ -243,59 +234,29 @@ E DENTRO PYTHON RIVEDERE UN ATTIMO
 Nello sprint precedente, il sonar era stato modellato tramite l'attore `sonarmock`, il quale simulava il comportamento del dispositivo fisico generando eventi 
 di tipo `sonardata` direttamente indirizzati al `cargoservice`.
 
-Con l'introduzione del sonar reale, collegato a un dispositivo ESP32, questo approccio non è più applicabile. Infatti non è possibile eseguire codice QAK direttamente da esp32 e quindi comunicare tramite messaggi QAK nativi verso il `cargoservice`. Verrà quindi realizzato uno script in un linguaggio ad esso comprensibile con il compito di acquisire periodicamente la distanza rilevata dal sensore e rendere disponibili tali informazioni al sistema distribuito. 
+Con l'introduzione del sonar reale, collegato a un dispositivo ESP32, questo approccio non è più applicabile. Infatti non è possibile eseguire codice QAK direttamente da esp32 e quindi comunicare tramite messaggi QAK nativi verso il `cargoservice`. Verrà quindi realizzato uno script in un linguaggio ad esso comprensibile (si è scelto microPython) con il compito di acquisire periodicamente la distanza rilevata dal sensore e rendere disponibili tali informazioni al sistema distribuito. 
 
-È quindi necessario adottare un protocollo che garantisca leggerezza, semplicità di integrazione e interoperabilità tra componenti eterogenei. 
+È quindi adesso necessario adottare un protocollo che garantisca leggerezza, semplicità di integrazione e interoperabilità tra componenti eterogenei. 
 Per questi motivi viene scelto MQTT, un protocollo basato sul modello publish/subscribe, particolarmente adatto a dispositivi con risorse limitate e scenari IoT. 
 È poi necessario introdurre un componente intemediario che si occupi di ricevere i messaggi pubblicati dall'ESP32 e inoltrarli al `cargoservice`, 
 definito *broker*.
 
-Le misurazioni rilevate dal sonar vengono quindi pubblicate dall'ESP32 su un topic MQTT dedicato, al quale i componenti interessati del sistema possono 
+Le misurazioni rilevate dal sonar vengono quindi pubblicate dall'ESP32 su un topic MQTT dedicato (`sonardata`), al quale i componenti interessati del sistema possono 
 sottoscriversi per ricevere gli aggiornamenti in modo disaccoppiato rispetto al dispositivo fisico.
 
-Per far si che il cargoservice riceva i messaggi una soluzione possibile sarebbe quella di introdurre un componente dedicato (*sonaradapter*) che svolge il compito di integrazione tra il dispositivo fisico e il sistema esistente. Esso potrebbe ricevere le misurazioni pubblicate dall'ESP32 tramite MQTT e inoltrare le informazioni al cargoservice mediante dispatch, modellando quindi una comunicazione affine a quella dei mock. Tuttavia, dato che QAK supporta nativamente il protocollo MQTT (consentendo a un attore di sottoscrivere direttamente un topic e di emettere eventi sul broker) , una soluzione sarebbe quella di modificare il cargoservice affinché riceva direttamente lui i messaggi MQTT, sostituendo le precedenti dispatch. 
-
-
-Il codice del sonar puo essere trovato al seguente #link("https://github.com/chirichexe/iss-2026/blob/main/sprint2/prototype/cargoservice/src/cargoservice.qak")[link].
-
+Per far si che il cargoservice riceva i messaggi una soluzione possibile sarebbe quella di introdurre un componente dedicato (*sonaradapter*) che svolge il compito di integrazione tra il dispositivo fisico e il sistema esistente. Esso potrebbe ricevere le misurazioni pubblicate dall'ESP32 tramite MQTT e inoltrare le informazioni al cargoservice mediante dispatch, modellando quindi una comunicazione affine a quella dei mock. Tuttavia, dato che QAK supporta nativamente il protocollo MQTT (consentendo a un attore di iscriversi o di emettere eventi su un topic), una soluzione sarebbe quella di modificare il cargoservice affinché riceva direttamente lui i messaggi MQTT, sostituendo le precedenti dispatch. 
 
 ```qak
-
-mqttBroker "localhost" : 1883 eventTopic "leddata"   !!! STIAMO PARLANDO DEL TOPIC LEDDATA SU SONAR !!! cosa dovrebbo aggiungere? susbscribe?
-
-```
-
-?????????????????????????????????????????????????????????????????
-PERCHE USIAMO EVENT PER RICEZIONE INVIO MQTT E DISPATCH PER INVIO DATI TRA ATTORI  --> boh
-?????????????????????????????????????????????????????????????????
-
-Si è scelto di distinguere i due messaggi, separando la comunicazione con il dispositivo fisico dalla comunicazione interna al sistema software:
-
-```qak
-Event wall_sonardata
-Dispatch incoming_sonar
-```
-/*
-`wall_sonardata` rappresenta il dato ricevuto dal sonar fisico tramite MQTT e quindi appartiene al livello di comunicazione esterno.
-
-`incoming_sonar` rappresenta invece il messaggio interno utilizzato dagli attori QAK per propagare la misura della distanza, mantenendo separata la logica applicativa dai dettagli del protocollo MQTT.
-*/
-Il codice del cargoservice che riceve il messaggio `incoming_sonar` e aggiorna lo stato della risorsa CoAP è riportato di seguito.
-```qak
-State handle_sonar {
-    onMsg(incoming_sonar : distance(D)) {
-        [#
-            ...
-            val statusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId)
-
-        #]
-        updateResource [# statusJson #]
-    }
+State wait_for_container {
+    println("cargoservice | Waiting for container to be deposited on IOPort (Max 30s)...") color cyan
 }
-Goto do_robot_job if [# IOPortOccupied && CargoState == "engaged" && ServiceWorking #] else returnToState
+Transition t0
+    whenMsg     deposit_timeout_msg -> handle_deposit_timeout
+    whenRequest load_request        -> handle_load_request
+    whenEvent   sonar_event      -> handle_sonar
 ```
 
-Il codice del cargoservice che gestisce l'evento `incoming_sonar` è disponibile al seguente #link("https://github.com/chirichexe/iss-2026/blob/main/sprint2/prototype/cargoservice/src/cargoservice.qak")[link]).
+Il codice può essere trovato al seguente #link("https://github.com/chirichexe/iss-2026/blob/main/sprint2/prototype/cargoservice/src/cargoservice.qak")[link].
 
 // =============================================================================
 == Validazione temporale delle misure sonar
@@ -308,6 +269,8 @@ Dal punto di vista applicativo è quindi necessario distinguere tre intervalli d
 1. `D < DFREE / 2` che indica una possibile presenza del container davanti all'IOPort;
 2. `D > DFREE` che indica una possibile condizione di malfunzionamento del sistema di carico (Out of service);
 3. valori intermedi, che non soddisfano nessuna delle due condizioni precedenti.
+
+Si è scelto che il valore di `DFREE` sia pari a 20 secondi.
 
 Una possibile soluzione sarebbe demandare questa validazione direttamente all'ESP32, facendogli pubblicare solamente eventi già validati temporalmente. In questo modo però l'accoppiamento del dispositivo con il dominio applicativo aumenta notevolmente.
 
@@ -367,94 +330,11 @@ Lo stesso identico schema vale per lo stato Out of service, sostituendo la condi
 
 Anche il LED costituisce un dispositivo fisico e pone il medesimo problema di integrazione affrontato per il sonar.
 
-La soluzione più valida resta, come nel sonar, l'introduzione di un *adapter* che traduca i comandi logici nel protocollo MQTT, evitando che sia il cargoservice a controllare direttamente il dispositivo.
+Risulta quindi anche qui possibile evitare l'introduzione di un ulteriore componente intermedio e consentire al cargoservice di pubblicare direttamente i comandi sul topic MQTT dedicato al LED.
 
-Nello Sprint 1 il *cargoservice* inviava a `ledmock` il dispatch che rappresentava le operazioni logiche di `off` e `blink`. Esso viene mantenuto come interfaccia logica utilizzata da cargoservice.
+L'ESP32 si sottoscrive a tale topic e interpreta i messaggi ricevuti traducendoli nelle corrispondenti operazioni hardware (spegnimento e blink del LED).
 
-L'adapter riceve il comando e lo pubblica su un topic MQTT dedicato al LED. Il software sull'ESP32 si sottoscrive al topic e traduce il valore ricevuto nell'operazione hardware corrispondente.
-
-```qak
-Dispatch led_ctrl : ledCmd(CMD)
-Event    led_event     : ledCmd(CMD)
-
-QActor ledadapter context ctxdevices {
-
-    State s0 initial {
-        println("ledadapter | STARTED - Routing dispatches to MQTT events on topic: leddata") color green
-    }
-    Goto work
-
-    State work { }
-    Transition t0
-        whenMsg led_ctrl -> handle_led_cmd
-
-    State handle_led_cmd {
-        onMsg(led_ctrl : ledCmd(CMD)) {
-            [# val CMD = payloadArg(0) #]
-            println("ledadapter | Publishing LED command on MQTT: $CMD") color blue
-            emit led_event : ledCmd($CMD)
-        }
-    }
-
-    Goto work
-}
-```
-
-Il *cargoservice* interagisce con l'attore esterno in questo modo:
-
-Accensione del LED dopo l'accettazione della richiesta:
-
-```
-ReservedSlotId = SlotId
-CargoState = "engaged"
-
-forward ledadapter -m led_ctrl : ledCmd(blink)
-[# val SlotName = "slot$ReservedSlotId" #]
-replyTo load_request with load_accepted : loadAccepted($SlotName)
-```
-
-Spegnimento del LED al completamento del servizio:
-
-```
-State finish_job {
-    ...
-    [#
-        CargoState = "disengaged"
-        ReservedSlotId = -1
-    #]
-    forward ledadapter -m led_ctrl : ledCmd(off)
-    ...
-}
-```
-Spegnimento del LED in caso di errore durante il ritorno alla Home:
-
-```
-State handle_home_fail {
-    ...
-    [#
-        CargoState = "disengaged"
-        ReservedSlotId = -1
-    #]
-    forward ledadapter -m led_ctrl : ledCmd(off)
-    ...
-}
-```
-Spegnimento del LED per timeout del deposito:
-
-```
-State handle_deposit_timeout {
-    if [# CargoState == "engaged" && !IOPortOccupied #] {
-        ...
-        [#
-            Hold.freeSlot(ReservedSlotId)
-            CargoState = "disengaged"
-            ReservedSlotId = -1
-        #]
-        forward ledadapter -m led_ctrl : ledCmd(off)
-        ...
-    }
-}
-```
+Il codice dell'ESP32 che gestisce il LED si trova al seguente #link("https://github.com/chirichexe/iss-2026/blob/main/sprint2/prototype/esp32/main.py")[link].
 
 // =============================================================================
 == Gestione dello stato Out of service
@@ -486,29 +366,6 @@ L'ingresso nello stato *Out of service* non deve:
 - annullare la procedura di carico.
 
 Si tratta infatti di una sospensione temporanea e non del fallimento definitivo dell'operazione.
-
-// =============================================================================
-== Gestione coerente dello stato della hold
-// =============================================================================
-
-La prenotazione di uno slot e la sua effettiva occupazione rappresentano due momenti distinti.
-
-Quando una `load_request` viene accettata, lo slot viene riservato affinché non possa essere assegnato a un'altra richiesta. Esso può però essere considerato fisicamente occupato soltanto dopo che il robot ha completato il deposito.
-
-È quindi opportuno distinguere logicamente almeno i seguenti stati:
-
-- libero;
-- riservato;
-- occupato.
-
-Questa distinzione permette alla Web GUI di mostrare uno stato più fedele della hold e rende esplicito cosa debba accadere nei casi di timeout, sospensione o fallimento del movimento.
-
-In particolare:
-
-- in caso di timeout prima del deposito, lo slot riservato torna libero;
-- durante una sospensione *Out of service*, lo slot rimane riservato;
-- dopo il deposito completato, lo slot diventa occupato;
-- in caso di fallimento del robot, lo slot non viene liberato automaticamente.
 
 // =============================================================================
 == Architettura finale dello Sprint 2
@@ -547,30 +404,74 @@ In particolare:
 
 == Test Demo in tempo reale
 
+Si prevede di mostrare al committente il funzionamento della piattaforma fisica, utilizzando un oggetto di prova davanti al sonar per simulare la presenza del container.
+
+Gli scenari di test da mostrare sono i seguenti:
+
+1. *Monitoraggio dello stato del sistema*
+
+   A sistema fermo viene mostrata la rilevazione dello stato corrente del sistema, verificando il passaggio tra *System Working* e *Out Of Service* e la corretta indicazione sul display.
+
+2. *Monitoraggio dell'IOPort*
+
+   Viene mostrato il rilevamento dell'IOPort come libera o occupata posizionando o rimuovendo l'oggetto davanti al sonar entro DFREE/2.
+
+3. *Richiesta di caricamento non disponibile*
+
+   Viene effettuata una richiesta di caricamento mentre l'IOPort è occupata oppure il sistema è in stato *Out Of Service*, verificando la risposta di attesa _retrylater_.
+
+4. *Richiesta di caricamento rifiutata*
+
+   Viene simulata una richiesta quando tutti gli slot disponibili sono occupati, verificando la visualizzazione del messaggio _refused_ sul display.
+
+5. *Accettazione della richiesta di caricamento*
+
+   Viene effettuata una richiesta di caricamento in condizioni operative, con IOPort libera, sistema funzionante e almeno uno slot disponibile.
+   Viene verificata la risposta positiva della richiesta e l'assegnazione dello slot al container mediante il lo stato _riservato_.
+
+6. *Mancato deposito del container entro il tempo previsto*
+
+   Dopo una richiesta accettata, il container non viene posizionato nell'IOPort entro i 30 secondi disponibili.
+   Viene verificato che lo slot assegnato (_riservato_) torni nuovamente disponibile (_libero_).
+
+7. *Gestione dell'interruzione durante il movimento*
+
+   Viene simulata una condizione di *Out Of Service* durante il movimento del robot, verificando l'arresto e la successiva ripresa dell'operazione al ripristino del servizio.
+
 == Test Automatizzati
 
-Il sistema è stato validato mediante una suite di test automatici sviluppata con PyTest. I test interagiscono con il backend tramite interfaccia HTTP, 
-monitorano l'evoluzione dello stato attraverso WebSocket e simulano il sensore sonar pubblicando eventi MQTT. Ogni caso di test verifica uno o più requisiti 
-funzionali del sistema, controllando sia le risposte restituite dal servizio sia le corrispondenti transizioni di stato.
+Il sistema è stato validato mediante una suite di test automatici sviluppata con PyTest. 
+
+Gli scenari principali verificati sono i seguenti:
+
+- Con sistema libero (*disengaged*) viene inviata una richiesta di carico. La richiesta viene accettata e il sistema passa allo stato *engaged*.
+
+- Viene simulata la presenza di un container nell'IOPort e viene inviata una richiesta di carico. Il sistema risponde con *retrylater*.
+
+- Durante un'operazione di carico già in corso viene inviata una nuova richiesta. La richiesta viene rifiutata temporaneamente con risposta *retrylater*.
+
+- Dopo l'accettazione della richiesta, il container viene depositato nell'IOPort entro 30 secondi. Il caricamento prosegue correttamente senza generare un timeout.
+
+- Viene completato l'intero ciclo di movimentazione del robot. Il sistema ritorna allo stato *disengaged*.
+
+- Dopo il completamento di un carico viene inviata una nuova richiesta. Il sistema accetta correttamente la nuova operazione.
+
+- Viene simulata la presenza del container per meno di 3 secondi. La rilevazione viene ignorata e lo stato del sistema non cambia.
+
+- Dopo l'accettazione della richiesta, il container non viene depositato nell'IOPort entro 30 secondi. L'operazione viene annullata e lo slot torna disponibile.
+
+- Viene simulata una distanza del sonar superiore a *D_FREE* per almeno 3 secondi. Il sistema riconosce la condizione di *Out Of Service*.
+
+- Viene inviata una richiesta mentre il sistema è nello stato *Out Of Service*. Il sistema risponde con *retrylater*.
+
+- Viene simulata una condizione di guasto per meno di 3 secondi. L'anomalia viene ignorata e il sistema rimane nello stato *Service Working*.
+
+- Dopo una condizione di *Out Of Service*, il sonar torna operativo. Il sistema ritorna allo stato *Service Working*.
+
+- Vengono occupati progressivamente tutti gli slot disponibili e viene inviata un'ulteriore richiesta. Il sistema rifiuta la richiesta poiché l'hold risulta pieno.
 
 
-Ad esempio:
-
-Test	Requisito	Descrizione	Esito atteso
-T01	Req. 1	Con sistema libero (disengaged), viene inviata una richiesta di carico.	La richiesta è accettata (accepted) e il servizio passa allo stato engaged.
-T02	Req. 2	Si simula la presenza di un container nell'IOPort e viene inviata una richiesta di carico.	Il servizio risponde retrylater.
-T03	Req. 17	Durante un'operazione di carico già in corso viene inviata una nuova richiesta.	La seconda richiesta riceve risposta retrylater.
-T04	Req. 6	Dopo l'accettazione della richiesta il container viene depositato entro 30 s.	Il workflow prosegue normalmente senza timeout.
-T05	Req. 12	Si attende il completamento dell'intero ciclo di movimentazione del robot.	Il servizio ritorna nello stato disengaged.
-T06	Req. 18	Dopo il completamento di un carico viene inviata una nuova richiesta.	La nuova richiesta è accettata (accepted).
-T07	Req. 8	Si simula una presenza del container inferiore ai 3 s.	Il rilevamento viene ignorato e lo stato del servizio non cambia.
-T08	Req. 5	Dopo l'accettazione della richiesta il cliente non deposita il container entro 30 s.	Il servizio annulla l'operazione e torna disengaged.
-T09	Req. 9	Si simula un guasto del sonar mantenendo una distanza maggiore di D_FREE per almeno 3 s.	Lo stato diventa Out of service.
-T10	Req. 3	Si invia una richiesta mentre il sistema è Out of service.	Il servizio risponde retrylater.
-T11	Req. 10	Si simula una condizione di guasto per meno di 3 s.	L'anomalia viene ignorata e il sistema rimane Service working.
-T12	Req. 11	Dopo una condizione di Out of service il sonar ritorna operativo.	Il servizio ritorna allo stato Service working.
-T13	Req. 19	Si riempiono progressivamente gli slot 1–4 e si invia un'ulteriore richiesta.	Il servizio rifiuta la richiesta (refused) poiché l'hold è pieno.
-
+Il link al codice dei test automatici è il seguente #link("https://github.com/chirichexe/iss-2026/blob/main/sprint2/tests/test_system.py")[link].")
 
 // =============================================================================
 = Deployment <deployment>
@@ -605,11 +506,6 @@ Lo script esegue automaticamente le seguenti operazioni (eseguibili anche manual
 Al termine dell'avvio, le interfacce grafiche del sistema sono accessibili dal browser ai seguenti indirizzi:
 - *WebGui dell'IOPort* disponibile sulla porta locale 8086
 - *Ambiente grafico del robot* disponibile sulla porta locale 8090
-
-= Maintenance
-// =============================================================================
-
-#nota[Da completare con eventuali note di manutenzione, limiti noti e attività rinviate agli sprint successivi.]
 
 // =============================================================================
 = Pagina di sintesi
