@@ -261,7 +261,7 @@ Il codice del sonar puo essere trovato al seguente #link("https://github.com/chi
 
 ```qak
 
-mqttBroker "localhost" : 1883 eventTopic "leddata"
+mqttBroker "localhost" : 1883 eventTopic "leddata"   !!! STIAMO PARLANDO DEL TOPIC LEDDATA SU SONAR !!! cosa dovrebbo aggiungere? susbscribe?
 
 ```
 
