@@ -23,6 +23,7 @@ Lo Sprint 1 ha prodotto un prototipo eseguibile del *cargoservice* in cui il cic
 
 L'architettura finale dello Sprint 1, riportata di seguito, costituisce il riferimento di partenza per lo Sprint 2.
 
+
 #figure(
   image("../../sprint1/prototype/prototype_sprint1arch.png"),
   caption: [Architettura finale definita nello Sprint 1.]
@@ -220,11 +221,6 @@ Per effettuare l'aggiornamento dello stato sul display si potrebbe:
 Si sceglie pertanto tale soluzione in quanto più efficiente e reattiva.
 
 In questo modo il server, dopo aver ricevuto l'aggiornamento dello stato del *cargoservice* può inoltrare immediatamente le informazioni alla GUI senza che quest'ultima debba richiederle periodicamente (il codice della gestione del WebSocket si trova al seguente #link("https://github.com/chirichexe/iss-2026/blob/main/sprint2/prototype/ioport-backend/src/main/java/it/unibo/guiserver/WsController.java")[link]).
-
-#figure(
-  image("../../utils/static/IOPort-logic.png", width: 80%),
-  caption: [Architettura dell'IOPort server]
-)
 
 === Evoluzione dell'IOPort
 
@@ -531,7 +527,10 @@ In particolare:
 == Architettura finale dello Sprint 2
 // =============================================================================
 
-
+#figure(
+  image("../../utils/static/architettura_sprint2.png"),
+  caption: [Architettura finale definita nello Sprint 2.]
+)
 
 /*
 // =============================================================================
