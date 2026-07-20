@@ -241,16 +241,13 @@ Il contesto "ctxioport" rappresentava il nodo di esecuzione dell'attore ioport m
 == Integrazione del sonar reale
 // =============================================================================
 
-Il sonar, nello sprint precedente, era rappresentato dall'attore `sonarmock` il quale emetteva eventi di tipo `sonardata` ricevuti direttamente dal `cargoservice`. Adesso, poichè il sonar fisico è collegato all'ESP32, questo non è più realizzabile. Lo script sulL'ESP32 ha l'unico compito di leggere periodicamente la distanza e rendere disponibili le misurazioni al sistema distribuito;
+Nello sprint precedente, il sonar era stato modellato tramite l'attore `sonarmock`, il quale simulava il comportamento del dispositivo fisico generando eventi di tipo `sonardata` direttamente indirizzati al `cargoservice`.
 
-un protocollo deve essere interoperabile e sufficientemente leggero per un dispositivo IoT. Si sceglie MQTT, basato sul modello publish/subscribe e verranno pubblicate le misurazioni su un topic dedicato.
+Con l'introduzione del sonar reale, collegato a un dispositivo ESP32, questo approccio non è più applicabile. Lo script eseguito sull'ESP32 ha infatti il solo compito di acquisire periodicamente la distanza rilevata dal sensore e rendere disponibili tali informazioni al sistema distribuito.
 
-Il link allo script può essere trovato: QUA
+È quindi necessario adottare un protocollo che garantisca leggerezza, semplicità di integrazione e interoperabilità tra componenti eterogenei. Per questi motivi viene scelto MQTT, un protocollo basato sul modello publish/subscribe, particolarmente adatto a dispositivi con risorse limitate e scenari IoT.
 
-?????????????????????????????????????????????????????????????????
-PERCHE USIAMO EVENT PER RICEZIONE INVIO MQTT E DISPATCH PER INVIO DATI TRA ATTORI
-?????????????????????????????????????????????????????????????????
-
+Le misurazioni rilevate dal sonar vengono quindi pubblicate dall'ESP32 su un topic MQTT dedicato, al quale i componenti interessati del sistema possono sottoscriversi per ricevere gli aggiornamenti in modo disaccoppiato rispetto al dispositivo fisico.
 
 Per far ricevere ora i messaggi al cargoservice le possibilità sono due:
 
@@ -260,19 +257,64 @@ Per far ricevere ora i messaggi al cargoservice le possibilità sono due:
 
 In questo modo il cargoservice continua a ricevere esclusivamente messaggi QAK e rimane completamente indipendente dal protocollo utilizzato dal dispositivo fisico. 
 
+Il codice del sonar puo essere trovato al seguente #link("https://github.com/chirichexe/iss-2026/blob/main/sprint2/prototype/devices/src/devices.qak")[link].
 
+```qak
+QActor sonaradapter context ctxdevices {
+    State s0 initial {
+        subscribe "sonardata"
+        println("sonaradapter | STARTED - Listening to MQTT event wall_sonardata on topic: sonardata") color green
+    }
+    Goto work
 
-Si è scelto di distinguere i due messaggi.
+    State work {}
+    Transition t0
+        whenEvent wall_sonardata -> handle_sonar_payload
+
+    State handle_sonar_payload {
+        onMsg(wall_sonardata : distance(D)) {
+            [# 
+                val Distance = payloadArg(0)
+            #]
+            println("sonaradapter | Forwarding incoming_sonar($Distance) to cargoservice") color cyan
+            forward cargoservice -m incoming_sonar : distance($Distance)
+        }
+    }
+    Goto work
+}
 ```
+
+?????????????????????????????????????????????????????????????????
+PERCHE USIAMO EVENT PER RICEZIONE INVIO MQTT E DISPATCH PER INVIO DATI TRA ATTORI
+?????????????????????????????????????????????????????????????????
+
+Si è scelto di distinguere i due messaggi, separando la comunicazione con il dispositivo fisico dalla comunicazione interna al sistema software:
+
+```qak
 Event wall_sonardata
 Dispatch incoming_sonar
 ```
 
-wall_sonardata rappresenta il dato proveniente dal mondo fisico ed è strettamente legato al protocollo MQTT.
+`wall_sonardata` rappresenta il dato ricevuto dal sonar fisico tramite MQTT e quindi appartiene al livello di comunicazione esterno.
 
-incoming_sonar rappresenta invece il protocollo interno del sistema software.
+`incoming_sonar` rappresenta invece il messaggio interno utilizzato dagli attori QAK per propagare la misura della distanza, mantenendo separata la logica applicativa dai dettagli del protocollo MQTT.
 
-INSERISCI SNIPPET COMPLETO DELL ADAPTER + PARTE IN CUI IL CRGOSERVICE LO USA
+Il codice del cargoservice che riceve il messaggio `incoming_sonar` e aggiorna lo stato della risorsa CoAP è riportato di seguito.
+```qak
+State handle_sonar {
+    onMsg(incoming_sonar : distance(D)) {
+        [#
+            ...
+            val statusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId)
+
+        #]
+        updateResource [# statusJson #]
+    }
+}
+Goto do_robot_job if [# IOPortOccupied && CargoState == "engaged" && ServiceWorking #] else returnToState
+```
+
+Il codice del cargoservice che gestisce l'evento `incoming_sonar` è disponibile al seguente #link("https://github.com/chirichexe/iss-2026/blob/main/sprint2/prototype/cargoservice/src/cargoservice.qak")[link]).
 
 // =============================================================================
 == Validazione temporale delle misure sonar
@@ -283,7 +325,7 @@ Da requisiti, una singola misura del sonar non comporta necessariamente una tran
 Dal punto di vista applicativo è quindi necessario distinguere tre intervalli di misura:
 
 1. `D < DFREE / 2` che indica una possibile presenza del container davanti all'IOPort;
-2. `D > DFREE` che indica una possibile condizione di malfunzionamento del sistema di carico;
+2. `D > DFREE` che indica una possibile condizione di malfunzionamento del sistema di carico (Out of service);
 3. valori intermedi, che non soddisfano nessuna delle due condizioni precedenti.
 
 Una possibile soluzione sarebbe demandare questa validazione direttamente all'ESP32, facendogli pubblicare solamente eventi già validati temporalmente. In questo modo però l'accoppiamento del dispositivo con il dominio applicativo aumenta notevolmente.
@@ -294,39 +336,47 @@ Si preferisce pertanto mantenere quindi l'ESP32 una semplice componente di acqui
 2. l'istante in cui viene rilevata per la prima volta la condizione D > DFREE;
 3. l'annullamento del conteggio quando la misura torna nell'intervallo normale.
 
-Solo quando una delle due condizioni permane per almeno tre secondi consecutivi viene effettivamente effettuata una transizione di stato.
+Solo quando una delle due condizioni permane per almeno tre secondi consecutivi viene effettivamente effettuata una transizione di stato (Il codice responsabile della gestione delle transizioni di statoè riportato al seguente #link("https://github.com/chirichexe/iss-2026/blob/main/sprint2/prototype/cargoservice/src/cargoservice.qak")[link].).
 
-Il Codice può essere trovato QUI
-
-```
-[# val now = System.currentTimeMillis() #]
-
-if (distance < DFREE/2) {
-    if (ContainerDetectedSince == 0L)
-        ContainerDetectedSince = now
+```qak
+...
+if (Dist < DFreeDiv2) {
+    if (ContainerPendingStart < 0L) {
+        ContainerPendingStart = Now
+    } else if (Now - ContainerPendingStart >= 3000L) {
+        IOPortOccupied = true
+        ContainerPendingStart = -1L
+    }
+} else {
+    ContainerPendingStart = -1L
+    IOPortOccupied = false
 }
-else {
-    ContainerDetectedSince = 0L
-}
-```
 
-QuALCHE ALTRO SNIPPET
+if (Dist > DFree) {
+    if (ServiceWorking) {
+        if (OutOfServicePendingStart < 0L) {
+            OutOfServicePendingStart = Now
+        } else if (Now - OutOfServicePendingStart >= 3000L) {
+            ServiceWorking = false
+            OutOfServicePendingStart = -1L
+            println("cargoservice | Sonar D>DFREE ($Dist > $DFree) sostenuto per 3s -> OUT OF SERVICE!")
+            forward("stop_robot", "stop(none)", "cargorobot")
+        }
+    }
+} else {
+    OutOfServicePendingStart = -1L
+    if (!ServiceWorking) {
+        ServiceWorking = true
+        println("cargoservice | Sonar D<=DFREE ($Dist <= $DFree) -> SERVICE WORKING again!")
+        forward("resume_robot", "resume(none)", "cargorobot")
+    }
+}
+...
+```
 
 Il timer non viene riavviato ad ogni misura. Viene registrato solamente il primo istante in cui la condizione diventa vera.
-```
-[# val elapsed = now - ContainerDetectedSince #]
-
-if (elapsed >= 3000) {
-    IOPortOccupied = true
-}
-```
 
 Se una misura interrompe la continuità della condizione, il conteggio viene annullato e dovrà eventualmente ripartire dalla misura successiva.
-```
-if (distance >= DFREE/2) {
-    ContainerDetectedSince = 0L
-}
-```
 
 Lo stesso identico schema vale per lo stato Out of service, sostituendo la condizione D > DFREE e la variabile che memorizza il tempo di inizio del possibile guasto.
 
@@ -336,7 +386,7 @@ Lo stesso identico schema vale per lo stato Out of service, sostituendo la condi
 
 Anche il LED costituisce un dispositivo fisico e pone il medesimo problema di integrazione affrontato per il sonar.
 
-La soluzione più valida resta, come nel sonar, l'introduzione di un *adapter* che traduca i comandi logici nel protocollo MQTT, evitando che soa il cargoservice a controllare direttamente il dispositivo.
+La soluzione più valida resta, come nel sonar, l'introduzione di un *adapter* che traduca i comandi logici nel protocollo MQTT, evitando che sia il cargoservice a controllare direttamente il dispositivo.
 
 Nello Sprint 1 il *cargoservice* inviava a `ledmock` il dispatch che rappresentava le operazioni logiche di `off` e `blink`. Esso viene mantenuto come interfaccia logica utilizzata da cargoservice.
 
@@ -475,85 +525,8 @@ Le principali modifiche riguardano il trasporto dei messaggi e l'osservabilità 
 = Deployment <deployment>
 // =============================================================================
 
-                                        
-Il deployment del prototipo relativo allo *Sprint 2* richiede l'orchestrazione di diversi contesti distribuiti su nodi logici o
-fisici distinti (motore QAK, server intermedio Web/CoAP, ambiente di simulazione WEnv e broker MQTT).                                                                                                                                           
-=== Prerequisiti di Sistema                                                                                                    
-Per l'esecuzione end-to-end del sistema è necessaria la presenza dei seguenti strumenti:                                       
-- *JDK*;                                                                        
-- *Docker* e *Docker Compose*;                                   
-- *Browser Web*.     
-                                                                                                                                   
-=== Avvio Automatizzato                                                                                         
-Al fine di semplificare la fase di testing ed evitare conflitti di binding sulle porte di rete, all'interno della cartella     
-`Scripts_Avvio` è stata predisposta una suite di script automatici sia per ambienti *Linux/macOS* che *Windows*.                 
-                                                                                                                                   
-Gli script eseguono una pulizia preventiva delle porte (`8020`, `8050`--`8053`, `8085`, `8086`, `8090`) e dei container Docker 
-residuali, per poi avviare i 7 processi in sequenza ordinata con i corretti tempi di sincronizzazione:                           
-                                                                                                                                   
-    + *Ambiente Virtuale WEnv e Broker MQTT* (`docker compose -f unibobasic26.yaml up`);                                           
-    + *Servizio Base e Pathfinder* (`robotsmart26` su porta `8020`);                                                               
-    + *Orchestratore Centrale e Risorsa CoAP* (`cargoservice` su porta `8050`);                                                    
-    + *Wrapper Trasportatore QAK* (`robot` su porta `8053`);                                                                       
-    + *Contesto Cliente e LedMock* (`customer` su porta `8051`);                                                                   
-    + *Server Intermedio Facade Web GUI / CoAP Observer* (`IOPortServer` su porta `8086`);                                         
-    + *Simulatori Hardware Sonar e Marker* (`devices` su porta `8052`).                                                            
-                                                                                                                                   
-==== Esecuzione su Linux e macOS                                                                                               
-Aprire un terminale nella cartella radice del progetto e avviare lo script dedicato:   
+#nota[Da completare.]
 
-cd Progetto/Scripts_Avvio                                                                                                      
-./start_all_sprint2.sh                                                                                                         
-                                                                                                                                   
-Per arrestare e pulire l'intero sistema al termine delle prove:                                                                  
-                                                                                                                                   
-./stop_all_sprint2.sh                                                                                                          
-                                                                                                                                   
-==== Esecuzione su Windows                                                                                                       
-Da Prompt dei comandi (oppure effettuando un doppio clic su Esplora Risorse):                                                    
-                                                                                                                                   
-cd Progetto\Scripts_Avvio                                                                                                      
-start_all_sprint2.bat                                                                                                          
-                                                                                                                                   
-Lo script aprirà automaticamente 7 finestre del Prompt dei comandi per i rispettivi contesti. Per arrestare l'esecuzione:        
-                                                                                                                                   
-stop_all_sprint2.bat                                                                                                           
-                                                                                                                                   
-=== Avvio Manuale via Gradle                                                                                                     
-Qualora si preferisca avviare e monitorare singolarmente i vari contesti (ad esempio per attività di debug o profilazione), è    
-possibile eseguire i seguenti comandi da terminali separati:                                                                     
-  
-  1. WEnv & MQTT (da sprint2/robotsmart26/yamls)
-  docker compose -f unibobasic26.yaml up
-  
-  2. Robot base (da sprint2/robotsmart26)
-  ./gradlew run
-  
-  3. CargoService (da sprint2/prototype/cargoservice)
-  ./gradlew run
-  
-  4. CargoRobot (da sprint2/prototype/robot)
-  ./gradlew run
-  
-  5. Customer / Led (da sprint2/prototype/customer)
-  ./gradlew runCustomer
-  
-  6. IOPortServer Web Facade (da sprint2/prototype/customer)
-  ./gradlew runIOPortServer
-  
-  7. Devices / Sonar (da sprint2/prototype/devices)
-  ./gradlew run
-  
-=== Verifica e Interazione con il Sistema
-Al termine della sequenza di avvio, l'interfaccia utente è accessibile da browser tramite due endpoint principali:
-  
-  •  http://localhost:8090 : per monitorare visivamente i movimenti del robot all'interno dell'ambiente di simulazione             
-  tridimensionale (WEnv);
-  •  http://localhost:8086 : per accedere alla Web GUI della IOPort. Da questa pagina l'operatore può:
-      • inviare richieste di carico premendo il pulsante LOAD;
-      • osservare l'esito della richiesta ( accepted ,  retrylater ,  refused );
-      • monitorare in tempo reale (tramite notifiche push WebSocket da osservatore CoAP) la transizione di stato degli slot della  
-      stiva ( free ,  reserved ,  occupied ) e lo stato operativo del servizio ( Service working  vs  Out of service ).    
 // =============================================================================
 = Maintenance
 // =============================================================================
