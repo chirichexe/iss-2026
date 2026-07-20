@@ -243,7 +243,7 @@ Nello sprint precedente, il sonar era stato modellato tramite l'attore `sonarmoc
 
 Con l'introduzione del sonar reale, collegato a un dispositivo ESP32, questo approccio non è più applicabile. Lo script eseguito sull'ESP32 ha infatti il solo compito di acquisire periodicamente la distanza rilevata dal sensore e rendere disponibili tali informazioni al sistema distribuito.
 
-È quindi necessario adottare un protocollo che garantisca leggerezza, semplicità di integrazione e interoperabilità tra componenti eterogenei. Per questi motivi viene scelto MQTT, un protocollo basato sul modello publish/subscribe, particolarmente adatto a dispositivi con risorse limitate e scenari IoT.
+È quindi necessario adottare un protocollo che garantisca leggerezza, semplicità di integrazione e interoperabilità tra componenti eterogenei. Per questi motivi viene scelto MQTT, un protocollo basato sul modello publish/subscribe, particolarmente adatto a dispositivi con risorse limitate e scenari IoT. È necessario introdurre un componente intemediario che si occupi di ricevere i messaggi pubblicati dall'ESP32 e inoltrarli al `cargoservice`, definito *broker*.
 
 Le misurazioni rilevate dal sonar vengono quindi pubblicate dall'ESP32 su un topic MQTT dedicato, al quale i componenti interessati del sistema possono sottoscriversi per ricevere gli aggiornamenti in modo disaccoppiato rispetto al dispositivo fisico.
 
@@ -528,30 +528,12 @@ In particolare:
 - in caso di fallimento del robot, lo slot non viene liberato automaticamente.
 
 // =============================================================================
-== Evoluzione dell'architettura
+== Architettura finale dello Sprint 2
 // =============================================================================
 
-Rispetto allo Sprint 1 vengono introdotti i seguenti elementi:
 
-- una Web GUI che realizza l'IOCome posso evolvere lo sprint1 naturalmente nello sprint2?Port;
-- un server intermediario per HTTP, WebSocket e osservazione CoAP;
-- un broker MQTT per la comunicazione con il PicoW;
-- il software sul PicoW per il sonar e il LED;
-- un componente di adattamento tra MQTT e i messaggi QAK;
-- la pubblicazione dello stato del *cargoservice* come risorsa CoAP osservabile.
 
-Il *cargoservice* rimane l'orchestratore del ciclo di carico e la `Hold` rimane la sorgente dello stato degli slot. I nuovi componenti non trasferiscono altrove la logica applicativa, ma rendono possibile l'interazione con browser e dispositivi fisici.
-
-L'evoluzione preserva quindi le interfacce logiche introdotte nello Sprint 1:
-
-- `load_request` e relative reply per l'IOPort;
-- `sonardata` per le misurazioni del sonar;
-- `led_ctrl` per il controllo del LED;
-- `moverobot` per la movimentazione;
-- `mark_container` per la marcatura.
-
-Le principali modifiche riguardano il trasporto dei messaggi e l'osservabilità dello stato, non il significato delle interazioni applicative già validate.
-
+/*
 // =============================================================================
 = Project
 // =============================================================================
@@ -571,6 +553,7 @@ Le principali modifiche riguardano il trasporto dei messaggi e l'osservabilità 
 == Implementazione della gestione Out of service
 
 #nota[Da completare.]
+*/
 
 // =============================================================================
 = Test plans <testplan>
