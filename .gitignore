@@ -42,3 +42,11 @@ Thumbs.db
 *.swp
 
 venv/
+
+# Python cache and logs
+**/__pycache__/
+**/*.py[cod]
+**/*$py.class
+**/.pytest_cache/
+**/.coverage
+**/htmlcov/

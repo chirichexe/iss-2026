@@ -42,7 +42,7 @@ class SystemTestProbe:
         """Invia continuamente la distanza al broker MQTT, formattata per QAK."""
         while self._running:
             # QAK MQTT event format: msg(MSGID, MSGTYPE, SENDER, RECEIVER, CONTENT, SEQNUM)
-            msg = f"msg(wall_sonardata,event,systemtestprobe,none,distance({self._current_distance}),1)"
+            msg = f"msg(sonar_event,event,systemtestprobe,none,distance({self._current_distance}),1)"
             self.mqtt_client.publish(MQTT_TOPIC_SONAR, msg)
             time.sleep(0.5)
 
