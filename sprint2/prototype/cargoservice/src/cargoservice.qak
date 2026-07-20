@@ -1,4 +1,5 @@
 System cargoservice 
+mqttBroker "localhost" : 1883 eventTopic "leddata"
   
 // IoPort <-> CargoService     
 Request load_request    : loadRequest(none)
@@ -8,9 +9,9 @@ Reply   load_refused    : loadRefused(none) for load_request
 
 // Devices <-> CargoService
 // dati ricevuti dal sonar
-Dispatch incoming_sonar     : distance(D)  
+Event sonar_event : distance(D)
 // invio comandi al led
-Dispatch led_ctrl : ledCmd(CMD)
+Event led_event : ledCmd(CMD)
 // comunicazione con markerdevice
 Request mark_container : markContainer(none) 
 Reply   marking_done   : markingDone(none) for mark_container
@@ -31,7 +32,6 @@ Context ctxdevices      ip [host="127.0.0.1" port=8052]
 Context ctxrobot        ip [host="127.0.0.1" port=8053]
 
 // Attori Esterni
-ExternalQActor ledadapter   context ctxdevices
 ExternalQActor markerdevice context ctxdevices
 ExternalQActor cargorobot   context ctxrobot
 
@@ -48,7 +48,8 @@ QActor cargoservice context ctxcargoservice {
     #]
  
     State s0 initial {
-        println("cargoservice | STARTED") color magenta
+        subscribe "sonardata"
+        println("PALLE CARGO | STARTED") color magenta
     }
     Goto disengaged
     
@@ -59,7 +60,7 @@ QActor cargoservice context ctxcargoservice {
     }
     Transition t0
         whenRequest load_request       -> handle_load_request
-        whenMsg     incoming_sonar     -> handle_sonar
+        whenEvent   sonar_event     -> handle_sonar
 
     State engaged {
         println("cargoservice | ENGAGED: evaluating next step...") color blue
@@ -74,7 +75,7 @@ QActor cargoservice context ctxcargoservice {
     Transition t0
         whenMsg     deposit_timeout_msg -> handle_deposit_timeout
         whenRequest load_request        -> handle_load_request
-        whenMsg     incoming_sonar      -> handle_sonar
+        whenEvent   sonar_event      -> handle_sonar
 
     // GESTIONE RICHIESTE
     State handle_load_request {
@@ -95,7 +96,7 @@ QActor cargoservice context ctxcargoservice {
                         }
                     }
                 #]
-                forward ledadapter -m led_ctrl : ledCmd(blink)
+                emit led_event : ledCmd(blink)
                 [# val SlotName = "slot$ReservedSlotId" #]
                 replyTo load_request with load_accepted : loadAccepted($SlotName)
                 [# val statusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId) #]
@@ -109,7 +110,7 @@ QActor cargoservice context ctxcargoservice {
 
     // GESTIONE SONAR & OUT OF SERVICE
     State handle_sonar {
-        onMsg(incoming_sonar : distance(D)) {
+        onMsg(sonar_event : distance(D)) {
             [#
                 val Dist = try { payloadArg(0).toDouble().toInt() } catch(e: Exception) { payloadArg(0).toIntOrNull() ?: 0 }
                 val Now  = System.currentTimeMillis()
@@ -171,10 +172,10 @@ QActor cargoservice context ctxcargoservice {
     Transition t0
         whenReply moverobotdone   -> pick_container
         whenReply moverobotfailed -> pick_container_after_fail
-        whenMsg   incoming_sonar  -> handle_sonar_do_robot_job
+        whenEvent sonar_event  -> handle_sonar_do_robot_job
 
     State handle_sonar_do_robot_job {
-        onMsg(incoming_sonar : distance(D)) {
+        onMsg(sonar_event : distance(D)) {
             [#
                 val Dist = try { payloadArg(0).toDouble().toInt() } catch(e: Exception) { payloadArg(0).toIntOrNull() ?: 0 }
                 val Now  = System.currentTimeMillis()
@@ -241,10 +242,10 @@ QActor cargoservice context ctxcargoservice {
     Transition t0
         whenReply moverobotdone   -> mark_container
         whenReply moverobotfailed -> mark_container_after_fail
-        whenMsg   incoming_sonar  -> handle_sonar_pick_container
+        whenEvent sonar_event  -> handle_sonar_pick_container
 
     State handle_sonar_pick_container {
-        onMsg(incoming_sonar : distance(D)) {
+        onMsg(sonar_event : distance(D)) {
             [#
                 val Dist = try { payloadArg(0).toDouble().toInt() } catch(e: Exception) { payloadArg(0).toIntOrNull() ?: 0 }
                 val Now  = System.currentTimeMillis()
@@ -317,10 +318,10 @@ QActor cargoservice context ctxcargoservice {
     Transition t0
         whenReply moverobotdone   -> return_home
         whenReply moverobotfailed -> return_home_after_fail
-        whenMsg   incoming_sonar  -> handle_sonar_move_to_reserved_slot
+        whenEvent sonar_event  -> handle_sonar_move_to_reserved_slot
 
     State handle_sonar_move_to_reserved_slot {
-        onMsg(incoming_sonar : distance(D)) {
+        onMsg(sonar_event : distance(D)) {
             [#
                 val Dist = try { payloadArg(0).toDouble().toInt() } catch(e: Exception) { payloadArg(0).toIntOrNull() ?: 0 }
                 val Now  = System.currentTimeMillis()
@@ -390,10 +391,10 @@ QActor cargoservice context ctxcargoservice {
     Transition t0
         whenReply moverobotdone   -> finish_job
         whenReply moverobotfailed -> handle_home_fail
-        whenMsg   incoming_sonar  -> handle_sonar_return_home
+        whenEvent sonar_event  -> handle_sonar_return_home
 
     State handle_sonar_return_home {
-        onMsg(incoming_sonar : distance(D)) {
+        onMsg(sonar_event : distance(D)) {
             [#
                 val Dist = try { payloadArg(0).toDouble().toInt() } catch(e: Exception) { payloadArg(0).toIntOrNull() ?: 0 }
                 val Now  = System.currentTimeMillis()
@@ -446,7 +447,7 @@ QActor cargoservice context ctxcargoservice {
             CargoState = "disengaged"
             ReservedSlotId = -1
         #]
-        forward ledadapter -m led_ctrl : ledCmd(off)
+        emit led_event : ledCmd(off)
         [# val statusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId) #]
         updateResource [# statusJson #]
     }
@@ -458,7 +459,7 @@ QActor cargoservice context ctxcargoservice {
             CargoState = "disengaged"
             ReservedSlotId = -1
         #]
-        forward ledadapter -m led_ctrl : ledCmd(off)
+        emit led_event : ledCmd(off)
         [# val statusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId) #]
         updateResource [# statusJson #]
     }
@@ -472,7 +473,7 @@ QActor cargoservice context ctxcargoservice {
                 CargoState = "disengaged"
                 ReservedSlotId = -1
             #]
-            forward ledadapter -m led_ctrl : ledCmd(off)
+            emit led_event : ledCmd(off)
             [# val statusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId) #]
             updateResource [# statusJson #]
         }

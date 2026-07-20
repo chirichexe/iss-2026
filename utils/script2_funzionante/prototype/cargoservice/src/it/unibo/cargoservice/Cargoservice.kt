@@ -161,6 +161,7 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 								                            ServiceWorking = false
 								                            OutOfServicePendingStart = -1L
 								                            println("cargoservice | Sonar D>DFREE ($Dist > $DFree) sostenuto per 3s -> OUT OF SERVICE!")
+								                            forward("stop_robot", "stop(none)", "cargorobot")
 								                        }
 								                    }
 								                } else {
@@ -168,10 +169,12 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 								                    if (!ServiceWorking) {
 								                        ServiceWorking = true
 								                        println("cargoservice | Sonar D<=DFREE ($Dist <= $DFree) -> SERVICE WORKING again!")
+								                        forward("resume_robot", "resume(none)", "cargorobot")
 								                    }
 								                }
 								
 								                val statusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId)
+								
 								updateResourceRep( statusJson  
 								)
 						}
@@ -199,7 +202,6 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 				}	 
 				state("do_robot_job") { //this:State
 					action { //it:State
-						 discardMessages = true  
 						CommUtils.outmagenta("cargoservice | Container inside area! Robot moving to IOPort (4,0)...")
 						request("moverobot", "moverobot(4,0,$StepTime)" ,"cargorobot" )  
 						//genTimer( actor, state )
@@ -207,8 +209,71 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 					//After Lenzi Aug2002
 					sysaction { //it:State
 					}	 	 
+					 transition( edgeName="goto",targetState="wait_do_robot_job", cond=doswitch() )
+				}	 
+				state("wait_do_robot_job") { //this:State
+					action { //it:State
+						//genTimer( actor, state )
+					}
+					//After Lenzi Aug2002
+					sysaction { //it:State
+					}	 	 
 					 transition(edgeName="t05",targetState="pick_container",cond=whenReply("moverobotdone"))
 					transition(edgeName="t06",targetState="pick_container_after_fail",cond=whenReply("moverobotfailed"))
+					transition(edgeName="t07",targetState="handle_sonar_do_robot_job",cond=whenDispatch("incoming_sonar"))
+				}	 
+				state("handle_sonar_do_robot_job") { //this:State
+					action { //it:State
+						if( checkMsgContent( Term.createTerm("distance(D)"), Term.createTerm("distance(D)"), 
+						                        currentMsg.msgContent()) ) { //set msgArgList
+								
+								                val Dist = try { payloadArg(0).toDouble().toInt() } catch(e: Exception) { payloadArg(0).toIntOrNull() ?: 0 }
+								                val Now  = System.currentTimeMillis()
+								                val DFree = Hold.getDfree()
+								                val DFreeDiv2 = DFree / 2
+								
+								                if (Dist < DFreeDiv2) {
+								                    if (ContainerPendingStart < 0L) {
+								                        ContainerPendingStart = Now
+								                    } else if (Now - ContainerPendingStart >= 3000L) {
+								                        IOPortOccupied = true
+								                        ContainerPendingStart = -1L
+								                    }
+								                } else {
+								                    ContainerPendingStart = -1L
+								                    IOPortOccupied = false
+								                }
+								
+								                if (Dist > DFree) {
+								                    if (ServiceWorking) {
+								                        if (OutOfServicePendingStart < 0L) {
+								                            OutOfServicePendingStart = Now
+								                        } else if (Now - OutOfServicePendingStart >= 3000L) {
+								                            ServiceWorking = false
+								                            OutOfServicePendingStart = -1L
+								                            println("cargoservice | Sonar D>DFREE ($Dist > $DFree) sostenuto per 3s -> OUT OF SERVICE!")
+								                            forward("stop_robot", "stop(none)", "cargorobot")
+								                        }
+								                    }
+								                } else {
+								                    OutOfServicePendingStart = -1L
+								                    if (!ServiceWorking) {
+								                        ServiceWorking = true
+								                        println("cargoservice | Sonar D<=DFREE ($Dist <= $DFree) -> SERVICE WORKING again!")
+								                        forward("resume_robot", "resume(none)", "cargorobot")
+								                    }
+								                }
+								
+								                val statusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId)
+								updateResourceRep( statusJson  
+								)
+						}
+						//genTimer( actor, state )
+					}
+					//After Lenzi Aug2002
+					sysaction { //it:State
+					}	 	 
+					 transition( edgeName="goto",targetState="wait_do_robot_job", cond=doswitch() )
 				}	 
 				state("pick_container_after_fail") { //this:State
 					action { //it:State
@@ -234,8 +299,71 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 					//After Lenzi Aug2002
 					sysaction { //it:State
 					}	 	 
-					 transition(edgeName="t07",targetState="mark_container",cond=whenReply("moverobotdone"))
-					transition(edgeName="t08",targetState="mark_container_after_fail",cond=whenReply("moverobotfailed"))
+					 transition( edgeName="goto",targetState="wait_pick_container", cond=doswitch() )
+				}	 
+				state("wait_pick_container") { //this:State
+					action { //it:State
+						//genTimer( actor, state )
+					}
+					//After Lenzi Aug2002
+					sysaction { //it:State
+					}	 	 
+					 transition(edgeName="t08",targetState="mark_container",cond=whenReply("moverobotdone"))
+					transition(edgeName="t09",targetState="mark_container_after_fail",cond=whenReply("moverobotfailed"))
+					transition(edgeName="t010",targetState="handle_sonar_pick_container",cond=whenDispatch("incoming_sonar"))
+				}	 
+				state("handle_sonar_pick_container") { //this:State
+					action { //it:State
+						if( checkMsgContent( Term.createTerm("distance(D)"), Term.createTerm("distance(D)"), 
+						                        currentMsg.msgContent()) ) { //set msgArgList
+								
+								                val Dist = try { payloadArg(0).toDouble().toInt() } catch(e: Exception) { payloadArg(0).toIntOrNull() ?: 0 }
+								                val Now  = System.currentTimeMillis()
+								                val DFree = Hold.getDfree()
+								                val DFreeDiv2 = DFree / 2
+								
+								                if (Dist < DFreeDiv2) {
+								                    if (ContainerPendingStart < 0L) {
+								                        ContainerPendingStart = Now
+								                    } else if (Now - ContainerPendingStart >= 3000L) {
+								                        IOPortOccupied = true
+								                        ContainerPendingStart = -1L
+								                    }
+								                } else {
+								                    ContainerPendingStart = -1L
+								                    IOPortOccupied = false
+								                }
+								
+								                if (Dist > DFree) {
+								                    if (ServiceWorking) {
+								                        if (OutOfServicePendingStart < 0L) {
+								                            OutOfServicePendingStart = Now
+								                        } else if (Now - OutOfServicePendingStart >= 3000L) {
+								                            ServiceWorking = false
+								                            OutOfServicePendingStart = -1L
+								                            println("cargoservice | Sonar D>DFREE ($Dist > $DFree) sostenuto per 3s -> OUT OF SERVICE!")
+								                            forward("stop_robot", "stop(none)", "cargorobot")
+								                        }
+								                    }
+								                } else {
+								                    OutOfServicePendingStart = -1L
+								                    if (!ServiceWorking) {
+								                        ServiceWorking = true
+								                        println("cargoservice | Sonar D<=DFREE ($Dist <= $DFree) -> SERVICE WORKING again!")
+								                        forward("resume_robot", "resume(none)", "cargorobot")
+								                    }
+								                }
+								
+								                val statusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId)
+								updateResourceRep( statusJson  
+								)
+						}
+						//genTimer( actor, state )
+					}
+					//After Lenzi Aug2002
+					sysaction { //it:State
+					}	 	 
+					 transition( edgeName="goto",targetState="wait_pick_container", cond=doswitch() )
 				}	 
 				state("mark_container_after_fail") { //this:State
 					action { //it:State
@@ -256,7 +384,7 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 					//After Lenzi Aug2002
 					sysaction { //it:State
 					}	 	 
-					 transition(edgeName="t09",targetState="move_to_reserved_slot",cond=whenReply("marking_done"))
+					 transition(edgeName="t011",targetState="move_to_reserved_slot",cond=whenReply("marking_done"))
 				}	 
 				state("move_to_reserved_slot") { //this:State
 					action { //it:State
@@ -270,8 +398,71 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 					//After Lenzi Aug2002
 					sysaction { //it:State
 					}	 	 
-					 transition(edgeName="t010",targetState="return_home",cond=whenReply("moverobotdone"))
-					transition(edgeName="t011",targetState="return_home_after_fail",cond=whenReply("moverobotfailed"))
+					 transition( edgeName="goto",targetState="wait_move_to_reserved_slot", cond=doswitch() )
+				}	 
+				state("wait_move_to_reserved_slot") { //this:State
+					action { //it:State
+						//genTimer( actor, state )
+					}
+					//After Lenzi Aug2002
+					sysaction { //it:State
+					}	 	 
+					 transition(edgeName="t012",targetState="return_home",cond=whenReply("moverobotdone"))
+					transition(edgeName="t013",targetState="return_home_after_fail",cond=whenReply("moverobotfailed"))
+					transition(edgeName="t014",targetState="handle_sonar_move_to_reserved_slot",cond=whenDispatch("incoming_sonar"))
+				}	 
+				state("handle_sonar_move_to_reserved_slot") { //this:State
+					action { //it:State
+						if( checkMsgContent( Term.createTerm("distance(D)"), Term.createTerm("distance(D)"), 
+						                        currentMsg.msgContent()) ) { //set msgArgList
+								
+								                val Dist = try { payloadArg(0).toDouble().toInt() } catch(e: Exception) { payloadArg(0).toIntOrNull() ?: 0 }
+								                val Now  = System.currentTimeMillis()
+								                val DFree = Hold.getDfree()
+								                val DFreeDiv2 = DFree / 2
+								
+								                if (Dist < DFreeDiv2) {
+								                    if (ContainerPendingStart < 0L) {
+								                        ContainerPendingStart = Now
+								                    } else if (Now - ContainerPendingStart >= 3000L) {
+								                        IOPortOccupied = true
+								                        ContainerPendingStart = -1L
+								                    }
+								                } else {
+								                    ContainerPendingStart = -1L
+								                    IOPortOccupied = false
+								                }
+								
+								                if (Dist > DFree) {
+								                    if (ServiceWorking) {
+								                        if (OutOfServicePendingStart < 0L) {
+								                            OutOfServicePendingStart = Now
+								                        } else if (Now - OutOfServicePendingStart >= 3000L) {
+								                            ServiceWorking = false
+								                            OutOfServicePendingStart = -1L
+								                            println("cargoservice | Sonar D>DFREE ($Dist > $DFree) sostenuto per 3s -> OUT OF SERVICE!")
+								                            forward("stop_robot", "stop(none)", "cargorobot")
+								                        }
+								                    }
+								                } else {
+								                    OutOfServicePendingStart = -1L
+								                    if (!ServiceWorking) {
+								                        ServiceWorking = true
+								                        println("cargoservice | Sonar D<=DFREE ($Dist <= $DFree) -> SERVICE WORKING again!")
+								                        forward("resume_robot", "resume(none)", "cargorobot")
+								                    }
+								                }
+								
+								                val statusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId)
+								updateResourceRep( statusJson  
+								)
+						}
+						//genTimer( actor, state )
+					}
+					//After Lenzi Aug2002
+					sysaction { //it:State
+					}	 	 
+					 transition( edgeName="goto",targetState="wait_move_to_reserved_slot", cond=doswitch() )
 				}	 
 				state("return_home_after_fail") { //this:State
 					action { //it:State
@@ -299,14 +490,76 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 					//After Lenzi Aug2002
 					sysaction { //it:State
 					}	 	 
-					 transition(edgeName="t012",targetState="finish_job",cond=whenReply("moverobotdone"))
-					transition(edgeName="t013",targetState="handle_home_fail",cond=whenReply("moverobotfailed"))
+					 transition( edgeName="goto",targetState="wait_return_home", cond=doswitch() )
+				}	 
+				state("wait_return_home") { //this:State
+					action { //it:State
+						//genTimer( actor, state )
+					}
+					//After Lenzi Aug2002
+					sysaction { //it:State
+					}	 	 
+					 transition(edgeName="t015",targetState="finish_job",cond=whenReply("moverobotdone"))
+					transition(edgeName="t016",targetState="handle_home_fail",cond=whenReply("moverobotfailed"))
+					transition(edgeName="t017",targetState="handle_sonar_return_home",cond=whenDispatch("incoming_sonar"))
+				}	 
+				state("handle_sonar_return_home") { //this:State
+					action { //it:State
+						if( checkMsgContent( Term.createTerm("distance(D)"), Term.createTerm("distance(D)"), 
+						                        currentMsg.msgContent()) ) { //set msgArgList
+								
+								                val Dist = try { payloadArg(0).toDouble().toInt() } catch(e: Exception) { payloadArg(0).toIntOrNull() ?: 0 }
+								                val Now  = System.currentTimeMillis()
+								                val DFree = Hold.getDfree()
+								                val DFreeDiv2 = DFree / 2
+								
+								                if (Dist < DFreeDiv2) {
+								                    if (ContainerPendingStart < 0L) {
+								                        ContainerPendingStart = Now
+								                    } else if (Now - ContainerPendingStart >= 3000L) {
+								                        IOPortOccupied = true
+								                        ContainerPendingStart = -1L
+								                    }
+								                } else {
+								                    ContainerPendingStart = -1L
+								                    IOPortOccupied = false
+								                }
+								
+								                if (Dist > DFree) {
+								                    if (ServiceWorking) {
+								                        if (OutOfServicePendingStart < 0L) {
+								                            OutOfServicePendingStart = Now
+								                        } else if (Now - OutOfServicePendingStart >= 3000L) {
+								                            ServiceWorking = false
+								                            OutOfServicePendingStart = -1L
+								                            println("cargoservice | Sonar D>DFREE ($Dist > $DFree) sostenuto per 3s -> OUT OF SERVICE!")
+								                            forward("stop_robot", "stop(none)", "cargorobot")
+								                        }
+								                    }
+								                } else {
+								                    OutOfServicePendingStart = -1L
+								                    if (!ServiceWorking) {
+								                        ServiceWorking = true
+								                        println("cargoservice | Sonar D<=DFREE ($Dist <= $DFree) -> SERVICE WORKING again!")
+								                        forward("resume_robot", "resume(none)", "cargorobot")
+								                    }
+								                }
+								
+								                val statusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId)
+								updateResourceRep( statusJson  
+								)
+						}
+						//genTimer( actor, state )
+					}
+					//After Lenzi Aug2002
+					sysaction { //it:State
+					}	 	 
+					 transition( edgeName="goto",targetState="wait_return_home", cond=doswitch() )
 				}	 
 				state("finish_job") { //this:State
 					action { //it:State
 						CommUtils.outgreen("cargoservice | Job finished successfully!")
 						 
-						            discardMessages = false
 						            CargoState = "disengaged"
 						            ReservedSlotId = -1
 						forward("led_ctrl", "ledCmd(off)" ,"ledadapter" ) 
@@ -324,7 +577,6 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 					action { //it:State
 						CommUtils.outred("cargoservice | Robot failed to return home. Resetting state...")
 						 
-						            discardMessages = false
 						            CargoState = "disengaged"
 						            ReservedSlotId = -1
 						forward("led_ctrl", "ledCmd(off)" ,"ledadapter" ) 
@@ -343,7 +595,6 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 						if(  CargoState == "engaged" && !IOPortOccupied  
 						 ){CommUtils.outred("cargoservice | Deposit timeout! Freeing reserved slot$ReservedSlotId.")
 						 
-						                discardMessages = false
 						                Hold.freeSlot(ReservedSlotId) 
 						                CargoState = "disengaged"
 						                ReservedSlotId = -1

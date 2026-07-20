@@ -9,16 +9,49 @@ const state = {
 
 // ─── DOM refs ─────────────────────────────────────────────────────────────────
 const displayMessage    = document.querySelector("#display-message");
+const reservationTimer  = document.querySelector("#reservation-timer");
 const loadButton        = document.querySelector("#load-button");
 const serviceIndicator  = document.querySelector("#service-indicator");
 const ioportStateEl     = document.querySelector("#ioport-state");
 const slotNodes         = [...document.querySelectorAll(".slot")];
 const logBox            = document.querySelector("#log-box");
 const clearLogBtn       = document.querySelector("#clear-log-btn");
+let reservationInterval = null;
 
 // ─── Display: SOLO i messaggi previsti dai requisiti ─────────────────────────
 function setDisplay(message) {
   if (displayMessage) displayMessage.textContent = message;
+}
+
+function stopReservationTimer() {
+  if (reservationInterval) {
+    clearInterval(reservationInterval);
+    reservationInterval = null;
+  }
+  if (reservationTimer) reservationTimer.hidden = true;
+}
+
+function startReservationTimer(slot) {
+  stopReservationTimer();
+  const slotLabel = String(slot).startsWith("slot") ? slot : `slot${slot}`;
+  let secondsLeft = 30;
+
+  const updateTimer = () => {
+    if (!reservationTimer) return;
+    reservationTimer.hidden = false;
+    reservationTimer.textContent =
+      `${secondsLeft}s - ${slotLabel} riservato. Posizionare il container nell'area IOPort prima della scadenza del timer`;
+  };
+
+  updateTimer();
+  reservationInterval = setInterval(() => {
+    secondsLeft -= 1;
+    if (secondsLeft <= 0) {
+      stopReservationTimer();
+      return;
+    }
+    updateTimer();
+  }, 1000);
 }
 
 // ─── Render: ricava l'UI dallo stato ─────────────────────────────────────────
@@ -35,9 +68,9 @@ function render() {
     ioportStateEl.textContent = state.ioportBusy ? "IOPort occupato" : "IOPort libero";
   }
 
-  // Pulsante: disabilitato se out of service, IOPort occupato, o sistema engaged (req.)
+  // Pulsante: disabilitato se sistema engaged
   if (loadButton) {
-    loadButton.disabled = !state.working || state.ioportBusy || state.engaged;
+    loadButton.disabled = state.engaged;
   }
 
   // Griglia hold: stato corrente degli slot (req.)
@@ -162,7 +195,8 @@ async function sendLoadRequest() {
 
     // Messaggi sul display: SOLO quelli previsti dai requisiti
     if (resJson.status === "accepted") {
-      setDisplay(`accepted: ${resJson.slot} riservato. Posizionare il container nell'area IOPort entro 30s.`);
+      setDisplay("Service working");
+      startReservationTimer(resJson.slot);
       addLog(`Accettato: ${resJson.slot}`, "success");
     } else if (resJson.status === "retrylater") {
       setDisplay("retrylater");

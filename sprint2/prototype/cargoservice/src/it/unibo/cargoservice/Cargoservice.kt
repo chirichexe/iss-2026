@@ -40,7 +40,8 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
-						CommUtils.outmagenta("cargoservice | STARTED")
+						subscribe(  "sonardata" ) //mqtt.subscribe(this,topic)
+						CommUtils.outmagenta("PALLE CARGO | STARTED")
 						//genTimer( actor, state )
 					}
 					//After Lenzi Aug2002
@@ -60,7 +61,7 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 					sysaction { //it:State
 					}	 	 
 					 transition(edgeName="t00",targetState="handle_load_request",cond=whenRequest("load_request"))
-					transition(edgeName="t01",targetState="handle_sonar",cond=whenDispatch("incoming_sonar"))
+					transition(edgeName="t01",targetState="handle_sonar",cond=whenEvent("sonar_event"))
 				}	 
 				state("engaged") { //this:State
 					action { //it:State
@@ -88,7 +89,7 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 					}	 	 
 					 transition(edgeName="t02",targetState="handle_deposit_timeout",cond=whenDispatch("deposit_timeout_msg"))
 					transition(edgeName="t03",targetState="handle_load_request",cond=whenRequest("load_request"))
-					transition(edgeName="t04",targetState="handle_sonar",cond=whenDispatch("incoming_sonar"))
+					transition(edgeName="t04",targetState="handle_sonar",cond=whenEvent("sonar_event"))
 				}	 
 				state("handle_load_request") { //this:State
 					action { //it:State
@@ -110,7 +111,7 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 						                             forward("deposit_timeout_msg", "depositTimeout(none)", "cargoservice")
 						                         }
 						                     }
-						 forward("led_ctrl", "ledCmd(blink)" ,"ledadapter" ) 
+						 emit("led_event", "ledCmd(blink)" ) 
 						  val SlotName = "slot$ReservedSlotId"  
 						 answer("load_request", "load_accepted", "loadAccepted($SlotName)"   )  
 						  val statusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId)  
@@ -220,7 +221,7 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 					}	 	 
 					 transition(edgeName="t05",targetState="pick_container",cond=whenReply("moverobotdone"))
 					transition(edgeName="t06",targetState="pick_container_after_fail",cond=whenReply("moverobotfailed"))
-					transition(edgeName="t07",targetState="handle_sonar_do_robot_job",cond=whenDispatch("incoming_sonar"))
+					transition(edgeName="t07",targetState="handle_sonar_do_robot_job",cond=whenEvent("sonar_event"))
 				}	 
 				state("handle_sonar_do_robot_job") { //this:State
 					action { //it:State
@@ -310,7 +311,7 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 					}	 	 
 					 transition(edgeName="t08",targetState="mark_container",cond=whenReply("moverobotdone"))
 					transition(edgeName="t09",targetState="mark_container_after_fail",cond=whenReply("moverobotfailed"))
-					transition(edgeName="t010",targetState="handle_sonar_pick_container",cond=whenDispatch("incoming_sonar"))
+					transition(edgeName="t010",targetState="handle_sonar_pick_container",cond=whenEvent("sonar_event"))
 				}	 
 				state("handle_sonar_pick_container") { //this:State
 					action { //it:State
@@ -409,7 +410,7 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 					}	 	 
 					 transition(edgeName="t012",targetState="return_home",cond=whenReply("moverobotdone"))
 					transition(edgeName="t013",targetState="return_home_after_fail",cond=whenReply("moverobotfailed"))
-					transition(edgeName="t014",targetState="handle_sonar_move_to_reserved_slot",cond=whenDispatch("incoming_sonar"))
+					transition(edgeName="t014",targetState="handle_sonar_move_to_reserved_slot",cond=whenEvent("sonar_event"))
 				}	 
 				state("handle_sonar_move_to_reserved_slot") { //this:State
 					action { //it:State
@@ -501,7 +502,7 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 					}	 	 
 					 transition(edgeName="t015",targetState="finish_job",cond=whenReply("moverobotdone"))
 					transition(edgeName="t016",targetState="handle_home_fail",cond=whenReply("moverobotfailed"))
-					transition(edgeName="t017",targetState="handle_sonar_return_home",cond=whenDispatch("incoming_sonar"))
+					transition(edgeName="t017",targetState="handle_sonar_return_home",cond=whenEvent("sonar_event"))
 				}	 
 				state("handle_sonar_return_home") { //this:State
 					action { //it:State
@@ -562,7 +563,7 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 						 
 						            CargoState = "disengaged"
 						            ReservedSlotId = -1
-						forward("led_ctrl", "ledCmd(off)" ,"ledadapter" ) 
+						emit("led_event", "ledCmd(off)" ) 
 						 val statusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId)  
 						updateResourceRep( statusJson  
 						)
@@ -579,7 +580,7 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 						 
 						            CargoState = "disengaged"
 						            ReservedSlotId = -1
-						forward("led_ctrl", "ledCmd(off)" ,"ledadapter" ) 
+						emit("led_event", "ledCmd(off)" ) 
 						 val statusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId)  
 						updateResourceRep( statusJson  
 						)
@@ -598,7 +599,7 @@ class Cargoservice ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 						                Hold.freeSlot(ReservedSlotId) 
 						                CargoState = "disengaged"
 						                ReservedSlotId = -1
-						forward("led_ctrl", "ledCmd(off)" ,"ledadapter" ) 
+						emit("led_event", "ledCmd(off)" ) 
 						 val statusJson = Hold.toJson(CargoState, if(ServiceWorking) "Service working" else "Out of service", IOPortOccupied, ReservedSlotId)  
 						updateResourceRep( statusJson  
 						)

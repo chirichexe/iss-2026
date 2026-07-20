@@ -1,0 +1,241 @@
+============================= test session starts ==============================
+platform linux -- Python 3.14.6, pytest-9.1.1, pluggy-1.6.0
+rootdir: /home/davide/uni/mag-iss/iss-2026/sprint2/tests
+collected 13 items
+
+test_system.py F..FFF.F..FFF                                             [100%]
+
+=================================== FAILURES ===================================
+_______________________ test_01_req1_richiesta_accettata _______________________
+
+probe = <test_system.SystemTestProbe object at 0x7f3f9fa63770>
+
+    def test_01_req1_richiesta_accettata(probe):
+        state = probe.get_current_state()
+>       assert state.get("serviceState") == "disengaged"
+E       AssertionError: assert 'engaged' == 'disengaged'
+E         
+E         - disengaged
+E         ? ---
+E         + engaged
+
+test_system.py:116: AssertionError
+__________________ test_04_req6_deposito_entro_tempo_previsto __________________
+
+probe = <test_system.SystemTestProbe object at 0x7f3f9fa63770>
+
+    def test_04_req6_deposito_entro_tempo_previsto(probe):
+>       state = probe.wait_for_state(lambda s: s.get("ioPortOccupied") == False, timeout=20)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+test_system.py:140: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <test_system.SystemTestProbe object at 0x7f3f9fa63770>
+condition_func = <function test_04_req6_deposito_entro_tempo_previsto.<locals>.<lambda> at 0x7f3f9f9278a0>
+timeout = 20
+
+    def wait_for_state(self, condition_func, timeout=10):
+        """Legge dal WebSocket finché la condition_func non restituisce True, oppure va in timeout."""
+        start_time = time.time()
+        while time.time() - start_time < timeout:
+            try:
+                self.ws.settimeout(timeout - (time.time() - start_time))
+                message = self.ws.recv()
+                state = json.loads(message)
+                if condition_func(state):
+                    return state
+            except Exception as e:
+                pass
+>       pytest.fail(f"Timeout raggiunto aspettando una specifica condizione di stato.")
+E       Failed: Timeout raggiunto aspettando una specifica condizione di stato.
+
+test_system.py:91: Failed
+____________________ test_05_req12_workflow_completo_carico ____________________
+
+probe = <test_system.SystemTestProbe object at 0x7f3f9fa63770>
+
+    def test_05_req12_workflow_completo_carico(probe):
+>       state = probe.wait_for_state(lambda s: s.get("serviceState") == "disengaged", timeout=60)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+test_system.py:145: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <test_system.SystemTestProbe object at 0x7f3f9fa63770>
+condition_func = <function test_05_req12_workflow_completo_carico.<locals>.<lambda> at 0x7f3f9f927ab0>
+timeout = 60
+
+    def wait_for_state(self, condition_func, timeout=10):
+        """Legge dal WebSocket finché la condition_func non restituisce True, oppure va in timeout."""
+        start_time = time.time()
+        while time.time() - start_time < timeout:
+            try:
+                self.ws.settimeout(timeout - (time.time() - start_time))
+                message = self.ws.recv()
+                state = json.loads(message)
+                if condition_func(state):
+                    return state
+            except Exception as e:
+                pass
+>       pytest.fail(f"Timeout raggiunto aspettando una specifica condizione di stato.")
+E       Failed: Timeout raggiunto aspettando una specifica condizione di stato.
+
+test_system.py:91: Failed
+_______________ test_06_req18_nuova_richiesta_dopo_completamento _______________
+
+probe = <test_system.SystemTestProbe object at 0x7f3f9fa63770>
+
+    def test_06_req18_nuova_richiesta_dopo_completamento(probe):
+        response = probe.send_load_request()
+>       assert response.json().get("status") == "accepted"
+E       AssertionError: assert 'retrylater' == 'accepted'
+E         
+E         - accepted
+E         + retrylater
+
+test_system.py:150: AssertionError
+_______________________ test_08_req5_timeout_del_cliente _______________________
+
+probe = <test_system.SystemTestProbe object at 0x7f3f9fa63770>
+
+    def test_08_req5_timeout_del_cliente(probe):
+>       state = probe.wait_for_state(lambda s: s.get("serviceState") == "disengaged", timeout=TIME_TIMEOUT_CLIENTE + 5)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+test_system.py:161: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <test_system.SystemTestProbe object at 0x7f3f9fa63770>
+condition_func = <function test_08_req5_timeout_del_cliente.<locals>.<lambda> at 0x7f3f9f927060>
+timeout = 35
+
+    def wait_for_state(self, condition_func, timeout=10):
+        """Legge dal WebSocket finché la condition_func non restituisce True, oppure va in timeout."""
+        start_time = time.time()
+        while time.time() - start_time < timeout:
+            try:
+                self.ws.settimeout(timeout - (time.time() - start_time))
+                message = self.ws.recv()
+                state = json.loads(message)
+                if condition_func(state):
+                    return state
+            except Exception as e:
+                pass
+>       pytest.fail(f"Timeout raggiunto aspettando una specifica condizione di stato.")
+E       Failed: Timeout raggiunto aspettando una specifica condizione di stato.
+
+test_system.py:91: Failed
+__________________ test_11_req10_ignorare_anomalie_temporanee __________________
+
+probe = <test_system.SystemTestProbe object at 0x7f3f9fa63770>
+
+    def test_11_req10_ignorare_anomalie_temporanee(probe):
+        probe.simulate_container_absent()
+>       probe.wait_for_state(lambda s: s.get("workingState") == "Service working", timeout=TIME_STABLE_PRESENCE + 2)
+
+test_system.py:180: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <test_system.SystemTestProbe object at 0x7f3f9fa63770>
+condition_func = <function test_11_req10_ignorare_anomalie_temporanee.<locals>.<lambda> at 0x7f3f9ff95e80>
+timeout = 5
+
+    def wait_for_state(self, condition_func, timeout=10):
+        """Legge dal WebSocket finché la condition_func non restituisce True, oppure va in timeout."""
+        start_time = time.time()
+        while time.time() - start_time < timeout:
+            try:
+                self.ws.settimeout(timeout - (time.time() - start_time))
+                message = self.ws.recv()
+                state = json.loads(message)
+                if condition_func(state):
+                    return state
+            except Exception as e:
+                pass
+>       pytest.fail(f"Timeout raggiunto aspettando una specifica condizione di stato.")
+E       Failed: Timeout raggiunto aspettando una specifica condizione di stato.
+
+test_system.py:91: Failed
+______________________ test_12_req11_ripristino_servizio _______________________
+
+probe = <test_system.SystemTestProbe object at 0x7f3f9fa63770>
+
+    def test_12_req11_ripristino_servizio(probe):
+        probe.simulate_out_of_service()
+        probe.wait_for_state(lambda s: s.get("workingState") == "Out of service", timeout=5)
+    
+        probe.simulate_container_absent()
+>       state = probe.wait_for_state(lambda s: s.get("workingState") == "Service working", timeout=5)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+test_system.py:195: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <test_system.SystemTestProbe object at 0x7f3f9fa63770>
+condition_func = <function test_12_req11_ripristino_servizio.<locals>.<lambda> at 0x7f3f9f938eb0>
+timeout = 5
+
+    def wait_for_state(self, condition_func, timeout=10):
+        """Legge dal WebSocket finché la condition_func non restituisce True, oppure va in timeout."""
+        start_time = time.time()
+        while time.time() - start_time < timeout:
+            try:
+                self.ws.settimeout(timeout - (time.time() - start_time))
+                message = self.ws.recv()
+                state = json.loads(message)
+                if condition_func(state):
+                    return state
+            except Exception as e:
+                pass
+>       pytest.fail(f"Timeout raggiunto aspettando una specifica condizione di stato.")
+E       Failed: Timeout raggiunto aspettando una specifica condizione di stato.
+
+test_system.py:91: Failed
+_________________ test_13_req19_sequenza_riempimento_completo __________________
+
+probe = <test_system.SystemTestProbe object at 0x7f3f9fa63770>
+
+    def test_13_req19_sequenza_riempimento_completo(probe):
+        max_slots = 4
+        for _ in range(max_slots):
+            state = probe.get_current_state()
+            all_occupied = all(v == "occupied" for k, v in state.get("slots", {}).items() if k != "slot5")
+            if all_occupied:
+                break
+    
+            resp = probe.send_load_request()
+            if resp.json().get("status") == "accepted":
+                probe.simulate_container_present()
+                probe.wait_for_state(lambda s: s.get("ioPortOccupied") == False, timeout=20)
+                probe.simulate_container_absent()
+                probe.wait_for_state(lambda s: s.get("serviceState") == "disengaged", timeout=60)
+    
+        state_before = probe.get_current_state()
+        print(f"STATE AFTER LOOP, BEFORE FINAL LOAD REQUEST: {state_before}")
+        resp = probe.send_load_request()
+>       assert resp.json().get("status") == "refused"
+E       AssertionError: assert 'retrylater' == 'refused'
+E         
+E         - refused
+E         + retrylater
+
+test_system.py:221: AssertionError
+----------------------------- Captured stdout call -----------------------------
+STATE AFTER LOOP, BEFORE FINAL LOAD REQUEST: {'serviceState': 'engaged', 'workingState': 'Out of service', 'ioPortOccupied': False, 'reservedSlot': 1, 'slots': {'slot1': 'reserved', 'slot2': 'free', 'slot3': 'free', 'slot4': 'free', 'slot5': 'marker'}}
+=============================== warnings summary ===============================
+test_system.py::test_01_req1_richiesta_accettata
+  /home/davide/uni/mag-iss/iss-2026/sprint2/tests/test_system.py:31: DeprecationWarning: Callback API version 1 is deprecated, update to latest version
+    self.mqtt_client = mqtt.Client(client_id="SystemTestProbe")
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED test_system.py::test_01_req1_richiesta_accettata - AssertionError: ass...
+FAILED test_system.py::test_04_req6_deposito_entro_tempo_previsto - Failed: T...
+FAILED test_system.py::test_05_req12_workflow_completo_carico - Failed: Timeo...
+FAILED test_system.py::test_06_req18_nuova_richiesta_dopo_completamento - Ass...
+FAILED test_system.py::test_08_req5_timeout_del_cliente - Failed: Timeout rag...
+FAILED test_system.py::test_11_req10_ignorare_anomalie_temporanee - Failed: T...
+FAILED test_system.py::test_12_req11_ripristino_servizio - Failed: Timeout ra...
+FAILED test_system.py::test_13_req19_sequenza_riempimento_completo - Assertio...
+============== 8 failed, 5 passed, 1 warning in 153.21s (0:02:33) ==============

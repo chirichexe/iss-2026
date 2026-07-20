@@ -28,11 +28,11 @@ with Diagram('cargoserviceArch', show=False, outformat='png', graph_attr=graphat
      with Cluster('ctxcargoservice', graph_attr=nodeattr):
           cargoservice=Custom('cargoservice','./qakicons/symActorWithobjSmall.png')
      with Cluster('ctxdevices', graph_attr=nodeattr):
-          ledadapter=Custom('ledadapter(ext)','./qakicons/externalQActor.png')
           markerdevice=Custom('markerdevice(ext)','./qakicons/externalQActor.png')
      with Cluster('ctxrobot', graph_attr=nodeattr):
           cargorobot=Custom('cargorobot(ext)','./qakicons/externalQActor.png')
+     sys >> Edge( label='sonar_event', **evattr, decorate='true', fontcolor='darkgreen') >> cargoservice
+     cargoservice >> Edge( label='led_event', **eventedgeattr, decorate='true', fontcolor='red') >> sys
      cargoservice >> Edge(color='magenta', style='solid', decorate='true', label='<mark_container<font color="darkgreen"> marking_done</font> &nbsp; >',  fontcolor='magenta') >> markerdevice
      cargoservice >> Edge(color='magenta', style='solid', decorate='true', label='<moverobot<font color="darkgreen"> moverobotdone moverobotfailed</font> &nbsp; >',  fontcolor='magenta') >> cargorobot
-     cargoservice >> Edge(color='blue', style='solid',  decorate='true', label='<led_ctrl &nbsp; >',  fontcolor='blue') >> ledadapter
 diag

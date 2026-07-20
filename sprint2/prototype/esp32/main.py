@@ -100,8 +100,8 @@ while True:
 
         dist = int((duration * 0.0343) / 2)
         
-        # Generazione dell'ApplMessage QAK per l'evento 'wall_sonardata'
-        qak_msg = "msg(wall_sonardata,event,esp32_sonar,none,distance({}),{})".format(dist, msg_seq)
+        # Generazione dell'ApplMessage QAK per l'evento sonar
+        qak_msg = "msg(sonar_event,event,esp32_sonar,none,distance({}),{})".format(dist, msg_seq)
         msg_seq += 1
         
         # Pubblicazione sul canale sonar

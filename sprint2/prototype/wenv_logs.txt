@@ -1,5 +1,0 @@
-WebpageServer  | startServer
-       $$$ WebpageServer | initWs wsServer=[object Object]
-     $$$ WebpageServer wssocket | CLIENT CONNECTED wssocketIndex=0
-     $$$ WebpageServer wssocket=0 MESSAGE= {"robotmove":"moveForward","time":335} curMove=undefined
-     $$$ WebpageServer | execMoveOnAllConnectedScenes moveForward moveTime=335 index=0

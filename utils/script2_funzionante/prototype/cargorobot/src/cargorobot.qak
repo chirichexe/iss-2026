@@ -1,25 +1,33 @@
 System cargorobot 
-mqttBroker "localhost" : 1883 eventTopic "cargosystem"
- 
- 
-// Messages for cargorobot
+mqttBroker "localhost" : 1883 eventTopic "robotsmart26in"
 
 // CargoService <-> CargoRobot  
 Request  moverobot       : moverobot(TARGETX, TARGETY, STEPTIME)
 Reply    moverobotdone   : moverobotok(ARG)                    for moverobot
 Reply    moverobotfailed : moverobotfailed(PLANDONE, PLANTODO) for moverobot
 
+Dispatch stop_robot   : stop(none)
+Dispatch resume_robot : resume(none)
+Event    alarm        : alarm(X)
+
 // CONTESTI
 Context ctxcargoservice ip [host="127.0.0.1" port=8050]
-Context ctxdevices      ip [host="127.0.0.1" port=8052]
 Context ctxrobot        ip [host="localhost" port=8053]
 Context ctxrobotsmart   ip [host="127.0.0.1" port=8020] 
 
 ExternalQActor cargoservice context ctxcargoservice
 ExternalQActor robotsmart   context ctxrobotsmart
 
-// CARGOROBOT (Puro wrapper bridge di dominio per robotsmart26)
+// CARGOROBOT
 QActor cargorobot context ctxrobot {
+    [#
+        var TargetX = ""
+        var TargetY = ""
+        var StepTime = ""
+        var Stopped = false
+        var MoveInProgress = false
+    #]
+    
     State s0 initial {
         println("cargorobot | STARTED (Puro wrapper bridge per robotsmart26)") color blue
     }
@@ -29,24 +37,43 @@ QActor cargorobot context ctxrobot {
         println("cargorobot | In attesa di comandi moverobot...") color blue
     }
     Transition t0 
-        whenRequest moverobot -> handle_move
+        whenRequest moverobot    -> handle_move
+        whenMsg     stop_robot   -> handle_stop
+        whenMsg     resume_robot -> handle_resume
         
     State handle_move {
         printCurrentMessage color cyan
         onMsg(moverobot : moverobot(X, Y, TIME)) {
-            [# val Tx = payloadArg(0) 
+            [# 
+               val Tx = payloadArg(0) 
                val Ty = payloadArg(1) 
-               val St = payloadArg(2) #]
-            println("cargorobot | Inoltro moverobot($Tx, $Ty, $St) a robotsmart via TCP...") color cyan
-            request robotsmart -m moverobot : moverobot($Tx, $Ty, $St)
+               val St = payloadArg(2) 
+               
+               TargetX = Tx
+               TargetY = Ty
+               StepTime = St
+               MoveInProgress = true
+            #]
+            if [# !Stopped #] {
+                println("cargorobot | Inoltro moverobot($Tx, $Ty, $St) a robotsmart via TCP...") color cyan
+                request robotsmart -m moverobot : moverobot($Tx, $Ty, $St)
+            } else {
+                println("cargorobot | Ricevuto moverobot ma sono in STOP. Memorizzo e attendo resume.") color yellow
+            }
         }
+    }
+    Goto waiting_reply if [# !Stopped #] else waiting_resume
+    
+    State waiting_reply {
     }
     Transition t0
         whenReply moverobotdone   -> forward_done
         whenReply moverobotfailed -> forward_failed
+        whenMsg   stop_robot      -> handle_stop
     
     State forward_done {
         println("cargorobot | robotsmart ha completato il movimento con successo!") color green
+        [# MoveInProgress = false #]
         replyTo moverobot with moverobotdone : moverobotok(done)
     }
     Goto waiting
@@ -55,9 +82,37 @@ QActor cargorobot context ctxrobot {
         onMsg(moverobotfailed : moverobotfailed(PLANDONE, PLANTODO)) {
             [# val PlanDone = payloadArg(0)
                val PlanTodo = payloadArg(1) #]
-            println("cargorobot | robotsmart ha FALLITO il movimento. Done=$PlanDone Todo=$PlanTodo") color red
-            replyTo moverobot with moverobotfailed : moverobotfailed($PlanDone, $PlanTodo)
+            if [# Stopped #] {
+                println("cargorobot | robotsmart ha interrotto il movimento causa STOP. Attendo resume...") color yellow
+            } else {
+                println("cargorobot | robotsmart ha FALLITO il movimento. Done=$PlanDone Todo=$PlanTodo") color red
+                [# MoveInProgress = false #]
+                replyTo moverobot with moverobotfailed : moverobotfailed($PlanDone, $PlanTodo)
+            }
         }
     }
-    Goto waiting
+    Goto waiting_resume if [# Stopped #] else waiting
+    
+    State handle_stop {
+        println("cargorobot | RICEVUTO STOP! Emetto alarm a robotsmart...") color red
+        [# Stopped = true #]
+        emit alarm : alarm(stop)
+    }
+    Goto waiting_reply if [# MoveInProgress #] else waiting_resume
+
+    State waiting_resume {
+        println("cargorobot | In STOP. Attendo resume_robot...") color yellow
+    }
+    Transition t0
+        whenMsg resume_robot -> handle_resume
+        
+    State handle_resume {
+        println("cargorobot | RICEVUTO RESUME! Riprendo le operazioni...") color green
+        [# Stopped = false #]
+        if [# MoveInProgress #] {
+            println("cargorobot | Riprendo il movimento interrotto verso ($TargetX, $TargetY)...") color cyan
+            request robotsmart -m moverobot : moverobot($TargetX, $TargetY, $StepTime)
+        }
+    }
+    Goto waiting_reply if [# MoveInProgress #] else waiting
 }

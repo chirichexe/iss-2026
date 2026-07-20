@@ -32,7 +32,8 @@ class Sonaradapter ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
-						CommUtils.outgreen("sonaradapter | STARTED - Listening to MQTT event wall_sonardata on cargosystem")
+						subscribe(  "sonardata" ) //mqtt.subscribe(this,topic)
+						CommUtils.outgreen("sonaradapter | STARTED - Listening to MQTT event wall_sonardata on topic: sonardata")
 						//genTimer( actor, state )
 					}
 					//After Lenzi Aug2002
@@ -54,8 +55,7 @@ class Sonaradapter ( name: String, scope: CoroutineScope, isconfined: Boolean=fa
 						if( checkMsgContent( Term.createTerm("distance(D)"), Term.createTerm("distance(D)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								 
-								                val RawDist = payloadArg(0)
-								                val Distance = try { RawDist.toDouble().toInt() } catch(e: Exception) { RawDist.toIntOrNull() ?: 0 }
+								                val Distance = payloadArg(0)
 								CommUtils.outcyan("sonaradapter | Forwarding incoming_sonar($Distance) to cargoservice")
 								forward("incoming_sonar", "distance($Distance)" ,"cargoservice" ) 
 						}

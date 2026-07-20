@@ -1,47 +1,15 @@
 System devices
-mqttBroker "localhost" : 1883 eventTopic "leddata"
-  
-// Interfaccia Sonar (MQTT Event -> Dispatch verso CargoService)
-Event    wall_sonardata : distance(D)  
-Dispatch incoming_sonar : distance(D)
 
 // Interfaccia Marker device (Simulato come Request / Reply verso CargoService)
 Request mark_container : markContainer(none)
 Reply   marking_done   : markingDone(none) for mark_container
 
-// Interfaccia LED (Dispatch da CargoService -> MQTT Event)
-Dispatch led_ctrl     : ledCmd(CMD)
-Event    led_event     : ledCmd(CMD)
 
 // CONTESTI 
 Context ctxdevices      ip [host="localhost" port=8052] 
 Context ctxcargoservice ip [host="127.0.0.1" port=8050] 
 
 ExternalQActor cargoservice context ctxcargoservice
-
-// SONAR ADAPTER
-QActor sonaradapter context ctxdevices {
-    State s0 initial {
-        subscribe "sonardata"
-        println("sonaradapter | STARTED - Listening to MQTT event wall_sonardata on topic: sonardata") color green
-    }
-    Goto work
-
-    State work {}
-    Transition t0
-        whenEvent wall_sonardata -> handle_sonar_payload
-
-    State handle_sonar_payload {
-        onMsg(wall_sonardata : distance(D)) {
-            [# 
-                val Distance = payloadArg(0)
-            #]
-            println("sonaradapter | Forwarding incoming_sonar($Distance) to cargoservice") color cyan
-            forward cargoservice -m incoming_sonar : distance($Distance)
-        }
-    }
-    Goto work
-}
 
 // MARKER DEVICE
 QActor markerdevice context ctxdevices {
@@ -63,25 +31,3 @@ QActor markerdevice context ctxdevices {
     Goto work
 }
 
-// LED ADAPTER
-QActor ledadapter context ctxdevices {
-
-    State s0 initial {
-        println("ledadapter | STARTED - Routing dispatches to MQTT events on topic: leddata") color green
-    }
-    Goto work
-
-    State work { }
-    Transition t0
-        whenMsg led_ctrl -> handle_led_cmd
-
-    State handle_led_cmd {
-        onMsg(led_ctrl : ledCmd(CMD)) {
-            [# val CMD = payloadArg(0) #]
-            println("ledadapter | Publishing LED command on MQTT: $CMD") color blue
-            emit led_event : ledCmd($CMD)
-        }
-    }
-
-    Goto work
-}
