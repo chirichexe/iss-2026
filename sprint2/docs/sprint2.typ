@@ -235,47 +235,35 @@ Il contesto "ctxioport" rappresentava il nodo di esecuzione dell'attore ioport m
 == Integrazione del sonar reale
 // =============================================================================
 
-Nello sprint precedente, il sonar era stato modellato tramite l'attore `sonarmock`, il quale simulava il comportamento del dispositivo fisico generando eventi di tipo `sonardata` direttamente indirizzati al `cargoservice`.
+Nello sprint precedente, il sonar era stato modellato tramite l'attore `sonarmock`, il quale simulava il comportamento del dispositivo fisico generando eventi 
+di tipo `sonardata` direttamente indirizzati al `cargoservice`.
 
-Con l'introduzione del sonar reale, collegato a un dispositivo ESP32, questo approccio non è più applicabile. Lo script eseguito sull'ESP32 ha infatti il solo compito di acquisire periodicamente la distanza rilevata dal sensore e rendere disponibili tali informazioni al sistema distribuito.
+Con l'introduzione del sonar reale, collegato a un dispositivo ESP32, questo approccio non è più applicabile. Infatti non è possibile, INSERIRE RAGIONI QUA far 
+eseguire codice QAK ad Esp32. Verrà quindi realizzato uno script in un linguaggio ad esso comprensibile con il compito di acquisire periodicamente la 
+distanza rilevata dal sensore e rendere disponibili tali informazioni al sistema distribuito. 
 
-È quindi necessario adottare un protocollo che garantisca leggerezza, semplicità di integrazione e interoperabilità tra componenti eterogenei. Per questi motivi viene scelto MQTT, un protocollo basato sul modello publish/subscribe, particolarmente adatto a dispositivi con risorse limitate e scenari IoT. È necessario introdurre un componente intemediario che si occupi di ricevere i messaggi pubblicati dall'ESP32 e inoltrarli al `cargoservice`, definito *broker*.
+È quindi necessario adottare un protocollo che garantisca leggerezza, semplicità di integrazione e interoperabilità tra componenti eterogenei. 
+Per questi motivi viene scelto MQTT, un protocollo basato sul modello publish/subscribe, particolarmente adatto a dispositivi con risorse limitate e scenari IoT. 
+È poi necessario introdurre un componente intemediario che si occupi di ricevere i messaggi pubblicati dall'ESP32 e inoltrarli al `cargoservice`, 
+definito *broker*.
 
-Le misurazioni rilevate dal sonar vengono quindi pubblicate dall'ESP32 su un topic MQTT dedicato, al quale i componenti interessati del sistema possono sottoscriversi per ricevere gli aggiornamenti in modo disaccoppiato rispetto al dispositivo fisico.
+Le misurazioni rilevate dal sonar vengono quindi pubblicate dall'ESP32 su un topic MQTT dedicato, al quale i componenti interessati del sistema possono 
+sottoscriversi per ricevere gli aggiornamenti in modo disaccoppiato rispetto al dispositivo fisico.
 
 Per far ricevere ora i messaggi al cargoservice le possibilità sono due:
 
-1. modificare il cargoservice affinché riceva direttamente messaggi MQTT. Questa soluzione renderebbe però il cargoservice dipendente dal protocollo di comunicazione utilizzato dal dispositivo fisico, riducendone la riusabilità e introducendo dettagli infrastrutturali nella logica applicativa
+1. Introdurre un componente dedicato (*sonaradapter*) che svolge il compito di integrazione tra il dispositivo fisico e il sistema esistente. 
+Esso potrebbe ricevere le misurazioni pubblicate dall'ESP32 tramite MQTT e inoltra le informazioni al cargoservice mediante dispatch, modellando quindi una comunicazione
+affine a quella dei mock. Tuttavia, poichè il modello QAK permette nativamente di comprendere DA MIGLIORARE il protocollo MQTT, una soluzione sarebbe quella di 
+modificare il cargoservice affinché riceva direttamente lui i messaggi MQTT, sostituendo le precedenti dispatch. 
 
-2. Si introduce quindi un *adapter*, un componente dedicato (*sonaradapter*) che svolge esclusivamente il compito di integrazione tra il dispositivo fisico e il sistema esistente. Esso riceve le misurazioni pubblicate dall'ESP32 tramite MQTT, converte il payload ricevuto nel formato previsto dal modello e inoltra le informazioni al cargoservice mediante il dispatch incoming_sonar.
 
-In questo modo il cargoservice continua a ricevere esclusivamente messaggi QAK e rimane completamente indipendente dal protocollo utilizzato dal dispositivo fisico. 
+Il codice del sonar puo essere trovato al seguente #link("https://github.com/chirichexe/iss-2026/blob/main/sprint2/prototype/cargoservice/src/cargoservice.qak")[link].
 
-Il codice del sonar puo essere trovato al seguente #link("https://github.com/chirichexe/iss-2026/blob/main/sprint2/prototype/devices/src/devices.qak")[link].
+FAI VEDERE CHE SI ISCRIVE AL TOPIC
 
 ```qak
-QActor sonaradapter context ctxdevices {
-    State s0 initial {
-        subscribe "sonardata"
-        println("sonaradapter | STARTED - Listening to MQTT event wall_sonardata on topic: sonardata") color green
-    }
-    Goto work
 
-    State work {}
-    Transition t0
-        whenEvent wall_sonardata -> handle_sonar_payload
-
-    State handle_sonar_payload {
-        onMsg(wall_sonardata : distance(D)) {
-            [# 
-                val Distance = payloadArg(0)
-            #]
-            println("sonaradapter | Forwarding incoming_sonar($Distance) to cargoservice") color cyan
-            forward cargoservice -m incoming_sonar : distance($Distance)
-        }
-    }
-    Goto work
-}
 ```
 
 ?????????????????????????????????????????????????????????????????
@@ -558,19 +546,32 @@ In particolare:
 = Test plans <testplan>
 // =============================================================================
 
-#nota[Da completare con i test funzionali e di integrazione previsti per lo Sprint 2.]
+== Test Demo in tempo reale
 
-== Test IOPort
+== Test Automatizzati
 
-#nota[Da completare.]
+Il sistema è stato validato mediante una suite di test automatici sviluppata con PyTest. I test interagiscono con il backend tramite interfaccia HTTP, 
+monitorano l'evoluzione dello stato attraverso WebSocket e simulano il sensore sonar pubblicando eventi MQTT. Ogni caso di test verifica uno o più requisiti 
+funzionali del sistema, controllando sia le risposte restituite dal servizio sia le corrispondenti transizioni di stato.
 
-== Test sonar e LED
 
-#nota[Da completare.]
+Ad esempio:
 
-== Test Out of service e ripresa del robot
+Test	Requisito	Descrizione	Esito atteso
+T01	Req. 1	Con sistema libero (disengaged), viene inviata una richiesta di carico.	La richiesta è accettata (accepted) e il servizio passa allo stato engaged.
+T02	Req. 2	Si simula la presenza di un container nell'IOPort e viene inviata una richiesta di carico.	Il servizio risponde retrylater.
+T03	Req. 17	Durante un'operazione di carico già in corso viene inviata una nuova richiesta.	La seconda richiesta riceve risposta retrylater.
+T04	Req. 6	Dopo l'accettazione della richiesta il container viene depositato entro 30 s.	Il workflow prosegue normalmente senza timeout.
+T05	Req. 12	Si attende il completamento dell'intero ciclo di movimentazione del robot.	Il servizio ritorna nello stato disengaged.
+T06	Req. 18	Dopo il completamento di un carico viene inviata una nuova richiesta.	La nuova richiesta è accettata (accepted).
+T07	Req. 8	Si simula una presenza del container inferiore ai 3 s.	Il rilevamento viene ignorato e lo stato del servizio non cambia.
+T08	Req. 5	Dopo l'accettazione della richiesta il cliente non deposita il container entro 30 s.	Il servizio annulla l'operazione e torna disengaged.
+T09	Req. 9	Si simula un guasto del sonar mantenendo una distanza maggiore di D_FREE per almeno 3 s.	Lo stato diventa Out of service.
+T10	Req. 3	Si invia una richiesta mentre il sistema è Out of service.	Il servizio risponde retrylater.
+T11	Req. 10	Si simula una condizione di guasto per meno di 3 s.	L'anomalia viene ignorata e il sistema rimane Service working.
+T12	Req. 11	Dopo una condizione di Out of service il sonar ritorna operativo.	Il servizio ritorna allo stato Service working.
+T13	Req. 19	Si riempiono progressivamente gli slot 1–4 e si invia un'ulteriore richiesta.	Il servizio rifiuta la richiesta (refused) poiché l'hold è pieno.
 
-#nota[Da completare.]
 
 // =============================================================================
 = Deployment <deployment>
