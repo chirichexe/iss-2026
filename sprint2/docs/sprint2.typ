@@ -235,6 +235,11 @@ Il contesto "ctxioport" rappresentava il nodo di esecuzione dell'attore ioport m
 == Integrazione del sonar reale
 // =============================================================================
 
+
+
+E DENTRO PYTHON RIVEDERE UN ATTIMO
+
+
 Nello sprint precedente, il sonar era stato modellato tramite l'attore `sonarmock`, il quale simulava il comportamento del dispositivo fisico generando eventi 
 di tipo `sonardata` direttamente indirizzati al `cargoservice`.
 
