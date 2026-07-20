@@ -238,9 +238,7 @@ Il contesto "ctxioport" rappresentava il nodo di esecuzione dell'attore ioport m
 Nello sprint precedente, il sonar era stato modellato tramite l'attore `sonarmock`, il quale simulava il comportamento del dispositivo fisico generando eventi 
 di tipo `sonardata` direttamente indirizzati al `cargoservice`.
 
-Con l'introduzione del sonar reale, collegato a un dispositivo ESP32, questo approccio non è più applicabile. Infatti non è possibile, INSERIRE RAGIONI QUA far 
-eseguire codice QAK ad Esp32. Verrà quindi realizzato uno script in un linguaggio ad esso comprensibile con il compito di acquisire periodicamente la 
-distanza rilevata dal sensore e rendere disponibili tali informazioni al sistema distribuito. 
+Con l'introduzione del sonar reale, collegato a un dispositivo ESP32, questo approccio non è più applicabile. Infatti non è possibile eseguire codice QAK direttamente da esp32 e quindi comunicare tramite messaggi QAK nativi verso il `cargoservice`. Verrà quindi realizzato uno script in un linguaggio ad esso comprensibile con il compito di acquisire periodicamente la distanza rilevata dal sensore e rendere disponibili tali informazioni al sistema distribuito. 
 
 È quindi necessario adottare un protocollo che garantisca leggerezza, semplicità di integrazione e interoperabilità tra componenti eterogenei. 
 Per questi motivi viene scelto MQTT, un protocollo basato sul modello publish/subscribe, particolarmente adatto a dispositivi con risorse limitate e scenari IoT. 
@@ -250,24 +248,20 @@ definito *broker*.
 Le misurazioni rilevate dal sonar vengono quindi pubblicate dall'ESP32 su un topic MQTT dedicato, al quale i componenti interessati del sistema possono 
 sottoscriversi per ricevere gli aggiornamenti in modo disaccoppiato rispetto al dispositivo fisico.
 
-Per far ricevere ora i messaggi al cargoservice le possibilità sono due:
-
-1. Introdurre un componente dedicato (*sonaradapter*) che svolge il compito di integrazione tra il dispositivo fisico e il sistema esistente. 
-Esso potrebbe ricevere le misurazioni pubblicate dall'ESP32 tramite MQTT e inoltra le informazioni al cargoservice mediante dispatch, modellando quindi una comunicazione
-affine a quella dei mock. Tuttavia, poichè il modello QAK permette nativamente di comprendere DA MIGLIORARE il protocollo MQTT, una soluzione sarebbe quella di 
-modificare il cargoservice affinché riceva direttamente lui i messaggi MQTT, sostituendo le precedenti dispatch. 
+Per far si che il cargoservice riceva i messaggi una soluzione possibile sarebbe quella di introdurre un componente dedicato (*sonaradapter*) che svolge il compito di integrazione tra il dispositivo fisico e il sistema esistente. Esso potrebbe ricevere le misurazioni pubblicate dall'ESP32 tramite MQTT e inoltrare le informazioni al cargoservice mediante dispatch, modellando quindi una comunicazione affine a quella dei mock. Tuttavia, dato che QAK supporta nativamente il protocollo MQTT (consentendo a un attore di sottoscrivere direttamente un topic e di emettere eventi sul broker) , una soluzione sarebbe quella di modificare il cargoservice affinché riceva direttamente lui i messaggi MQTT, sostituendo le precedenti dispatch. 
 
 
 Il codice del sonar puo essere trovato al seguente #link("https://github.com/chirichexe/iss-2026/blob/main/sprint2/prototype/cargoservice/src/cargoservice.qak")[link].
 
-FAI VEDERE CHE SI ISCRIVE AL TOPIC
 
 ```qak
+
+mqttBroker "localhost" : 1883 eventTopic "leddata"
 
 ```
 
 ?????????????????????????????????????????????????????????????????
-PERCHE USIAMO EVENT PER RICEZIONE INVIO MQTT E DISPATCH PER INVIO DATI TRA ATTORI
+PERCHE USIAMO EVENT PER RICEZIONE INVIO MQTT E DISPATCH PER INVIO DATI TRA ATTORI  --> boh
 ?????????????????????????????????????????????????????????????????
 
 Si è scelto di distinguere i due messaggi, separando la comunicazione con il dispositivo fisico dalla comunicazione interna al sistema software:
@@ -276,11 +270,11 @@ Si è scelto di distinguere i due messaggi, separando la comunicazione con il di
 Event wall_sonardata
 Dispatch incoming_sonar
 ```
-
+/*
 `wall_sonardata` rappresenta il dato ricevuto dal sonar fisico tramite MQTT e quindi appartiene al livello di comunicazione esterno.
 
 `incoming_sonar` rappresenta invece il messaggio interno utilizzato dagli attori QAK per propagare la misura della distanza, mantenendo separata la logica applicativa dai dettagli del protocollo MQTT.
-
+*/
 Il codice del cargoservice che riceve il messaggio `incoming_sonar` e aggiorna lo stato della risorsa CoAP è riportato di seguito.
 ```qak
 State handle_sonar {

@@ -49,7 +49,7 @@ QActor cargoservice context ctxcargoservice {
  
     State s0 initial {
         subscribe "sonardata"
-        println("PALLE CARGO | STARTED") color magenta
+        println("CARGOSERVICE | STARTED") color magenta
     }
     Goto disengaged
     
