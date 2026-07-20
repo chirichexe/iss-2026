@@ -525,9 +525,36 @@ Le principali modifiche riguardano il trasporto dei messaggi e l'osservabilità 
 = Deployment <deployment>
 // =============================================================================
 
-#nota[Da completare.]
+Al fine di semplificare la manutenzione, la distribuzione e garantire modularità e isolamento dei componenti, 
+l'architettura del sistema è stata progettata seguendo un approccio a microservizi. Si è scelto di distribuirli come 
+container *Docker*, mentre l'intero processo di avvio ed esecuzione è orchestrato tramite *Docker Compose*.
 
-// =============================================================================
+Il sistema prevede l'esecuzione di alcuni servizi infrastrutturali e di integrazione con componenti esterni (quali *mosquitto*, il broker MQTT, e *wenv*, *RobotSmart26* e *RobotOutGui25* forniti per il controllo di base del robot e per la visualizzazione).
+
+Si prevede poi l'avvio dei seguenti componenti (descritti nelle fasi precedenti del documento) containerizzati: *cargoservice*, *cargorobot*, *devices* e *ioport-backend*
+
+Per semplificare l'avvio dell'intero sistema è stato predisposto uno script Bash (`start.sh`) che automatizza le operazioni di compilazione, costruzione delle immagini Docker e avvio dei container.
+
+Lo script esegue automaticamente le seguenti operazioni (eseguibili anche manualmente):
+
+1. Accede alle directory dei microservizi ed esegue il comando
+
+   ```bash
+   ./gradlew distTar
+   ```
+  per compilare il progetto e generare l'archivio contenente la distribuzione dell'applicazione.
+
+2. Crea la rete Docker interna se non esiste.
+
+3. Costruisce le immagini utilizzando gli archivi generati nella fase precedente e avvia tutti i container in modalità detached.
+   ```bash
+   docker compose up --build -d
+   ```
+
+Al termine dell'avvio, le interfacce grafiche del sistema sono accessibili dal browser ai seguenti indirizzi:
+- *WebGui dell'IOPort* disponibile sulla porta locale 8086
+- *Ambiente grafico del robot* disponibile sulla porta locale 8090
+
 = Maintenance
 // =============================================================================
 
