@@ -1,0 +1,1397 @@
+cargorobot    | [33m               %%% sysUtil | loadheory  cargorobot.pl[0m
+cargorobot    | [33m               %%% sysUtil | loadheory  sysRules.pl[0m
+cargorobot    | [35m               %%% sysUtil +++ createContexts ctxrobot[0m
+cargorobot    | [33m               %%% sysUtil | context ctxcargoservice WORKS ALSO WITH MQTT mqttAddr=tcp://localhost:1883 thread=main nThrds=1[0m
+cargorobot    | [33m               %%% CoapResourceCtx ctxcargoservice | created AFTER INIT [0m
+robotsmart26  | [33m               %%% sysUtil | loadheory  robotsmart26.pl[0m
+robotsmart26  | [33m               %%% sysUtil | loadheory  sysRules.pl[0m
+robotsmart26  | [35m               %%% sysUtil +++ createContexts ctxrobotsmart[0m
+robotsmart26  | [33m               %%% sysUtil | context ctxrobotsmart WORKS ALSO WITH MQTT mqttAddr=tcp://localhost:1883 thread=main nThrds=1[0m
+robotsmart26  | [33m               %%% CoapResourceCtx ctxrobotsmart | created AFTER INIT [0m
+wenv          | WebpageServer  | startServer
+wenv          |        $$$ WebpageServer | initWs wsServer=[object Object]
+devices       | [33m               %%% sysUtil | loadheory  devices.pl[0m
+devices       | [33m               %%% sysUtil | loadheory  sysRules.pl[0m
+mosquitto     | 1784546591: mosquitto version 1.6.15 starting
+robotoutgui25  |   ___     _         _    ___       _    ___      _ 
+ioport-backend  | =========================================================================
+cargoservice    | [33m               %%% sysUtil | loadheory  cargoservice.pl[0m
+cargoservice    | [33m               %%% sysUtil | loadheory  sysRules.pl[0m
+cargoservice    | [35m               %%% sysUtil +++ createContexts ctxcargoservice[0m
+cargoservice    | [33m               %%% CoapResourceCtx ctxcargoservice | created AFTER INIT [0m
+cargoservice    | [33m               %%% QakContext ctxcargoservice | serverCoap started on port 8050 with added ctxcargoservice[0m
+mosquitto      | 1784546591: Config loaded from /mosquitto/config/mosquitto.conf.
+robotsmart26    | [33m               %%% QakContext ctxrobotsmart | serverCoap started on port 8020 with added ctxrobotsmart[0m
+robotsmart26    | [36m               %%% sysUtil | INJECTION ctxsMap.put ctxrobotsmart mqttAddr=tcp://localhost:1883[0m
+robotsmart26    | [33m               sysUtil  | createActor class for it.unibo.robotsmart.Robotsmart   class it.unibo.robotsmart.Robotsmart[0m
+robotsmart26    | [33m               sysUtil  | createActor class for it.unibo.robotmnemo.Robotmnemo   class it.unibo.robotmnemo.Robotmnemo[0m
+robotsmart26    | [33mloadMap  from tf25map.txt[0m
+robotsmart26    | [33mmap=00000001@00110001@00001001@00110001@00000001@11111111
+cargoservice    | [36m               %%% sysUtil | INJECTION ctxsMap.put ctxcargoservice mqttAddr=[0m
+robotsmart26    |  
+robotsmart26    | [0m
+devices       | [35m               %%% sysUtil +++ createContexts ctxdevices[0m
+cargoservice    | [33m               %%% CoapResourceCtx ctxdevices | created AFTER INIT [0m
+robotoutgui25   |  | _ \___| |__  ___| |_ / _ \ _  _| |_ / __|_  _(_)
+robotoutgui25   |  |   / _ \ '_ \/ _ \  _| (_) | || |  _| (_ | || | |
+robotoutgui25   |  |_|_\___/_.__/\___/\__|\___/ \_,_|\__|\___|\_,_|_|
+robotoutgui25   |                                                    
+robotoutgui25   | [34mWebSocketConfiguration | registerWebSocketHandlers[0m
+ioport-backend  | GuiServerMain | Starting External Web Server (guiserver26qak0)...        
+cargoservice    | [36m               %%% sysUtil | INJECTION ctxsMap.put ctxdevices mqttAddr=[0m
+cargoservice    | [33m               %%% CoapResourceCtx ctxrobot | created AFTER INIT [0m
+cargoservice    | [36m               %%% sysUtil | INJECTION ctxsMap.put ctxrobot mqttAddr=[0m
+mosquitto       | 1784546591: Opening ipv4 listen socket on port 1883.
+cargoservice    | [35m               %%% QakContext ctxcargoservice | addCtxProxy ip=127.0.0.1:8052[0m
+ioport-backend  | =========================================================================
+cargoservice    | [36m               %%% MsgUtil | getConnection 127.0.0.1:8052[0m
+cargoservice    |                %%% NodeProxy proxyctxdevices | WAIT/RETRY TO SET PROXY TO 127.0.0.1:8052 
+mosquitto       | 1784546591: Opening ipv6 listen socket on port 1883.
+wenv          |      $$$ WebpageServer wssocket | CLIENT CONNECTED wssocketIndex=0
+ioport-backend  | SLF4J: No SLF4J providers were found.
+ioport-backend  | SLF4J: Defaulting to no-operation (NOP) logger implementation
+ioport-backend  | SLF4J: See https://www.slf4j.org/codes.html#noProviders for further details.
+wenv            |      $$$ WebpageServer wssocket=0 MESSAGE= {"robotmove":"moveForward","time":335} curMove=undefined
+mosquitto       | 1784546591: mosquitto version 1.6.15 running
+wenv            |      $$$ WebpageServer | execMoveOnAllConnectedScenes moveForward moveTime=335 index=0
+cargorobot    | [36m               %%% sysUtil | INJECTION ctxsMap.put ctxcargoservice mqttAddr=tcp://localhost:1883[0m
+mosquitto       | 1784546592: New connection from 172.19.0.1 on port 1883.
+cargorobot      | [33m               %%% sysUtil | context ctxrobot WORKS ALSO WITH MQTT mqttAddr=tcp://localhost:1883 thread=main nThrds=2[0m
+cargorobot      | [33m               %%% CoapResourceCtx ctxrobot | created AFTER INIT [0m
+mosquitto       | 1784546592: New client connected from 172.19.0.1 as SystemTestProbe (p2, c1, k60).
+mosquitto       | 1784546592: New connection from 172.19.0.5 on port 1883.
+mosquitto       | 1784546592: New client connected from 172.19.0.5 as robotsmart (p2, c1, k30).
+devices         | [33m               %%% sysUtil | context ctxdevices WORKS ALSO WITH MQTT mqttAddr=tcp://localhost:1883 thread=main nThrds=1[0m
+ioport-backend  | SLF4J: Class path contains SLF4J bindings targeting slf4j-api versions 1.7.x or earlier.
+devices         | [33m               %%% CoapResourceCtx ctxdevices | created AFTER INIT [0m
+robotsmart26    | [34mcreateGridFromMapInFile NR=6 NC=8[0m
+robotsmart26    | [33mAdapterGuiForMindrep | map 6 x 8[0m
+ioport-backend  | SLF4J: Ignoring binding found at [jar:file:/ioport-backend-1.0/lib/logback-classic-1.2.11.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+robotsmart26    | [33m               %%%  ActorBasic robotsmart | subscribed to unibo/qak/robotsmart and to robotsmart26in[0m
+devices         | [33m               %%% QakContext ctxdevices | serverCoap started on port 8052 with added ctxdevices[0m
+devices         | [36m               %%% sysUtil | INJECTION ctxsMap.put ctxdevices mqttAddr=tcp://localhost:1883[0m
+cargorobot      | [33m               %%% QakContext ctxrobot | serverCoap started on port 8053 with added ctxrobot[0m
+cargorobot      | [36m               %%% sysUtil | INJECTION ctxsMap.put ctxrobot mqttAddr=tcp://localhost:1883[0m
+cargorobot      | [33m               %%% sysUtil | context ctxrobotsmart WORKS ALSO WITH MQTT mqttAddr=tcp://localhost:1883 thread=main nThrds=14[0m
+cargorobot      | [33m               %%% CoapResourceCtx ctxrobotsmart | created AFTER INIT [0m
+cargoservice    | [33mtcpSrv | TcpServer 8050 accepted connection on 33810 with userDefHandler=ctxcargoserviceMsgH thname=tcpSrv[0m
+devices         | [33m               %%% sysUtil | context ctxcargoservice WORKS ALSO WITH MQTT mqttAddr=tcp://localhost:1883 thread=main nThrds=13[0m
+devices         | [33m               %%% CoapResourceCtx ctxcargoservice | created AFTER INIT [0m
+devices         | [36m               %%% sysUtil | INJECTION ctxsMap.put ctxcargoservice mqttAddr=tcp://localhost:1883[0m
+mosquitto       | 1784546593: New connection from 172.19.0.1 on port 1883.
+devices         | [35m               %%% QakContext ctxdevices | addCtxProxy ip=127.0.0.1:8050[0m
+ioport-backend  | SLF4J: See https://www.slf4j.org/codes.html#ignoredBindings for an explanation.
+mosquitto       | 1784546593: New connection from 172.19.0.1 on port 1883.
+mosquitto       | 1784546593: New connection from 172.19.0.1 on port 1883.
+mosquitto       | 1784546593: New connection from 172.19.0.1 on port 1883.
+devices         | [36m               %%% MsgUtil | getConnection 127.0.0.1:8050[0m
+mosquitto       | 1784546593: New client connected from 172.19.0.1 as markerdevice (p2, c1, k30).
+mosquitto       | 1784546593: New client connected from 172.19.0.1 as sonaradapter (p2, c1, k30).
+mosquitto       | 1784546593: New client connected from 172.19.0.1 as ledadapter (p2, c1, k30).
+robotsmart26    | [35mclear log ./logs/robotsmart26.log ---- [0m
+mosquitto       | 1784546593: New client connected from 172.19.0.1 as cargorobot (p2, c1, k30).
+robotsmart26    | [34mrobotsmart | starts [0m
+mosquitto       | 1784546596: New connection from 172.19.0.5 on port 1883.
+robotsmart26    | [33mrobotsmart | WAIT  before delegate [0m
+mosquitto       | 1784546596: New connection from 172.19.0.5 on port 1883.
+robotsmart26    | [33mtcpSrv | TcpServer 8020 accepted connection on 44412 with userDefHandler=ctxrobotsmartMsgH thname=tcpSrv[0m
+ioport-backend  | [34mGuiServerQakActor | STARTED as formal QAK Actor (Inbound Adapter)[0m
+robotsmart26    | [33mtcpSrv | TcpServer 8020 accepted connection on 44420 with userDefHandler=ctxrobotsmartMsgH thname=tcpSrv[0m
+ioport-backend  | [32m               %%%  ActorBasic guiserver26qak0 | waiting for context ...[0m
+robotsmart26    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-9[0m
+robotsmart26    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-10[0m
+ioport-backend  | JavalinGuiHandler | Serving static web files from: /ioport-backend-1.0/bin/../ioport-frontend/web/ioport
+devices         | [36m               %%% MsgUtil | getConnection Socket[addr=/127.0.0.1,port=8050,localport=33810][0m
+devices         | [37m               %%% NodeProxy proxyctxcargoservice | in ctxdevices PROXY ACTIVATED TO 127.0.0.1:8050 [0m
+cargoservice    | [33mtcpSrv | TcpServer 8050 accepted connection on 33814 with userDefHandler=ctxcargoserviceMsgH thname=tcpSrv[0m
+devices         | [33m    +++ TcpConnection | receiveMsg.....  in DefaultDispatcher-worker-1[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-4[0m
+devices         | [33m               sysUtil  | createActor class for it.unibo.sonaradapter.Sonaradapter   class it.unibo.sonaradapter.Sonaradapter[0m
+devices         | [33m               sysUtil  | createActor class for it.unibo.markerdevice.Markerdevice   class it.unibo.markerdevice.Markerdevice[0m
+devices         | [33m               sysUtil  | createActor class for it.unibo.ledadapter.Ledadapter   class it.unibo.ledadapter.Ledadapter[0m
+cargorobot      | [36m               %%% sysUtil | INJECTION ctxsMap.put ctxrobotsmart mqttAddr=tcp://localhost:1883[0m
+cargorobot      | [35m               %%% QakContext ctxrobot | addCtxProxy ip=127.0.0.1:8050[0m
+cargorobot      | [36m               %%% MsgUtil | getConnection 127.0.0.1:8050[0m
+ioport-backend  | JavalinGuiHandler | HTTP & WebSocket server started on http://localhost:8086
+ioport-backend  | CoapObserver | Starting CoAP Reconnecting Observer on: coap://127.0.0.1:8050/ctxcargoservice/cargoservice
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+mosquitto       | 1784546596: New client connected from 172.19.0.5 as robotmnemo (p2, c1, k30).
+mosquitto       | 1784546596: New client connected from 172.19.0.5 as planexec (p2, c1, k30).
+mosquitto       | 1784546603: New connection from 172.19.0.1 on port 1883.
+mosquitto       | 1784546603: Client SystemTestProbe already connected, closing old connection.
+mosquitto       | 1784546603: New client connected from 172.19.0.1 as SystemTestProbe (p2, c1, k60).
+mosquitto       | 1784546604: New connection from 172.19.0.1 on port 1883.
+mosquitto       | 1784546604: Client SystemTestProbe already connected, closing old connection.
+mosquitto       | 1784546604: New client connected from 172.19.0.1 as SystemTestProbe (p2, c1, k60).
+mosquitto       | 1784546605: New connection from 172.19.0.1 on port 1883.
+mosquitto       | 1784546605: Client SystemTestProbe already connected, closing old connection.
+mosquitto       | 1784546605: New client connected from 172.19.0.1 as SystemTestProbe (p2, c1, k60).
+mosquitto       | 1784546606: New connection from 172.19.0.1 on port 1883.
+mosquitto       | 1784546606: Client SystemTestProbe already connected, closing old connection.
+robotsmart26    | WsConnection WebSocketListener | --- Connessione aperta ---
+robotsmart26    | [36mOutInWsGuimap | OutInWsGuimap connected to 8085[0m
+robotsmart26    | [35m     VRObjForQak  | created [0m
+cargoservice    | [33mtcpSrv | TcpServer 8050 accepted connection on 33830 with userDefHandler=ctxcargoserviceMsgH thname=tcpSrv[0m
+devices         | [33m               %%%  ActorBasic ledadapter | subscribed to unibo/qak/ledadapter and to leddata[0m
+devices         | [33m               %%%  ActorBasic markerdevice | subscribed to unibo/qak/markerdevice and to leddata[0m
+cargorobot      | [36m               %%% MsgUtil | getConnection Socket[addr=/127.0.0.1,port=8050,localport=33814][0m
+cargorobot      | [37m               %%% NodeProxy proxyctxcargoservice | in ctxrobot PROXY ACTIVATED TO 127.0.0.1:8050 [0m
+cargorobot      | [35m               %%% QakContext ctxrobotsmart | addCtxProxy ip=127.0.0.1:8050[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-5[0m
+cargoservice    | [34mctxcargoserviceMsgH | not found destination=cargoservice RETRYING 1 ...[0m
+cargoservice    | [36m               %%% MsgUtil | getConnection 127.0.0.1:8052[0m
+cargoservice    | [36m               %%% MsgUtil | getConnection Socket[addr=/127.0.0.1,port=8052,localport=56272][0m
+cargoservice    | [37m               %%% NodeProxy proxyctxdevices | in ctxcargoservice PROXY ACTIVATED TO 127.0.0.1:8052 [0m
+cargoservice    | [35m               %%% QakContext ctxrobot | addCtxProxy ip=127.0.0.1:8052[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in DefaultDispatcher-worker-1[0m
+cargoservice    | [36m               %%% MsgUtil | getConnection 127.0.0.1:8052[0m
+cargoservice    | [36m               %%% MsgUtil | getConnection Socket[addr=/127.0.0.1,port=8052,localport=56288][0m
+cargoservice    | [37m               %%% NodeProxy proxyctxdevices | in ctxrobot PROXY ACTIVATED TO 127.0.0.1:8052 [0m
+mosquitto       | 1784546606: New client connected from 172.19.0.1 as SystemTestProbe (p2, c1, k60).
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+mosquitto       | 1784546607: New connection from 172.19.0.1 on port 1883.
+mosquitto       | 1784546607: Client SystemTestProbe already connected, closing old connection.
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in DefaultDispatcher-worker-2[0m
+mosquitto       | 1784546607: New client connected from 172.19.0.1 as SystemTestProbe (p2, c1, k60).
+cargorobot      | [33m    +++ TcpConnection | receiveMsg.....  in DefaultDispatcher-worker-1[0m
+mosquitto       | 1784546608: New connection from 172.19.0.1 on port 1883.
+mosquitto       | 1784546608: Client SystemTestProbe already connected, closing old connection.
+mosquitto       | 1784546608: New client connected from 172.19.0.1 as SystemTestProbe (p2, c1, k60).
+mosquitto       | 1784546609: New connection from 172.19.0.1 on port 1883.
+mosquitto       | 1784546609: Client SystemTestProbe already connected, closing old connection.
+mosquitto       | 1784546609: New client connected from 172.19.0.1 as SystemTestProbe (p2, c1, k60).
+mosquitto       | 1784546610: New connection from 172.19.0.1 on port 1883.
+mosquitto       | 1784546610: Client SystemTestProbe already connected, closing old connection.
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+cargorobot      | [36m               %%% MsgUtil | getConnection 127.0.0.1:8050[0m
+devices         | [33m               %%%  ActorBasic sonaradapter | subscribed to unibo/qak/sonaradapter and to leddata[0m
+devices         | [32mmarkerdevice | STARTED[0m
+devices         | [32mledadapter | STARTED - Routing dispatches to MQTT events on topic: leddata[0m
+robotsmart26    | [33m               sysUtil  | createActor class for it.unibo.planexec.Planexec   class it.unibo.planexec.Planexec[0m
+robotsmart26    | [33m               %%%  ActorBasic robotmnemo | subscribed to unibo/qak/robotmnemo and to robotsmart26in[0m
+robotsmart26    | [34mrobotmnemo STARTS localhost[0m
+robotsmart26    | [35mclear log ./logs/robotmnemo.log ---- [0m
+robotsmart26    | [34mrobotmnemo subscribe to myself done[0m
+cargoservice    | [35m               %%% QakContext ctxcargoservice | addCtxProxy ip=127.0.0.1:8053[0m
+robotsmart26    | [35mVRObj26 | connect VIRTUAL_ENV=wenv[0m
+cargoservice    | [36m               %%% MsgUtil | getConnection 127.0.0.1:8053[0m
+cargorobot      | [36m               %%% MsgUtil | getConnection Socket[addr=/127.0.0.1,port=8050,localport=33830][0m
+cargoservice    | [36m               %%% MsgUtil | getConnection Socket[addr=/127.0.0.1,port=8053,localport=35330][0m
+cargoservice    | [37m               %%% NodeProxy proxyctxrobot | in ctxcargoservice PROXY ACTIVATED TO 127.0.0.1:8053 [0m
+mosquitto       | 1784546610: New client connected from 172.19.0.1 as SystemTestProbe (p2, c1, k60).
+cargoservice    | [35m               %%% QakContext ctxdevices | addCtxProxy ip=127.0.0.1:8053[0m
+mosquitto       | 1784546611: New connection from 172.19.0.1 on port 1883.
+cargorobot      | [37m               %%% NodeProxy proxyctxcargoservice | in ctxrobotsmart PROXY ACTIVATED TO 127.0.0.1:8050 [0m
+mosquitto       | 1784546611: Client SystemTestProbe already connected, closing old connection.
+cargorobot      | [33m    +++ TcpConnection | receiveMsg.....  in DefaultDispatcher-worker-3[0m
+mosquitto       | 1784546611: New client connected from 172.19.0.1 as SystemTestProbe (p2, c1, k60).
+cargorobot      | [35m               %%% QakContext ctxcargoservice | addCtxProxy ip=127.0.0.1:8020[0m
+mosquitto       | 1784546612: New connection from 172.19.0.1 on port 1883.
+cargorobot      | [36m               %%% MsgUtil | getConnection 127.0.0.1:8020[0m
+mosquitto       | 1784546612: Client SystemTestProbe already connected, closing old connection.
+cargorobot      | [36m               %%% MsgUtil | getConnection Socket[addr=/127.0.0.1,port=8020,localport=46548][0m
+mosquitto       | 1784546612: New client connected from 172.19.0.1 as SystemTestProbe (p2, c1, k60).
+cargorobot      | [37m               %%% NodeProxy proxyctxrobotsmart | in ctxcargoservice PROXY ACTIVATED TO 127.0.0.1:8020 [0m
+mosquitto       | 1784546613: New connection from 172.19.0.1 on port 1883.
+devices         | [32msonaradapter | STARTED - Listening to MQTT event wall_sonardata on topic: sonardata[0m
+mosquitto       | 1784546613: Client SystemTestProbe already connected, closing old connection.
+devices         | [36msonaradapter | Forwarding incoming_sonar(15) to cargoservice[0m
+robotsmart26    | [33m                %%%  ActorBasic robotsmart | Delegated step to robotmnemo [0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in DefaultDispatcher-worker-3[0m
+cargoservice    | [36m               %%% MsgUtil | getConnection 127.0.0.1:8053[0m
+cargoservice    | [36m               %%% MsgUtil | getConnection Socket[addr=/127.0.0.1,port=8053,localport=35342][0m
+cargoservice    | [37m               %%% NodeProxy proxyctxrobot | in ctxdevices PROXY ACTIVATED TO 127.0.0.1:8053 [0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in DefaultDispatcher-worker-5[0m
+cargoservice    | [33m               sysUtil  | createActor class for it.unibo.cargoservice.Cargoservice   class it.unibo.cargoservice.Cargoservice[0m
+cargoservice    | [35mcargoservice | STARTED[0m
+cargoservice    | [34mcargoservice | DISENGAGED: waiting for requests...[0m
+devices         | [33mtcpSrv | TcpServer 8052 accepted connection on 56272 with userDefHandler=ctxdevicesMsgH thname=tcpSrv[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+robotsmart26    | [33m                %%%  ActorBasic robotsmart | Delegated move to robotmnemo [0m
+cargoservice    | [34mcargoservice | DISENGAGED: waiting for requests...[0m
+mosquitto       | 1784546613: New client connected from 172.19.0.1 as SystemTestProbe (p2, c1, k60).
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+mosquitto       | 1784546614: New connection from 172.19.0.1 on port 1883.
+mosquitto       | 1784546614: Client SystemTestProbe already connected, closing old connection.
+mosquitto       | 1784546614: New client connected from 172.19.0.1 as SystemTestProbe (p2, c1, k60).
+mosquitto       | 1784546615: New connection from 172.19.0.1 on port 1883.
+mosquitto       | 1784546615: Client SystemTestProbe already connected, closing old connection.
+mosquitto       | 1784546615: New client connected from 172.19.0.1 as SystemTestProbe (p2, c1, k60).
+robotsmart26    | [33m                %%%  ActorBasic robotsmart | Delegated tuneAtHome to robotmnemo [0m
+robotsmart26    | [33m                %%%  ActorBasic robotsmart | Delegated getrobotstate to robotmnemo [0m
+cargorobot      | [35m               %%% QakContext ctxrobot | addCtxProxy ip=127.0.0.1:8020[0m
+devices         | [33m    +++ TcpConnection | receiveMsg.....  in Thread-21[0m
+cargorobot      | [33m    +++ TcpConnection | receiveMsg.....  in DefaultDispatcher-worker-2[0m
+devices         | [33mtcpSrv | TcpServer 8052 accepted connection on 56288 with userDefHandler=ctxdevicesMsgH thname=tcpSrv[0m
+cargorobot      | [36m               %%% MsgUtil | getConnection 127.0.0.1:8020[0m
+devices         | [33m    +++ TcpConnection | receiveMsg.....  in Thread-22[0m
+cargorobot      | [36m               %%% MsgUtil | getConnection Socket[addr=/127.0.0.1,port=8020,localport=46562][0m
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+cargorobot      | [37m               %%% NodeProxy proxyctxrobotsmart | in ctxrobot PROXY ACTIVATED TO 127.0.0.1:8020 [0m
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+cargoservice    | [34mcargoservice | DISENGAGED: waiting for requests...[0m
+robotsmart26    | [33m                %%%  ActorBasic robotsmart | Delegated getenvmap to robotmnemo [0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(15) to cargoservice[0m
+cargoservice    | [34mcargoservice | DISENGAGED: waiting for requests...[0m
+mosquitto       | 1784546616: New connection from 172.19.0.1 on port 1883.
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+robotsmart26    | [33m                %%%  ActorBasic robotsmart | Delegated setrobotstate to robotmnemo [0m
+cargoservice    | [34mcargoservice | DISENGAGED: waiting for requests...[0m
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+robotsmart26    | [33m                %%%  ActorBasic robotsmart | Delegated doplan to planexec [0m
+cargoservice    | [34mcargoservice | DISENGAGED: waiting for requests...[0m
+mosquitto       | 1784546616: Client SystemTestProbe already connected, closing old connection.
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+cargoservice    | [34mcargoservice | DISENGAGED: waiting for requests...[0m
+mosquitto       | 1784546616: New client connected from 172.19.0.1 as SystemTestProbe (p2, c1, k60).
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+mosquitto       | 1784546617: New connection from 172.19.0.1 on port 1883.
+cargoservice    | [34mcargoservice | DISENGAGED: waiting for requests...[0m
+mosquitto       | 1784546617: Client SystemTestProbe already connected, closing old connection.
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+mosquitto       | 1784546617: New client connected from 172.19.0.1 as SystemTestProbe (p2, c1, k60).
+cargoservice    | [34mcargoservice | DISENGAGED: waiting for requests...[0m
+mosquitto       | 1784546618: New connection from 172.19.0.1 on port 1883.
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+cargoservice    | [34mcargoservice | DISENGAGED: waiting for requests...[0m
+robotsmart26    | [36mAStarPathfinding -------AdapterGuiForMindrep should be alreday created[0m
+robotsmart26    | [36mreadPlannerParams ------------------------------------------------[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+mosquitto       | 1784546618: Client SystemTestProbe already connected, closing old connection.
+cargoservice    | [34mcargoservice | DISENGAGED: waiting for requests...[0m
+cargorobot      | [33m    +++ TcpConnection | receiveMsg.....  in DefaultDispatcher-worker-5[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargorobot      | [33m               sysUtil  | createActor class for it.unibo.cargorobot.Cargorobot   class it.unibo.cargorobot.Cargorobot[0m
+cargoservice    | [34mcargoservice | DISENGAGED: waiting for requests...[0m
+robotsmart26    | [34mrobotsmart | working ... [0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+robotsmart26    | [33m               %%%  ActorBasic planexec | subscribed to unibo/qak/planexec and to robotsmart26in[0m
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+robotsmart26    | WsConnection WebSocketListener | --- Connessione aperta ---
+robotsmart26    | [33m    --- ConnectionFactory | create ws conn:wenv:8091 entry=[0m
+robotsmart26    | [34mrobotmnemo | at home. GUI on ...[0m
+robotsmart26    | [33m                %%%  ActorBasic robotmnemo | Delegated doplan to planexec [0m
+robotsmart26    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-10[0m
+cargoservice    | [34mcargoservice | DISENGAGED: waiting for requests...[0m
+mosquitto       | 1784546618: New client connected from 172.19.0.1 as SystemTestProbe (p2, c1, k60).
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [34mcargoservice | DISENGAGED: waiting for requests...[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [34mcargoservice | DISENGAGED: waiting for requests...[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [34mcargoservice | DISENGAGED: waiting for requests...[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [34mcargoservice | DISENGAGED: waiting for requests...[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [34mcargoservice | DISENGAGED: waiting for requests...[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+cargoservice    | [34mcargoservice | DISENGAGED: waiting for requests...[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [34mcargoservice | DISENGAGED: waiting for requests...[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [34mcargoservice | DISENGAGED: waiting for requests...[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [34mcargoservice | DISENGAGED: waiting for requests...[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+robotsmart26    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-10[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(15) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(15) to cargoservice[0m
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | WsController | WebSocket connected: 3e6dceda-916a-47fa-b368-a8c782f6e983
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+robotsmart26    | [32mrobotsmart in domoverobot | msg(moverobot,request,cargorobot,robotsmart,moverobot(4,0,335),14) | qakcpuspool-10 n=48[0m
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+cargoservice    | [34mcargoservice | DISENGAGED: waiting for requests...[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(15) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(15) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(15) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(15) to cargoservice[0m
+mosquitto       | 1784546619: New connection from 172.19.0.1 on port 1883.
+mosquitto       | 1784546619: Client SystemTestProbe already connected, closing old connection.
+mosquitto       | 1784546619: New client connected from 172.19.0.1 as SystemTestProbe (p2, c1, k60).
+mosquitto       | 1784546620: New connection from 172.19.0.1 on port 1883.
+mosquitto       | 1784546620: Client SystemTestProbe already connected, closing old connection.
+mosquitto       | 1784546620: New client connected from 172.19.0.1 as SystemTestProbe (p2, c1, k60).
+mosquitto       | 1784546621: New connection from 172.19.0.1 on port 1883.
+mosquitto       | 1784546621: Client SystemTestProbe already connected, closing old connection.
+mosquitto       | 1784546621: New client connected from 172.19.0.1 as SystemTestProbe (p2, c1, k60).
+cargorobot      | [33m               %%%  ActorBasic cargorobot | subscribed to unibo/qak/cargorobot and to robotsmart26in[0m
+cargorobot      | [34mcargorobot | STARTED (Puro wrapper bridge per robotsmart26)[0m
+robotsmart26    | [33mrobotsmart | setdirecton requested -----------------------------  [0m
+robotsmart26    | [35mRobotPathUtils | setTheDirection down while down=[0m
+robotsmart26    | [35mdosetrobotdirection dir=down Plan=[0m
+robotsmart26    | [32mrobotsmart | Plan-25 to reach (4,0) from (0,0) : wwww[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+cargoservice    | [34mcargoservice | DISENGAGED: waiting for requests...[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [34mcargoservice | DISENGAGED: waiting for requests...[0m
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+devices         | [36msonaradapter | Forwarding incoming_sonar(15) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(15) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(15) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(15) to cargoservice[0m
+robotsmart26    | [33mplanexec | execAPlan nnnnnnnnnnnnnnn 335 Plan=wwww[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+mosquitto       | 1784546622: New connection from 172.19.0.1 on port 1883.
+cargoservice    | [34mcargoservice | DISENGAGED: waiting for requests...[0m
+mosquitto       | 1784546622: Client SystemTestProbe already connected, closing old connection.
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+cargoservice    | [34mcargoservice | DISENGAGED: waiting for requests...[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [34mcargoservice | DISENGAGED: waiting for requests...[0m
+cargorobot      | [34mcargorobot | In attesa di comandi moverobot...[0m
+cargorobot      | [33mtcpSrv | TcpServer 8053 accepted connection on 35330 with userDefHandler=ctxrobotMsgH thname=tcpSrv[0m
+cargorobot      | [33m    +++ TcpConnection | receiveMsg.....  in Thread-11[0m
+cargorobot      | [33mtcpSrv | TcpServer 8053 accepted connection on 35342 with userDefHandler=ctxrobotMsgH thname=tcpSrv[0m
+cargorobot      | [33m    +++ TcpConnection | receiveMsg.....  in Thread-12[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+mosquitto       | 1784546622: New client connected from 172.19.0.1 as SystemTestProbe (p2, c1, k60).
+cargorobot      | [33m    +++ TcpConnection | receiveMsg.....  in Thread-11[0m
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+robotsmart26    | [32mVRObj26 | forwardMsg= {"robotmove":"moveForward","time":335}[0m
+robotsmart26    | [35mplanexec in planinterrupted | msg(alarm,event,cargorobot,none,alarm(stop),15) | qakcpuspool-8 n=43[0m
+robotsmart26    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-10[0m
+mosquitto       | 1784546623: New connection from 172.19.0.1 on port 1883.
+mosquitto       | 1784546623: Client SystemTestProbe already connected, closing old connection.
+mosquitto       | 1784546623: New client connected from 172.19.0.1 as SystemTestProbe (p2, c1, k60).
+mosquitto       | 1784546624: New connection from 172.19.0.1 on port 1883.
+robotsmart26    |                %%%  ActorBasic robotmnemo |  MQTT connectionLost MqttException (0) - java.lang.Error: Error: could not match input 
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+cargoservice    | [34mcargoservice | DISENGAGED: waiting for requests...[0m
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+mosquitto       | 1784546624: Client SystemTestProbe already connected, closing old connection.
+cargoservice    | [34mcargoservice | DISENGAGED: waiting for requests...[0m
+mosquitto       | 1784546624: New client connected from 172.19.0.1 as SystemTestProbe (p2, c1, k60).
+mosquitto       | 1784546625: New connection from 172.19.0.1 on port 1883.
+mosquitto       | 1784546625: Client SystemTestProbe already connected, closing old connection.
+mosquitto       | 1784546625: New client connected from 172.19.0.1 as SystemTestProbe (p2, c1, k60).
+devices         | [36msonaradapter | Forwarding incoming_sonar(15) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(15) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(15) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(15) to cargoservice[0m
+mosquitto       | 1784546626: New connection from 172.19.0.1 on port 1883.
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+mosquitto       | 1784546626: Client SystemTestProbe already connected, closing old connection.
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+mosquitto       | 1784546626: New client connected from 172.19.0.1 as SystemTestProbe (p2, c1, k60).
+cargoservice    | [34mcargoservice | DISENGAGED: waiting for requests...[0m
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [34mcargoservice | DISENGAGED: waiting for requests...[0m
+cargorobot      | [31mcargorobot | RICEVUTO STOP! Emetto alarm a robotsmart...[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargorobot      | [33mcargorobot | In STOP. Attendo resume_robot...[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(15) to cargoservice[0m
+cargorobot      | [33m    +++ TcpConnection | receiveMsg.....  in Thread-11[0m
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+cargorobot      | [32mcargorobot | RICEVUTO RESUME! Riprendo le operazioni...[0m
+cargorobot      | [34mcargorobot | In attesa di comandi moverobot...[0m
+cargorobot      | [33m    +++ TcpConnection | receiveMsg.....  in Thread-11[0m
+cargorobot      | [36mcargorobot in handle_move | msg(moverobot,request,cargoservice,cargorobot,moverobot(4,0,335),21) | qakcpuspool-15 n=34[0m
+cargorobot      | [36mcargorobot | Inoltro moverobot(4, 0, 335) a robotsmart via TCP...[0m
+cargorobot      | [33m    +++ TcpConnection | receiveMsg.....  in Thread-11[0m
+cargorobot      | [31mcargorobot | RICEVUTO STOP! Emetto alarm a robotsmart...[0m
+cargorobot      | [33m    +++ TcpConnection | receiveMsg.....  in Thread-11[0m
+cargorobot      |                %%%  ActorBasicFsm cargorobot|waiting_reply:adds msg(resume_robot,dispatch,cargoservice,cargorobot,resume(none),23) in msgQueueStore
+mosquitto       | 1784546627: New connection from 172.19.0.1 on port 1883.
+devices         | [36msonaradapter | Forwarding incoming_sonar(15) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(15) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(15) to cargoservice[0m
+cargoservice    | [34mcargoservice | DISENGAGED: waiting for requests...[0m
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [34mcargoservice | DISENGAGED: waiting for requests...[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [34mcargoservice | DISENGAGED: waiting for requests...[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [34mcargoservice | DISENGAGED: waiting for requests...[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [34mcargoservice | DISENGAGED: waiting for requests...[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [34mcargoservice | DISENGAGED: waiting for requests...[0m
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [34mcargoservice | DISENGAGED: waiting for requests...[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [34mcargoservice | DISENGAGED: waiting for requests...[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [34mcargoservice | DISENGAGED: waiting for requests...[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [34mcargoservice | DISENGAGED: waiting for requests...[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [34mcargoservice | DISENGAGED: waiting for requests...[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [34mcargoservice | DISENGAGED: waiting for requests...[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [34mcargoservice | DISENGAGED: waiting for requests...[0m
+mosquitto       | 1784546627: Client SystemTestProbe already connected, closing old connection.
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+mosquitto       | 1784546627: New client connected from 172.19.0.1 as SystemTestProbe (p2, c1, k60).
+mosquitto       | 1784546628: New connection from 172.19.0.1 on port 1883.
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+mosquitto       | 1784546628: Client SystemTestProbe already connected, closing old connection.
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+mosquitto       | 1784546628: New client connected from 172.19.0.1 as SystemTestProbe (p2, c1, k60).
+mosquitto       | 1784546629: New connection from 172.19.0.1 on port 1883.
+mosquitto       | 1784546629: Client SystemTestProbe already connected, closing old connection.
+mosquitto       | 1784546629: New client connected from 172.19.0.1 as SystemTestProbe (p2, c1, k60).
+mosquitto       | 1784546630: New connection from 172.19.0.1 on port 1883.
+mosquitto       | 1784546630: Client SystemTestProbe already connected, closing old connection.
+mosquitto       | 1784546630: New client connected from 172.19.0.1 as SystemTestProbe (p2, c1, k60).
+mosquitto       | 1784546631: New connection from 172.19.0.1 on port 1883.
+mosquitto       | 1784546631: Client SystemTestProbe already connected, closing old connection.
+mosquitto       | 1784546631: New client connected from 172.19.0.1 as SystemTestProbe (p2, c1, k60).
+mosquitto       | 1784546632: New connection from 172.19.0.1 on port 1883.
+mosquitto       | 1784546632: Client SystemTestProbe already connected, closing old connection.
+mosquitto       | 1784546632: New client connected from 172.19.0.1 as SystemTestProbe (p2, c1, k60).
+mosquitto       | 1784546633: New connection from 172.19.0.1 on port 1883.
+mosquitto       | 1784546633: Client SystemTestProbe already connected, closing old connection.
+mosquitto       | 1784546633: New client connected from 172.19.0.1 as SystemTestProbe (p2, c1, k60).
+mosquitto       | 1784546634: New connection from 172.19.0.1 on port 1883.
+mosquitto       | 1784546634: Client SystemTestProbe already connected, closing old connection.
+mosquitto       | 1784546634: New client connected from 172.19.0.1 as SystemTestProbe (p2, c1, k60).
+mosquitto       | 1784546635: Socket error on client SystemTestProbe, disconnecting.
+mosquitto       | 1784546635: New connection from 172.19.0.1 on port 1883.
+mosquitto       | 1784546635: New client connected from 172.19.0.1 as SystemTestProbe (p2, c1, k60).
+mosquitto       | 1784546656: Socket error on client robotmnemo, disconnecting.
+mosquitto       | 1784546657: New connection from 172.19.0.5 on port 1883.
+mosquitto       | 1784546658: New client connected from 172.19.0.5 as robotmnemo (p2, c1, k30).
+mosquitto       | 1784546663: Client SystemTestProbe disconnected.
+mosquitto       | 1784546664: New connection from 172.19.0.1 on port 1883.
+mosquitto       | 1784546664: New client connected from 172.19.0.1 as SystemTestProbe (p2, c1, k60).
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+devices         | [36msonaradapter | Forwarding incoming_sonar(15) to cargoservice[0m
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+devices         | [36msonaradapter | Forwarding incoming_sonar(15) to cargoservice[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(15) to cargoservice[0m
+cargoservice    | [34mcargoservice | DISENGAGED: waiting for requests...[0m
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+devices         | [36msonaradapter | Forwarding incoming_sonar(15) to cargoservice[0m
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | HttpController | Received POST /api/load from GUI
+ioport-backend  | [33m    --- ConnectionFactory | create tcp port:8050[0m
+ioport-backend  | [32mGuiServerQakActor | Registered user interaction event: load_request[0m
+ioport-backend  | HttpController | Forwarding formal QAK request to cargoservice: msg(load_request,request,ioportgui,cargoservice,loadRequest(none),0)
+ioport-backend  | [33m    +++ TcpConnection | receiveMsg.....  in JettyServerThreadPool-31[0m
+ioport-backend  | HttpController | cargoservice reply: msg(load_accepted,reply,cargoservice,ioportgui,loadAccepted(slot1),14)
+cargoservice    | [34mcargoservice | DISENGAGED: waiting for requests...[0m
+cargoservice    | [33mtcpSrv | TcpServer 8050 accepted connection on 34454 with userDefHandler=ctxcargoserviceMsgH thname=tcpSrv[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-9[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-9[0m
+cargoservice    | [33mcargoservice in handle_load_request | msg(load_request,request,ioportgui,cargoservice,loadRequest(none),0) | qakcpuspool-10 n=32[0m
+cargoservice    | [34mcargoservice | ENGAGED: evaluating next step...[0m
+cargoservice    | [36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+cargoservice    | [31m    +++ TcpConnection | receiveMsg  ERROR:Cannot invoke "String.length()" because "line" is null[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [34mcargoservice | ENGAGED: evaluating next step...[0m
+cargoservice    | [36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [34mcargoservice | ENGAGED: evaluating next step...[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(15) to cargoservice[0m
+cargoservice    | [36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [34mcargoservice | ENGAGED: evaluating next step...[0m
+cargoservice    | [36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [34mcargoservice | ENGAGED: evaluating next step...[0m
+cargoservice    | [36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+devices         | [36msonaradapter | Forwarding incoming_sonar(15) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(15) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(15) to cargoservice[0m
+cargoservice    | [34mcargoservice | ENGAGED: evaluating next step...[0m
+cargoservice    | [36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [34mcargoservice | ENGAGED: evaluating next step...[0m
+cargoservice    | [36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [34mcargoservice | ENGAGED: evaluating next step...[0m
+cargoservice    | [36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [34mcargoservice | ENGAGED: evaluating next step...[0m
+cargoservice    | [36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(15) to cargoservice[0m
+cargoservice    | [34mcargoservice | ENGAGED: evaluating next step...[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(15) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(15) to cargoservice[0m
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | HttpController | Received POST /api/load from GUI
+ioport-backend  | HttpController | Domain currently engaged or busy, returning retrylater immediately without blocking.
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+cargoservice    | [36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+cargoservice    | [34mcargoservice | ENGAGED: evaluating next step...[0m
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+cargoservice    | [36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+cargoservice    | [34mcargoservice | ENGAGED: evaluating next step...[0m
+cargoservice    | [36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [34mcargoservice | ENGAGED: evaluating next step...[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(15) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(15) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(15) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(15) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(15) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(15) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(15) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(15) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(15) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(15) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(15) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(15) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(15) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(80) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(80) to cargoservice[0m
+devices         | [33m    +++ TcpConnection | receiveMsg.....  in Thread-21[0m
+devices         | [34mledadapter | Publishing LED command on MQTT: blink[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(15) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(15) to cargoservice[0m
+cargoservice    | [36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [34mcargoservice | ENGAGED: evaluating next step...[0m
+cargoservice    | [36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+devices         | [36msonaradapter | Forwarding incoming_sonar(5) to cargoservice[0m
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | HttpController | Received POST /api/load from GUI
+ioport-backend  | HttpController | Domain currently engaged or busy, returning retrylater immediately without blocking.
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+devices         | [36msonaradapter | Forwarding incoming_sonar(5) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(5) to cargoservice[0m
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+cargoservice    | [34mcargoservice | ENGAGED: evaluating next step...[0m
+cargoservice    | [36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [34mcargoservice | ENGAGED: evaluating next step...[0m
+cargoservice    | [36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [34mcargoservice | ENGAGED: evaluating next step...[0m
+cargoservice    | [36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [34mcargoservice | ENGAGED: evaluating next step...[0m
+cargoservice    | [36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [34mcargoservice | ENGAGED: evaluating next step...[0m
+cargoservice    | [36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [34mcargoservice | ENGAGED: evaluating next step...[0m
+cargoservice    | [36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [34mcargoservice | ENGAGED: evaluating next step...[0m
+cargoservice    | [36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [34mcargoservice | ENGAGED: evaluating next step...[0m
+cargoservice    | [36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [34mcargoservice | ENGAGED: evaluating next step...[0m
+cargoservice    | [36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [34mcargoservice | ENGAGED: evaluating next step...[0m
+cargoservice    | [36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [34mcargoservice | ENGAGED: evaluating next step...[0m
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+cargoservice    | [36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Out of service","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Out of service","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+devices         | [36msonaradapter | Forwarding incoming_sonar(15) to cargoservice[0m
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Out of service","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Out of service","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Out of service","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Out of service","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Out of service","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Out of service","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Out of service","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Out of service","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Out of service","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Out of service","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Out of service","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Out of service","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Out of service","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Out of service","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Out of service","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+cargoservice    | [34mcargoservice | ENGAGED: evaluating next step...[0m
+cargoservice    | [36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [34mcargoservice | ENGAGED: evaluating next step...[0m
+cargoservice    | [36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [34mcargoservice | ENGAGED: evaluating next step...[0m
+cargoservice    | [36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [34mcargoservice | ENGAGED: evaluating next step...[0m
+cargoservice    | [36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [34mcargoservice | ENGAGED: evaluating next step...[0m
+cargoservice    | [36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [34mcargoservice | ENGAGED: evaluating next step...[0m
+cargoservice    | [36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [34mcargoservice | ENGAGED: evaluating next step...[0m
+cargoservice    | [36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [34mcargoservice | ENGAGED: evaluating next step...[0m
+cargoservice    | [36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [34mcargoservice | ENGAGED: evaluating next step...[0m
+cargoservice    | [36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [34mcargoservice | ENGAGED: evaluating next step...[0m
+cargoservice    | [36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [34mcargoservice | ENGAGED: evaluating next step...[0m
+cargoservice    | [36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [34mcargoservice | ENGAGED: evaluating next step...[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(5) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(5) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(15) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(15) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(5) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(5) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(15) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(15) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(5) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(5) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(5) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(15) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(15) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(5) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(5) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(15) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(15) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(80) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(80) to cargoservice[0m
+cargoservice    | [36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [34mcargoservice | ENGAGED: evaluating next step...[0m
+cargoservice    | [36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [34mcargoservice | ENGAGED: evaluating next step...[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(15) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(15) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(80) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(80) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(15) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(15) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(80) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(80) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(15) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(15) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(80) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(80) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(15) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(80) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(80) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(80) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(80) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(80) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(80) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(80) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(80) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(80) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(80) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(80) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(80) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(80) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(80) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(80) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(80) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(80) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(80) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(80) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(80) to cargoservice[0m
+cargoservice    | [36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [34mcargoservice | ENGAGED: evaluating next step...[0m
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Out of service","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Out of service","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Out of service","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Out of service","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Out of service","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Out of service","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Out of service","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Out of service","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Out of service","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Out of service","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Out of service","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Out of service","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Out of service","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Out of service","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+devices         | [33m    +++ TcpConnection | receiveMsg.....  in Thread-21[0m
+devices         | [34mledadapter | Publishing LED command on MQTT: off[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(80) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(5) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(5) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(80) to cargoservice[0m
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Out of service","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | HttpController | Received POST /api/load from GUI
+ioport-backend  | HttpController | Domain currently engaged or busy, returning retrylater immediately without blocking.
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+devices         | [36msonaradapter | Forwarding incoming_sonar(80) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(80) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(80) to cargoservice[0m
+devices         | [33m    +++ TcpConnection | receiveMsg.....  in Thread-21[0m
+devices         | [34mledadapter | Publishing LED command on MQTT: blink[0m
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"disengaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":-1,"slots":{"slot1":"free","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | HttpController | Received POST /api/load from GUI
+ioport-backend  | [33m    --- ConnectionFactory | create tcp port:8050[0m
+ioport-backend  | [32mGuiServerQakActor | Registered user interaction event: load_request[0m
+ioport-backend  | HttpController | Forwarding formal QAK request to cargoservice: msg(load_request,request,ioportgui,cargoservice,loadRequest(none),1)
+ioport-backend  | [33m    +++ TcpConnection | receiveMsg.....  in JettyServerThreadPool-29[0m
+ioport-backend  | HttpController | cargoservice reply: msg(load_accepted,reply,cargoservice,ioportgui,loadAccepted(slot1),20)
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+cargoservice    | [36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(5) to cargoservice[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+cargoservice    | [34mcargoservice | ENGAGED: evaluating next step...[0m
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+cargoservice    | [36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(5) to cargoservice[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(5) to cargoservice[0m
+cargoservice    | [34mcargoservice | ENGAGED: evaluating next step...[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(5) to cargoservice[0m
+cargoservice    | [36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(5) to cargoservice[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(5) to cargoservice[0m
+cargoservice    | [34mcargoservice | ENGAGED: evaluating next step...[0m
+cargoservice    | [36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [34mcargoservice | ENGAGED: evaluating next step...[0m
+cargoservice    | [36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(5) to cargoservice[0m
+cargoservice    | [34mcargoservice | ENGAGED: evaluating next step...[0m
+cargoservice    | [36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | cargoservice | Sonar D>DFREE (80 > 20) sostenuto per 3s -> OUT OF SERVICE!
+cargoservice    | [34mcargoservice | ENGAGED: evaluating next step...[0m
+cargoservice    | [36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-4[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [34mcargoservice | ENGAGED: evaluating next step...[0m
+cargoservice    | [36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [34mcargoservice | ENGAGED: evaluating next step...[0m
+cargoservice    | [36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [34mcargoservice | ENGAGED: evaluating next step...[0m
+cargoservice    | [36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":true,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":true,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | HttpController | Received POST /api/load from GUI
+cargoservice    | [34mcargoservice | ENGAGED: evaluating next step...[0m
+ioport-backend  | HttpController | Domain currently engaged or busy, returning retrylater immediately without blocking.
+devices         | [36msonaradapter | Forwarding incoming_sonar(5) to cargoservice[0m
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Out of service","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Out of service","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Out of service","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Out of service","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Out of service","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Out of service","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Out of service","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Out of service","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Out of service","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Out of service","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Out of service","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+devices         | [36msonaradapter | Forwarding incoming_sonar(200) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(200) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(80) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(80) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(80) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(80) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(80) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(80) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(80) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(80) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(80) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(80) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(80) to cargoservice[0m
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Out of service","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+devices         | [36msonaradapter | Forwarding incoming_sonar(80) to cargoservice[0m
+cargoservice    | [36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(80) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(80) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(80) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(80) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(15) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(15) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(15) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(15) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(15) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(15) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(15) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(15) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(15) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(15) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(15) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(15) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(15) to cargoservice[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(15) to cargoservice[0m
+cargoservice    | [34mcargoservice | ENGAGED: evaluating next step...[0m
+cargoservice    | [36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [34mcargoservice | ENGAGED: evaluating next step...[0m
+cargoservice    | [36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [34mcargoservice | ENGAGED: evaluating next step...[0m
+cargoservice    | [36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [34mcargoservice | ENGAGED: evaluating next step...[0m
+cargoservice    | [36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [34mcargoservice | ENGAGED: evaluating next step...[0m
+cargoservice    | [36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(15) to cargoservice[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+ioport-backend  | HttpController | Received POST /api/load from GUI
+cargoservice    | [34mcargoservice | ENGAGED: evaluating next step...[0m
+cargoservice    | [36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [34mcargoservice | ENGAGED: evaluating next step...[0m
+cargoservice    | [36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [34mcargoservice | ENGAGED: evaluating next step...[0m
+cargoservice    | [36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [34mcargoservice | ENGAGED: evaluating next step...[0m
+cargoservice    | [36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+cargoservice    | [31mcargoservice | Deposit timeout! Freeing reserved slot1.[0m
+cargoservice    | [34mcargoservice | DISENGAGED: waiting for requests...[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [34mcargoservice | DISENGAGED: waiting for requests...[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | cargoservice | Sonar D<=DFREE (5 <= 20) -> SERVICE WORKING again!
+cargoservice    | [34mcargoservice | DISENGAGED: waiting for requests...[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [34mcargoservice | DISENGAGED: waiting for requests...[0m
+ioport-backend  | HttpController | Domain currently engaged or busy, returning retrylater immediately without blocking.
+ioport-backend  | HttpController | Received POST /api/load from GUI
+ioport-backend  | HttpController | Domain currently engaged or busy, returning retrylater immediately without blocking.
+ioport-backend  | HttpController | Received POST /api/load from GUI
+ioport-backend  | HttpController | Domain currently engaged or busy, returning retrylater immediately without blocking.
+ioport-backend  | HttpController | Received POST /api/load from GUI
+ioport-backend  | HttpController | Domain currently engaged or busy, returning retrylater immediately without blocking.
+ioport-backend  | HttpController | Received POST /api/load from GUI
+ioport-backend  | HttpController | Domain currently engaged or busy, returning retrylater immediately without blocking.
+ioport-backend  | WsController | WebSocket closed: 3e6dceda-916a-47fa-b368-a8c782f6e983
+ioport-backend  | WsController | WebSocket connected: ee2391e6-9b75-46a5-8081-292e0adbeabf
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(15) to cargoservice[0m
+cargoservice    | [34mcargoservice | DISENGAGED: waiting for requests...[0m
+cargoservice    | [34mcargoservice | DISENGAGED: waiting for requests...[0m
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+devices         | [36msonaradapter | Forwarding incoming_sonar(15) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(15) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(15) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(15) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(15) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(15) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(15) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(15) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(80) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(80) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(80) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(5) to cargoservice[0m
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+devices         | [36msonaradapter | Forwarding incoming_sonar(5) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(5) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(5) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(5) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(5) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(5) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(5) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(5) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(5) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(5) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(5) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(5) to cargoservice[0m
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":false,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":true,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | HttpController | Received POST /api/load from GUI
+devices         | [36msonaradapter | Forwarding incoming_sonar(5) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(5) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(5) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(5) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(5) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(5) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(5) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(5) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(5) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(5) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(5) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(5) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(5) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(5) to cargoservice[0m
+ioport-backend  | HttpController | Domain currently engaged or busy, returning retrylater immediately without blocking.
+devices         | [36msonaradapter | Forwarding incoming_sonar(5) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(5) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(5) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(5) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(5) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(5) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(5) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(5) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(5) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(5) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(5) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(5) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(5) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(5) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(5) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(5) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(5) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(5) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(5) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(5) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(5) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(5) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(5) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(5) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(5) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(5) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(5) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(5) to cargoservice[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(5) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(5) to cargoservice[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [34mcargoservice | DISENGAGED: waiting for requests...[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [34mcargoservice | DISENGAGED: waiting for requests...[0m
+cargoservice    | [33mtcpSrv | TcpServer 8050 accepted connection on 59064 with userDefHandler=ctxcargoserviceMsgH thname=tcpSrv[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-10[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-10[0m
+cargoservice    | [33mcargoservice in handle_load_request | msg(load_request,request,ioportgui,cargoservice,loadRequest(none),1) | qakcpuspool-7 n=32[0m
+cargoservice    | [34mcargoservice | ENGAGED: evaluating next step...[0m
+cargoservice    | [36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+cargoservice    | [31m    +++ TcpConnection | receiveMsg  ERROR:Cannot invoke "String.length()" because "line" is null[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+ioport-backend  | HttpController | Received POST /api/load from GUI
+cargoservice    | [34mcargoservice | ENGAGED: evaluating next step...[0m
+ioport-backend  | HttpController | Domain currently engaged or busy, returning retrylater immediately without blocking.
+cargoservice    | [36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [34mcargoservice | ENGAGED: evaluating next step...[0m
+cargoservice    | [36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [34mcargoservice | ENGAGED: evaluating next step...[0m
+cargoservice    | [36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [34mcargoservice | ENGAGED: evaluating next step...[0m
+cargoservice    | [36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [34mcargoservice | ENGAGED: evaluating next step...[0m
+cargoservice    | [36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [34mcargoservice | ENGAGED: evaluating next step...[0m
+cargoservice    | [36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":true,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":true,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":true,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":true,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":true,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":true,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":true,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":true,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":true,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":true,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":true,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+cargoservice    | [35mcargoservice | Container inside area! Robot moving to IOPort (4,0)...[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(5) to cargoservice[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(5) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(5) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(5) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(5) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(5) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(5) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(5) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(5) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(5) to cargoservice[0m
+devices         | [36msonaradapter | Forwarding incoming_sonar(5) to cargoservice[0m
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":true,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":true,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":true,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":true,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":true,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":true,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":true,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":true,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":true,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":true,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":true,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":true,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":true,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":true,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":true,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":true,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":true,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":true,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":true,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":true,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":true,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":true,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":true,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":true,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":true,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":true,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":true,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | cargoservice | Sonar D>DFREE (80 > 20) sostenuto per 3s -> OUT OF SERVICE!
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-4[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | cargoservice | Sonar D<=DFREE (15 <= 20) -> SERVICE WORKING again!
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":true,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    |                %%%  ActorBasicFsm cargoservice|wait_do_robot_job:adds msg(deposit_timeout_msg,dispatch,cargoservice,cargoservice,depositTimeout(none),24) in msgQueueStore
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":true,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":true,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":true,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":true,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":true,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":true,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":true,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":true,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":true,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":true,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":true,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":true,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":true,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":true,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":true,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":true,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":true,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":true,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":true,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":true,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":true,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+ioport-backend  | CoapObserver | Push ricevuto: {"serviceState":"engaged","workingState":"Service working","ioPortOccupied":true,"reservedSlot":1,"slots":{"slot1":"reserved","slot2":"free","slot3":"free","slot4":"free","slot5":"marker"}}
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice    | [33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m

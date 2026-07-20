@@ -100,6 +100,8 @@ class SystemTestProbe:
 def probe():
     p = SystemTestProbe()
     p.connect()
+    # Wait 12 seconds to let Sonarmock finish its startup sequence
+    time.sleep(12)
     p.simulate_container_absent()
     time.sleep(1)
     yield p
@@ -162,7 +164,9 @@ def test_08_req5_timeout_del_cliente(probe):
 def test_09_req9_rilevamento_condizione_fuori_servizio(probe):
     probe.send_load_request()
     probe.simulate_container_present()
-    time.sleep(TIME_STABLE_PRESENCE + 1)
+    probe.wait_for_state(lambda s: s.get("ioPortOccupied") == True, timeout=10)
+    probe.wait_for_state(lambda s: s.get("ioPortOccupied") == False, timeout=20)
+    time.sleep(1)
     
     probe.simulate_out_of_service() 
     
@@ -209,6 +213,7 @@ def test_13_req19_sequenza_riempimento_completo(probe):
         resp = probe.send_load_request()
         if resp.json().get("status") == "accepted":
             probe.simulate_container_present()
+            probe.wait_for_state(lambda s: s.get("ioPortOccupied") == True, timeout=10)
             probe.wait_for_state(lambda s: s.get("ioPortOccupied") == False, timeout=20)
             probe.simulate_container_absent()
             probe.wait_for_state(lambda s: s.get("serviceState") == "disengaged", timeout=60)

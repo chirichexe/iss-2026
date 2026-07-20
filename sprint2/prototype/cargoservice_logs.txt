@@ -1,0 +1,429 @@
+[33m               %%% sysUtil | loadheory  cargoservice.pl[0m
+[33m               %%% sysUtil | loadheory  sysRules.pl[0m
+[35m               %%% sysUtil +++ createContexts ctxcargoservice[0m
+[33m               %%% CoapResourceCtx ctxcargoservice | created AFTER INIT [0m
+[33m               %%% QakContext ctxcargoservice | serverCoap started on port 8050 with added ctxcargoservice[0m
+[36m               %%% sysUtil | INJECTION ctxsMap.put ctxcargoservice mqttAddr=[0m
+[33m               %%% CoapResourceCtx ctxdevices | created AFTER INIT [0m
+[36m               %%% sysUtil | INJECTION ctxsMap.put ctxdevices mqttAddr=[0m
+[33m               %%% CoapResourceCtx ctxrobot | created AFTER INIT [0m
+[36m               %%% sysUtil | INJECTION ctxsMap.put ctxrobot mqttAddr=[0m
+[35m               %%% QakContext ctxcargoservice | addCtxProxy ip=127.0.0.1:8052[0m
+[36m               %%% MsgUtil | getConnection 127.0.0.1:8052[0m
+               %%% NodeProxy proxyctxdevices | WAIT/RETRY TO SET PROXY TO 127.0.0.1:8052 
+[33mtcpSrv | TcpServer 8050 accepted connection on 33810 with userDefHandler=ctxcargoserviceMsgH thname=tcpSrv[0m
+[33mtcpSrv | TcpServer 8050 accepted connection on 33814 with userDefHandler=ctxcargoserviceMsgH thname=tcpSrv[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-4[0m
+[33mtcpSrv | TcpServer 8050 accepted connection on 33830 with userDefHandler=ctxcargoserviceMsgH thname=tcpSrv[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-5[0m
+[34mctxcargoserviceMsgH | not found destination=cargoservice RETRYING 1 ...[0m
+[36m               %%% MsgUtil | getConnection 127.0.0.1:8052[0m
+[36m               %%% MsgUtil | getConnection Socket[addr=/127.0.0.1,port=8052,localport=56272][0m
+[37m               %%% NodeProxy proxyctxdevices | in ctxcargoservice PROXY ACTIVATED TO 127.0.0.1:8052 [0m
+[35m               %%% QakContext ctxrobot | addCtxProxy ip=127.0.0.1:8052[0m
+[33m    +++ TcpConnection | receiveMsg.....  in DefaultDispatcher-worker-1[0m
+[36m               %%% MsgUtil | getConnection 127.0.0.1:8052[0m
+[36m               %%% MsgUtil | getConnection Socket[addr=/127.0.0.1,port=8052,localport=56288][0m
+[37m               %%% NodeProxy proxyctxdevices | in ctxrobot PROXY ACTIVATED TO 127.0.0.1:8052 [0m
+[33m    +++ TcpConnection | receiveMsg.....  in DefaultDispatcher-worker-2[0m
+[35m               %%% QakContext ctxcargoservice | addCtxProxy ip=127.0.0.1:8053[0m
+[36m               %%% MsgUtil | getConnection 127.0.0.1:8053[0m
+[36m               %%% MsgUtil | getConnection Socket[addr=/127.0.0.1,port=8053,localport=35330][0m
+[37m               %%% NodeProxy proxyctxrobot | in ctxcargoservice PROXY ACTIVATED TO 127.0.0.1:8053 [0m
+[35m               %%% QakContext ctxdevices | addCtxProxy ip=127.0.0.1:8053[0m
+[33m    +++ TcpConnection | receiveMsg.....  in DefaultDispatcher-worker-3[0m
+[36m               %%% MsgUtil | getConnection 127.0.0.1:8053[0m
+[36m               %%% MsgUtil | getConnection Socket[addr=/127.0.0.1,port=8053,localport=35342][0m
+[37m               %%% NodeProxy proxyctxrobot | in ctxdevices PROXY ACTIVATED TO 127.0.0.1:8053 [0m
+[33m    +++ TcpConnection | receiveMsg.....  in DefaultDispatcher-worker-5[0m
+[33m               sysUtil  | createActor class for it.unibo.cargoservice.Cargoservice   class it.unibo.cargoservice.Cargoservice[0m
+[35mcargoservice | STARTED[0m
+[34mcargoservice | DISENGAGED: waiting for requests...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | DISENGAGED: waiting for requests...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | DISENGAGED: waiting for requests...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | DISENGAGED: waiting for requests...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | DISENGAGED: waiting for requests...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | DISENGAGED: waiting for requests...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | DISENGAGED: waiting for requests...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | DISENGAGED: waiting for requests...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | DISENGAGED: waiting for requests...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | DISENGAGED: waiting for requests...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | DISENGAGED: waiting for requests...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | DISENGAGED: waiting for requests...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | DISENGAGED: waiting for requests...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | DISENGAGED: waiting for requests...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | DISENGAGED: waiting for requests...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | DISENGAGED: waiting for requests...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | DISENGAGED: waiting for requests...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | DISENGAGED: waiting for requests...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | DISENGAGED: waiting for requests...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | DISENGAGED: waiting for requests...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | DISENGAGED: waiting for requests...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | DISENGAGED: waiting for requests...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | DISENGAGED: waiting for requests...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | DISENGAGED: waiting for requests...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | DISENGAGED: waiting for requests...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | DISENGAGED: waiting for requests...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | DISENGAGED: waiting for requests...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | DISENGAGED: waiting for requests...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | DISENGAGED: waiting for requests...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | DISENGAGED: waiting for requests...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | DISENGAGED: waiting for requests...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | DISENGAGED: waiting for requests...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | DISENGAGED: waiting for requests...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | DISENGAGED: waiting for requests...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | DISENGAGED: waiting for requests...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | DISENGAGED: waiting for requests...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | DISENGAGED: waiting for requests...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | DISENGAGED: waiting for requests...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | DISENGAGED: waiting for requests...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | DISENGAGED: waiting for requests...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | DISENGAGED: waiting for requests...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | DISENGAGED: waiting for requests...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | DISENGAGED: waiting for requests...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | DISENGAGED: waiting for requests...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | DISENGAGED: waiting for requests...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | DISENGAGED: waiting for requests...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | DISENGAGED: waiting for requests...[0m
+[33mtcpSrv | TcpServer 8050 accepted connection on 34454 with userDefHandler=ctxcargoserviceMsgH thname=tcpSrv[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-9[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-9[0m
+[33mcargoservice in handle_load_request | msg(load_request,request,ioportgui,cargoservice,loadRequest(none),0) | qakcpuspool-10 n=32[0m
+[34mcargoservice | ENGAGED: evaluating next step...[0m
+[36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+[31m    +++ TcpConnection | receiveMsg  ERROR:Cannot invoke "String.length()" because "line" is null[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | ENGAGED: evaluating next step...[0m
+[36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | ENGAGED: evaluating next step...[0m
+[36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | ENGAGED: evaluating next step...[0m
+[36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | ENGAGED: evaluating next step...[0m
+[36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | ENGAGED: evaluating next step...[0m
+[36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | ENGAGED: evaluating next step...[0m
+[36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | ENGAGED: evaluating next step...[0m
+[36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | ENGAGED: evaluating next step...[0m
+[36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | ENGAGED: evaluating next step...[0m
+[36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | ENGAGED: evaluating next step...[0m
+[36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | ENGAGED: evaluating next step...[0m
+[36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | ENGAGED: evaluating next step...[0m
+[36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | ENGAGED: evaluating next step...[0m
+[36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | ENGAGED: evaluating next step...[0m
+[36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | ENGAGED: evaluating next step...[0m
+[36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | ENGAGED: evaluating next step...[0m
+[36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | ENGAGED: evaluating next step...[0m
+[36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | ENGAGED: evaluating next step...[0m
+[36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | ENGAGED: evaluating next step...[0m
+[36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | ENGAGED: evaluating next step...[0m
+[36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | ENGAGED: evaluating next step...[0m
+[36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | ENGAGED: evaluating next step...[0m
+[36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | ENGAGED: evaluating next step...[0m
+[36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | ENGAGED: evaluating next step...[0m
+[36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | ENGAGED: evaluating next step...[0m
+[36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | ENGAGED: evaluating next step...[0m
+[36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | ENGAGED: evaluating next step...[0m
+[36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | ENGAGED: evaluating next step...[0m
+[36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | ENGAGED: evaluating next step...[0m
+[36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | ENGAGED: evaluating next step...[0m
+[36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | ENGAGED: evaluating next step...[0m
+[36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | ENGAGED: evaluating next step...[0m
+[36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | ENGAGED: evaluating next step...[0m
+[36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | ENGAGED: evaluating next step...[0m
+[36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | ENGAGED: evaluating next step...[0m
+[36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | ENGAGED: evaluating next step...[0m
+[36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | ENGAGED: evaluating next step...[0m
+[36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | ENGAGED: evaluating next step...[0m
+[36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | ENGAGED: evaluating next step...[0m
+[36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | ENGAGED: evaluating next step...[0m
+[36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | ENGAGED: evaluating next step...[0m
+[36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | ENGAGED: evaluating next step...[0m
+[36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | ENGAGED: evaluating next step...[0m
+[36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | ENGAGED: evaluating next step...[0m
+[36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice | Sonar D>DFREE (80 > 20) sostenuto per 3s -> OUT OF SERVICE!
+[34mcargoservice | ENGAGED: evaluating next step...[0m
+[36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-4[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | ENGAGED: evaluating next step...[0m
+[36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | ENGAGED: evaluating next step...[0m
+[36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | ENGAGED: evaluating next step...[0m
+[36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | ENGAGED: evaluating next step...[0m
+[36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | ENGAGED: evaluating next step...[0m
+[36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | ENGAGED: evaluating next step...[0m
+[36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | ENGAGED: evaluating next step...[0m
+[36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | ENGAGED: evaluating next step...[0m
+[36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | ENGAGED: evaluating next step...[0m
+[36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | ENGAGED: evaluating next step...[0m
+[36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | ENGAGED: evaluating next step...[0m
+[36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | ENGAGED: evaluating next step...[0m
+[36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | ENGAGED: evaluating next step...[0m
+[36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+[31mcargoservice | Deposit timeout! Freeing reserved slot1.[0m
+[34mcargoservice | DISENGAGED: waiting for requests...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | DISENGAGED: waiting for requests...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice | Sonar D<=DFREE (5 <= 20) -> SERVICE WORKING again!
+[34mcargoservice | DISENGAGED: waiting for requests...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | DISENGAGED: waiting for requests...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | DISENGAGED: waiting for requests...[0m
+[34mcargoservice | DISENGAGED: waiting for requests...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | DISENGAGED: waiting for requests...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | DISENGAGED: waiting for requests...[0m
+[33mtcpSrv | TcpServer 8050 accepted connection on 59064 with userDefHandler=ctxcargoserviceMsgH thname=tcpSrv[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-10[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-10[0m
+[33mcargoservice in handle_load_request | msg(load_request,request,ioportgui,cargoservice,loadRequest(none),1) | qakcpuspool-7 n=32[0m
+[34mcargoservice | ENGAGED: evaluating next step...[0m
+[36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+[31m    +++ TcpConnection | receiveMsg  ERROR:Cannot invoke "String.length()" because "line" is null[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | ENGAGED: evaluating next step...[0m
+[36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | ENGAGED: evaluating next step...[0m
+[36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | ENGAGED: evaluating next step...[0m
+[36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | ENGAGED: evaluating next step...[0m
+[36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | ENGAGED: evaluating next step...[0m
+[36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[34mcargoservice | ENGAGED: evaluating next step...[0m
+[36mcargoservice | Waiting for container to be deposited on IOPort (Max 30s)...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[35mcargoservice | Container inside area! Robot moving to IOPort (4,0)...[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice | Sonar D>DFREE (80 > 20) sostenuto per 3s -> OUT OF SERVICE!
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-4[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+cargoservice | Sonar D<=DFREE (15 <= 20) -> SERVICE WORKING again!
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+               %%%  ActorBasicFsm cargoservice|wait_do_robot_job:adds msg(deposit_timeout_msg,dispatch,cargoservice,cargoservice,depositTimeout(none),24) in msgQueueStore
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
+[33m    +++ TcpConnection | receiveMsg.....  in Thread-3[0m
