@@ -14,3 +14,16 @@ METTERE MAIUSCOLE OVUNQUE
 Cambiamenti riga 235
 
 Il backend assume il ruolo di adattatore di protocollo (bridge): traduce le richieste HTTP provenienti dalla GUI nelle corrispondenti Request QAK verso il cargoservice (via TCP), e inoltra al browser, tramite WebSocket, gli aggiornamenti di stato ricevuti dal cargoservice mediante CoAP Observe.
+
+
+
+Riga 256:
+
+2. Si introduce quindi un *adapter*, un componente dedicato (*sonaradapter*) che svolge esclusivamente il compito di integrazione tra il dispositivo fisico e il sistema esistente. Esso, similmente al mock riceve le misurazioni pubblicate dall'ESP32 tramite MQTT, converte il payload ricevuto nel formato previsto dal modello e inoltra le informazioni al cargoservice mediante il dispatch incoming_sonar.   ---> ma il mock non riceveva misurazioni da un esp32 tramite mqtt, non sono simili!
+
+
+riga 479:
+- `sonardata` per le misurazioni del sonar;
+sonardata non esiste
+
+va aggiornata tutta l'ultima parte --> la sezione project non la abbiamo tipo già fatta
