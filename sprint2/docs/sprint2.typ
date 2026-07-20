@@ -390,19 +390,90 @@ La soluzione più valida resta, come nel sonar, l'introduzione di un *adapter* c
 
 Nello Sprint 1 il *cargoservice* inviava a `ledmock` il dispatch che rappresentava le operazioni logiche di `off` e `blink`. Esso viene mantenuto come interfaccia logica utilizzata da cargoservice.
 
-```qak
-Dispatch led_ctrl : ledCmd(CMD)
-```
-
 L'adapter riceve il comando e lo pubblica su un topic MQTT dedicato al LED. Il software sull'ESP32 si sottoscrive al topic e traduce il valore ricevuto nell'operazione hardware corrispondente.
 
-La catena logica diventa quindi:
+```qak
+Dispatch led_ctrl : ledCmd(CMD)
+Event    led_event     : ledCmd(CMD)
 
-```text
-cargoservice -> led_ctrl -> adattatore MQTT -> PicoW -> LED
+QActor ledadapter context ctxdevices {
+
+    State s0 initial {
+        println("ledadapter | STARTED - Routing dispatches to MQTT events on topic: leddata") color green
+    }
+    Goto work
+
+    State work { }
+    Transition t0
+        whenMsg led_ctrl -> handle_led_cmd
+
+    State handle_led_cmd {
+        onMsg(led_ctrl : ledCmd(CMD)) {
+            [# val CMD = payloadArg(0) #]
+            println("ledadapter | Publishing LED command on MQTT: $CMD") color blue
+            emit led_event : ledCmd($CMD)
+        }
+    }
+
+    Goto work
+}
 ```
 
-INSERISCI SNIPPET COMPLETO DELL ADAPTER + PARTE IN CUI IL CRGOSERVICE LO USA
+Il *cargoservice* interagisce con l'attore esterno in questo modo:
+
+Accensione del LED dopo l'accettazione della richiesta:
+
+```
+ReservedSlotId = SlotId
+CargoState = "engaged"
+
+forward ledadapter -m led_ctrl : ledCmd(blink)
+[# val SlotName = "slot$ReservedSlotId" #]
+replyTo load_request with load_accepted : loadAccepted($SlotName)
+```
+
+Spegnimento del LED al completamento del servizio:
+
+```
+State finish_job {
+    ...
+    [#
+        CargoState = "disengaged"
+        ReservedSlotId = -1
+    #]
+    forward ledadapter -m led_ctrl : ledCmd(off)
+    ...
+}
+```
+Spegnimento del LED in caso di errore durante il ritorno alla Home:
+
+```
+State handle_home_fail {
+    ...
+    [#
+        CargoState = "disengaged"
+        ReservedSlotId = -1
+    #]
+    forward ledadapter -m led_ctrl : ledCmd(off)
+    ...
+}
+```
+Spegnimento del LED per timeout del deposito:
+
+```
+State handle_deposit_timeout {
+    if [# CargoState == "engaged" && !IOPortOccupied #] {
+        ...
+        [#
+            Hold.freeSlot(ReservedSlotId)
+            CargoState = "disengaged"
+            ReservedSlotId = -1
+        #]
+        forward ledadapter -m led_ctrl : ledCmd(off)
+        ...
+    }
+}
+```
 
 // =============================================================================
 == Gestione dello stato Out of service
