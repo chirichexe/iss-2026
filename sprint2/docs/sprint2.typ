@@ -146,11 +146,11 @@ La Web GUI deve infatti poter ricevere gli aggiornamenti quando esso cambia.
 
 Le principali alternative sono:
 
-1. Utilizzare *HTTP tradizionale*, interrogando periodicamente il cargoservice mediante richieste GET (polling). Tale soluzione risulta però inefficiente, poiché genera richieste anche quando lo stato del sistema rimane invariato, aumentando il traffico di rete e il carico sui componenti coinvolti.
+1. Utilizzare il protocollo *HTTP tradizionale*, interrogando periodicamente il cargoservice mediante richieste GET (polling). Tale soluzione risulta però inefficiente, poiché genera richieste anche quando lo stato del sistema rimane invariato, aumentando il traffico di rete e il carico sui componenti coinvolti.
 
-2. Utilizzare *MQTT* pubblicando un messaggio ogni volta che lo stato cambia. MQTT, nonostante permetta notifiche push, richiede di modellare lo stato come una sequenza di pubblicazioni su topic. Tale approccio risulta meno naturale poiché lo stato della Hold rappresenta una risorsa persistente piuttosto che una successione di eventi.
+2. Utilizzare il protocollo *MQTT* pubblicando un messaggio ogni volta che lo stato cambia. MQTT, nonostante permetta notifiche push, richiede di modellare lo stato come una sequenza di pubblicazioni su topic. Tale approccio risulta meno naturale poiché lo stato della Hold rappresenta una risorsa persistente piuttosto che una successione di eventi.
 
-3. Utilizzare *CoAP* sfruttando il meccanismo Observe già supportato dal runtime QAK. questo approccio risulta particolarmente adatto poiché il runtime QAK permette già di esporre le risorse degli attori mediante il protocollo Observe. Il *cargoservice* può quindi limitarsi ad aggiornare la propria risorsa ogni volta che lo stato cambia, i client si "iscriveranno" ad essa ricevendo automaticamente la nuova rappresentazione. Si sceglie pertanto la seguente soluzione.
+3. Utilizzare il protocollo *CoAP* sfruttando l'estensione Observe già supportato dal runtime QAK. Questo approccio risulta particolarmente adatto poiché il runtime QAK rende gli attori risorse CoAP nativamente "osservabili". Observe è un'estensione del protocollo CoAP che permette una comunicazione asincrona (di tipo publish-subscribe) permettendo al nostro web server di osservare gli attori venendo notificato (tramite la funzione nativa di QAK updateResource) ogni volta che lo stato cambia (senza quindi dover fare polling). Il *cargoservice* può quindi limitarsi ad aggiornare la propria risorsa ogni volta che lo stato cambia, i client si "iscriveranno" ad essa ricevendo automaticamente la nuova rappresentazione. Si sceglie pertanto la seguente soluzione.
 
 Il *cargoservice* rende quindi disponibile il proprio stato sotto forma di documento JSON, aggiornando la risorsa (unicamente quando avviene una variazione significativa) tramite la primitiva `updateResource(...)`.
 
@@ -232,7 +232,7 @@ In questo modo il server, dopo aver ricevuto l'aggiornamento dello stato del *ca
 
 Nei primi sprint l'IOPort era stata modellata come un attore QAK esclusivamente per simulare il comportamento dell'interfaccia utente durante la prototipazione del sistema, verificando velocemente l'interazione con il cargoservice. Con l'introduzione della Web GUI questa modellazione non risulta più necessaria. Il precedente attore QAK viene perciò rimosso e sostituito da una architettura client-server composta da frontend e backend (il quale interagisce con il cargoservice).
 
-Il backend assume il ruolo precedentemente svolto dall'attore IOPort, quindi traduce le richieste HTTP della GUI nelle corrispondenti Request QAK verso il cargoservice e propaga verso il browser gli aggiornamenti ricevuti tramite CoAP Observe
+Il backend assume il ruolo di adattatore di protocollo (bridge): traduce le richieste HTTP provenienti dalla GUI nelle corrispondenti Request QAK verso il cargoservice (via TCP), e inoltra al browser, tramite WebSocket, gli aggiornamenti di stato ricevuti dal cargoservice mediante CoAP Observe.
 
 Il contesto "ctxioport" rappresentava il nodo di esecuzione dell'attore ioport ma, poichè ora l'interfaccia utente è realizzata come applicazione web esterna al sistema QAK, essa non necessita più di un context dedicato. Il backend IOPort costituisce un processo separato che comunica con il sistema mediante protocolli standard: HTTP, WebSocket e CoAP.
 
