@@ -230,7 +230,7 @@ Con l'introduzione del sonar reale, collegato a un dispositivo ESP32, questo app
 
 Le misurazioni rilevate dal sonar vengono quindi pubblicate dall'ESP32 su un topic MQTT dedicato (detto *sonardata*), al quale i componenti interessati del sistema possono iscriversi per ricevere gli aggiornamenti in modo disaccoppiato rispetto al dispositivo fisico.
 
-Per far sì che il cargoservice riceva i messaggi, una soluzione possibile sarebbe quella di introdurre un componente dedicato `sonaradapter`, simile al `sonarmock` dello Sprint 1, che svolge il compito di integrazione tra il dispositivo fisico e il sistema esistente. Esso potrebbe ricevere le misurazioni pubblicate dall'ESP32 tramite MQTT e inoltrare le informazioni al cargoservice mediante dispatch, modellando quindi una comunicazione affine a quella dei mock. Tuttavia, considerando che *QAK supporta nativamente il protocollo MQTT* (consentendo a un *attore* di iscriversi o di emettere eventi su un topic), tale proposta creerebbe dell'overhead di comunicazione. Risulta infatti più opportuno (e più semplice) modificare il cargoservice affinché, al posto di ricevere messaggi da un qualche attore "sonar", stabilisca la connessione al broker tramite la dichiarazione `mqttBroker` e riceva direttamente i messaggi MQTT sul topic dedicato. 
+Per far sì che il cargoservice riceva i messaggi, una soluzione possibile sarebbe quella di introdurre un componente dedicato `sonaradapter`, simile al `sonarmock` dello Sprint 1, che svolge il compito di integrazione tra il dispositivo fisico e il sistema esistente. Esso potrebbe ricevere le misurazioni pubblicate dall'ESP32 tramite MQTT e inoltrare le informazioni al cargoservice mediante dispatch, modellando quindi una comunicazione affine a quella dei mock. Tuttavia, considerando che *QAK supporta nativamente il protocollo MQTT* (consentendo a un *attore* di iscriversi o di emettere eventi su un topic), tale proposta creerebbe dell'overhead di comunicazione. Risulta infatti più opportuno (e più semplice) sfruttare il supporto nativo di QAK per MQTT e modificare il cargoservice affinché, al posto di ricevere messaggi da un qualche attore "sonar", stabilisca la connessione al broker tramite la dichiarazione `mqttBroker` e riceva direttamente i messaggi MQTT sul topic dedicato. 
 
 Il codice dell'ESP32 che gestisce il sonar si trova al seguente #link("https://github.com/chirichexe/iss-2026/blob/main/sprint2/prototype/esp32/main.py")[link].
 
@@ -479,13 +479,6 @@ Al termine dell'avvio, le interfacce grafiche del sistema sono accessibili dal b
 = Pagina di sintesi
 // =============================================================================
 
-== Architettura finale dello Sprint 2
-
-#nota[Da completare con l'architettura finale prodotta nello Sprint 2.]
-
-== Goal dello sprint successivo
-
-#nota[Da completare al termine dello Sprint 2.]
 
 // -----------------------------------------------------------------------------
 // Allegati - Team di lavoro
