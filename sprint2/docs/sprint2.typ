@@ -222,10 +222,6 @@ Il contesto "ctxioport" rappresentava il nodo di esecuzione dell'attore ioport m
 == Integrazione del sonar reale
 // =============================================================================
 
-// =============================================================================
-== Integrazione del sonar reale
-// =============================================================================
-
 Nello sprint precedente, il sonar era stato modellato tramite l'attore `sonarmock`, il quale simulava il comportamento del dispositivo fisico generando eventi di tipo `sonardata` intercettati dal `cargoservice`.
 
 Con l'introduzione del sonar reale, collegato a un dispositivo ESP32, questo approccio non è più applicabile. Infatti non è possibile eseguire codice QAK direttamente da ESP32 e comunicare tramite messaggi verso il `cargoservice`. Verrà quindi realizzato uno script in un linguaggio da esso comprensibile (*MicroPython*) con il compito di acquisire periodicamente la distanza rilevata dal sensore e rendere disponibili tali informazioni al sistema distribuito. 
@@ -337,7 +333,7 @@ Nello Sprint 1 il *cargoservice* aggiornava la variabile `ServiceWorking` sulla 
 
 Nello Sprint 2 il comportamento viene completato nel seguente modo:
 
-- se il robot è in movimento e il sistema entra in stato *Out of Service* secondo le mdalità già implementate, il piano deve essere interrotto;
+- se il robot è in movimento e il sistema entra in stato *Out of Service* secondo le modalità già implementate, il piano deve essere interrotto;
 - quando il sonar torna a misurare `D <= D_FREE`, il sistema ritorna nello stato *Service working*;
 - se un movimento era stato interrotto, deve essere ripreso.
 
@@ -348,10 +344,22 @@ Si noti che la gestione richiede di distinguere almeno due situazioni:
 
 Nel primo caso è sufficiente aggiornare lo stato operativo e impedire l'accettazione di nuove richieste (già implementato).
 
-Nel secondo caso il *cargoservice* deve inoltre richiedere l'interruzione del movimento e ricordare che esiste una procedura sospesa. Al ripristino del servizio, il movimento viene ripreso secondo le operazioni offerte da *RobotSmart26*.
+Nel secondo caso il *cargoservice* deve inoltre richiedere l'interruzione del movimento e ricordare che esiste una procedura sospesa. Al ripristino del servizio, il movimento viene ripreso. Per attuare l'interruzione durante l'esecuzione di un piano, è stato introdotto l'uso dell'evento `alarm`, il quale consente di interrompere immediatamente il robot.
+
+Il flusso di interruzione e ripresa opera nel seguente modo:
+
+1. Dopo aver raggiunto la condizione di *Out of service*, il `cargoservice` invia il comando asincrono `stop_robot` all'attore `cargorobot`.
+
+2. Alla ricezione dello `stop_robot`, l'attore `cargorobot` imposta internamente lo stato `Stopped = true` ed emette l'evento globale 
+`alarm : alarm(stop)`.
+
+3. L'attore `planexec` (interno a `robotsmart26`), che sta eseguendo il piano mossa per mossa, intercetta l'evento `alarm` 
+arrestando l'invio dei successivi comandi di movimento al robot fisico
+
+4. Quando il sistema torna in stato "Service Working", il `cargoservice` invia il comando `resume_robot` a `cargorobot` che reinvia la richiesta `moverobot` .
 
 
-CONTINUA...
+Il link al codice di cargorobot è il seguente #link("https://github.com/chirichexe/iss-2026/blob/main/sprint2/prototype/cargorobot/src/cargorobot.qak")[link].
 
 // =============================================================================
 == Architettura finale dello Sprint 2
@@ -361,28 +369,6 @@ CONTINUA...
   image("../../utils/static/architettura_sprint2.png"),
   caption: [Architettura finale definita nello Sprint 2.]
 )
-
-/*
-// =============================================================================
-= Project
-// =============================================================================
-
-== Struttura del progetto
-
-#nota[Da completare con la struttura finale dei moduli e con i riferimenti ai sorgenti implementati nello Sprint 2.]
-
-== Implementazione dell'IOPort
-
-#nota[Da completare.]
-
-== Implementazione dei dispositivi reali
-
-#nota[Da completare.]
-
-== Implementazione della gestione Out of service
-
-#nota[Da completare.]
-*/
 
 // =============================================================================
 = Test plans <testplan>
