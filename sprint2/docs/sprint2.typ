@@ -17,9 +17,9 @@
 = Introduction
 // =============================================================================
 
-Il punto di partenza di questo sprint è il prototipo realizzato nello Sprint 1, documentato al seguente #link("https://github.com/chirichexe/iss-2026/blob/main/sprint1/docs/sprint1.pdf")[link].
+Il punto di partenza di questo Sprint è il prototipo realizzato nello Sprint 1, documentato al seguente #link("https://github.com/chirichexe/iss-2026/blob/main/sprint1/docs/sprint1.pdf")[link].
 
-Lo Sprint 1 ha prodotto un prototipo eseguibile del *cargoservice* in cui il ciclo principale di carico viene gestito tramite attori QAK, con componenti simulati per IOPort, sonar, LED e markerdevice, e con il *cargorobot* modellato come wrapper del servizio *robotsmart26*.
+Lo Sprint 1 ha prodotto un prototipo eseguibile del *cargoservice* in cui il ciclo principale di carico viene gestito tramite attori QAK, con componenti simulati per IOPort, sonar e LED, e con il *cargorobot* modellato come wrapper del servizio esterno *robotsmart26*.
 
 L'architettura finale dello Sprint 1, riportata di seguito, costituisce il riferimento di partenza per lo Sprint 2.
 
@@ -31,9 +31,9 @@ L'architettura finale dello Sprint 1, riportata di seguito, costituisce il rifer
 
 == Goal dello Sprint 2
 
-Il goal dello Sprint 2 è quello definito nella pagina di sintesi dello Sprint 1.
+Il goal dello Sprint 2 è quello definito nella pagina di sintesi dello Sprint 1, ovvero:
 
-L'obiettivo dello Sprint 2 è evolvere il prototipo sviluppato sostituendo progressivamente i componenti simulati con le rispettive implementazioni reali:
+evolvere il prototipo sviluppato sostituendo progressivamente i componenti simulati con le rispettive implementazioni reali:
 
 - IOPort come Web GUI;
 - sonar e LED collegati al PicoW;
@@ -86,23 +86,21 @@ L'analisi dei requisiti è stata svolta nello #link("https://github.com/chiriche
 
 Come definito precedentemente, bisogna sostituire progressivamente i componenti simulati con componenti accessibili attraverso tecnologie compatibili con la loro natura.
 
-#nota("Il nostro team di sviluppo ha utilizzato una scheda *ESP32* invece del *Raspberry Pi Pico W* indicato dalla committente. L'architettura resta sostanzialmente invariata: anche ESP32 ha connettività ad internet, supporta MicroPython, ha un LED, dispone dei GPIO necessari per il sensore HC-SR04 e offre prestazioni generalmente superiori.
+Il nostro team di sviluppo ha utilizzato una scheda *ESP32* invece del *Raspberry Pi Pico W* indicato dalla committente. L'architettura resta sostanzialmente invariata: anche ESP32 ha connettività ad internet, supporta MicroPython, ha un LED, dispone dei GPIO necessari per il sensore HC-SR04 e offre prestazioni generalmente superiori.
 
-L'unica differenza riguarda aspetti implementativi, come la diversa numerazione dei pin e l'assenza di moduli specifici del Pico W (ad esempio rp2). Tuttavia, tali differenze non incidono sul progetto.")
+L'unica differenza riguarda aspetti implementativi, come la diversa numerazione dei pin e l'assenza di moduli specifici del Pico W (ad esempio rp2). Tuttavia, tali differenze non incidono sul progetto.
 
 // =============================================================================
 == Osservabilità dello stato della Hold e considerazioni sulla Web GUI
 // =============================================================================
 
-Nello Sprint 1, l'IOPort era modellato come un attore QAK "mock" all'interno dello stesso contesto dell hold. Questa vicinanza tecnologica permetteva all'IOPort di reagire direttamente ai singoli eventi e messaggi asincroni scambiati sulla rete di attori. 
+Nello Sprint 1, l'IOPort era modellato come un attore QAK "mock" all'interno dello stesso contesto del cargoservice. Questa vicinanza tecnologica permetteva all'IOPort di reagire direttamente ai singoli eventi e messaggi asincroni scambiati sulla rete di attori. 
 
 Adesso l'IOPort evolve in una Web GUI eseguita in un browser web esterno. Questa transizione fisica e architetturale solleva una problematica fondamentale che rende i messaggi QAK nativi inadeguati per l'aggiornamento dell'interfaccia:
 
-Se infatti il modello QAK descrive l'evoluzione del sistema tramite *messaggi*, una Web GUI deve invece rappresentare lo stato corrente del sistema in un *determinato istante*. Ricostruire tale stato elaborando l'intera sequenza dei messaggi risulterebbe complesso e renderebbe il frontend dipendente dalla logica degli attori. È quindi necessario introdurre una rappresentazione esplicita e serializzata dello stato del sistema, così da lasciare alla GUI l'unico ruolo di associare i dati ricevuti sui componenti grafici. Il *cargoservice* continuerà a gestire le transizioni di stato.
+Il modello QAK descrive infatti l'evoluzione del sistema tramite *messaggi*, mentre una Web GUI può rappresentare lo stato corrente del sistema in un *determinato istante*. Ricostruire tale stato elaborando l'intera sequenza dei messaggi risulterebbe complesso e renderebbe il frontend dipendente dalla logica degli attori. È quindi utile introdurre una rappresentazione esplicita e serializzata dello stato del sistema, così da lasciare alla GUI l'unico ruolo di "riempire" i componenti grafici con i dati ricevuti. Il *cargoservice* continuerà a gestire le transizioni di stato. In questo modo, le responsabilità del componente operativo e di quello adibito alla visualizzazione grafica restano chiaramente separate.
 
-Bisogna considerare lo *stato della Hold* come una vera e propria risorsa del sistema, mantenuta dal cargoservice e resa disponibile ai componenti esterni. Questa soluzione separa chiaramente responsabilità e livelli di astrazione: il cargoservice continua ad essere l'unico responsabile dell'evoluzione dello stato, mentre la GUI si limita esclusivamente alla sua rappresentazione grafica.
-
-Lo stato dinamico della *Hold* e del sistema viene astratto e centralizzato in una rappresentazione serializzabile in formato *JSON* (mediante il metodo `toJson`), indipendente dal linguaggio di programmazione e direttamente interpretabile dal motore del client da noi scelto, ovvero JavaScript.
+Lo stato dinamico del *sistema* viene perciò astratto e centralizzato in una rappresentazione serializzabile in formato *JSON* (mediante un metodo apposito), direttamente interpretabile dal motore del client da noi scelto, ovvero *JavaScript*.
 
 ```java
 public static String toJson(String serviceState, String workingState, boolean ioPortOccupied, int reservedSlot) {
@@ -126,25 +124,25 @@ Esempio di JSON creato dal metodo `toJson`:
 }
 ```
 
-Il codice della classe `Hold` si trova al seguente #link("https://github.com/chirichexe/iss-2026/blob/main/sprint2/prototype/cargoservice/src/Hold.java")[link].
-
 Il cargoservice si assume la responsabilità di rigenerare questa stringa JSON e di notificarla all'esterno ogni volta che si verifica una variazione significativa del sistema (es. transizione tra gli stati engaged/disengaged, variazione delle distanze del sonar, ingresso/uscita dallo stato Out of service o completamento del deposito).
+
+Il codice completo dell'attore *cargoservice* è disponibile al seguente 
+#link("https://github.com/chirichexe/iss-2026/blob/main/sprint2/prototype/cargoservice/src/cargoservice.qak")[link].
+
 
 // =============================================================================
 == Protocolli per l'esposizione dello stato
 // =============================================================================
 
-Una volta stabilito che lo stato del *cargoservice* e della *Hold* debbano essere rappresentati come una risorsa osservabile, occorre individuare il protocollo più adatto per renderla disponibile all'esterno del sistema.
-
-La Web GUI deve infatti poter ricevere gli aggiornamenti quando esso cambia.
+Una volta stabilito che lo stato del *cargoservice* e della *Hold* debbano essere rappresentati come una risorsa osservabile, occorre individuare il protocollo più adatto per renderla disponibile dalla Web GUI.
 
 Le principali alternative sono:
 
 1. Utilizzare il protocollo *HTTP tradizionale*, interrogando periodicamente il cargoservice mediante richieste GET (polling). Tale soluzione risulta però inefficiente, poiché genera richieste anche quando lo stato del sistema rimane invariato, aumentando il traffico di rete e il carico sui componenti coinvolti.
 
-2. Utilizzare il protocollo *MQTT* pubblicando un messaggio ogni volta che lo stato cambia. MQTT, nonostante permetta notifiche push, richiede di modellare lo stato come una sequenza di pubblicazioni su topic. Tale approccio risulta meno naturale poiché lo stato della Hold rappresenta una risorsa persistente piuttosto che una successione di eventi.
+2. Utilizzare il protocollo *MQTT* pubblicando un messaggio ogni volta che lo stato cambia. MQTT, nonostante permetta notifiche push, richiede di modellare lo stato come una sequenza di pubblicazioni su topic, il che risultrebbe meno naturale poiché lo stato da rappresentare è piu una risorsa persistente.
 
-3. Utilizzare il protocollo *CoAP* sfruttando l'estensione Observe già supportato dal runtime QAK. Questo approccio risulta particolarmente adatto poiché il runtime QAK rende gli attori risorse CoAP nativamente "osservabili". Observe è un'estensione del protocollo CoAP che permette una comunicazione asincrona (di tipo publish-subscribe) permettendo al nostro web server di osservare gli attori venendo notificato (tramite la funzione nativa di QAK updateResource) ogni volta che lo stato cambia (senza quindi dover fare polling). Il *cargoservice* può quindi limitarsi ad aggiornare la propria risorsa ogni volta che lo stato cambia, il client si "iscriverà" ad essa ricevendo automaticamente la nuova rappresentazione solo quando necessario. Il *cargoservice* rende quindi disponibile il proprio stato sotto forma di documento JSON, aggiornando la risorsa (unicamente quando avviene una variazione significativa) tramite la primitiva `updateResource(...)`. Si sceglie pertanto la seguente soluzione.
+3. Utilizzare il protocollo *CoAP*. Questo approccio risulta particolarmente adatto, poiché il runtime QAK rende gli attori risorse CoAP nativamente "osservabili". Observe è un'estensione del protocollo CoAP che permette una comunicazione asincrona (di tipo publish-subscribe) permettendo al "client" di venire notificato dagli attori (tramite la funzione nativa di QAK `updateResource`) ogni volta che lo stato cambia (senza quindi dover fare polling). Il *cargoservice* si limiterà ad aggiornare lo stato, il client si "iscriverà" ad esso ricevendo automaticamente la nuova rappresentazione solo quando necessario. Come definito in precedenta, lo stato sarà esposto sotto forma di documento JSON.
 
 Esempio: trasizione stato engaged/disengaged
 ```qak
@@ -162,8 +160,6 @@ State engaged {
 Goto do_robot_job if [# IOPortOccupied && CargoState == "engaged" && ServiceWorking #] else wait_for_container
 ```
 
-Il codice completo dell'attore *cargoservice* è disponibile al seguente 
-#link("https://github.com/chirichexe/iss-2026/blob/main/sprint2/prototype/cargoservice/src/cargoservice.qak")[link].
 
 Rimane da risolvere il problema della comunicazione tra il mondo QAK e il browser.
 
@@ -185,19 +181,20 @@ Viene perciò introdotto un server chiamato *ioport-backend* con il compito di:
 
 L'IOPort richiesto dalla committente è costituito logicamente da:
 
-- un pushbutton, utilizzato dal cliente per inviare una richiesta di carico di un container;
-- un display, utilizzato per mostrare la risposta alla richiesta e lo stato corrente della hold.
+- un pushbutton, utilizzato dal cliente per inviare una *load_request*;
+- un display, utilizzato per mostrare la risposta alla richiesta e lo stato corrente del servizio e della hold.
 
 La sua implementazione viene suddivisa in due parti:
 
 - una pagina web eseguita nel browser (disponibile al seguente #link("https://github.com/chirichexe/iss-2026/blob/main/sprint2/prototype/ioport-frontend/")[link]). Si utilizza il motore JavaScript nativo per la gestione della logica di interazione con l'utente e per la visualizzazione dello stato del sistema. I dati verranno visualizzati su una pagina HTML.
-- un server intermediario (IOPort backend) che collega il browser al sistema QAK (disponibile al seguente #link("https://github.com/chirichexe/iss-2026/blob/main/sprint2/prototype/ioport-backend/")[link]) e che funge da web server per la pagina web. Si è scelto di utilizzare Javalin, un framework leggero per la creazione di web server in Java, che permette di gestire facilmente le richieste HTTP. Per implementare il meccanismo di Observe di CoAP si utilizzano specifiche funzioni di libreria (il codice della gestione dell'Observer si trova al seguente #link("https://github.com/chirichexe/iss-2026/blob/main/sprint2/prototype/ioport-backend/src/main/java/it/unibo/guiserver/CoapObserver.java")[link]).
+
+- un server intermediario che collega il browser al sistema QAK (disponibile al seguente #link("https://github.com/chirichexe/iss-2026/blob/main/sprint2/prototype/ioport-backend/")[link]) e che funge da web server per la pagina web. Si è scelto di utilizzare Javalin, un framework leggero per la creazione di web server in Java, che permette di gestire facilmente le richieste HTTP. Per implementare il meccanismo di Observe di CoAP si utilizzano specifiche funzioni di libreria.
 
 === Invio della load_request
 
-Quando il cliente preme il pulsante, la GUI invia una richiesta HTTP `POST` al server intermediario.
+Quando il cliente preme il pulsante per la richiesta di carico, la GUI invia una richiesta HTTP `POST` al server intermediario.
 
-Il server traduce tale richiesta in una `load_request` indirizzata al *cargoservice* e attende una delle risposte già definite nello Sprint 0 (il codice della gestione della `load_request` si trova al seguente #link("https://github.com/chirichexe/iss-2026/blob/main/sprint2/prototype/ioport-backend/src/main/java/it/unibo/guiserver/HttpController.java")[link]):
+Il server traduce tale richiesta in una `load_request` indirizzata al *cargoservice* e attende una delle risposte già definite nello Sprint 0.
 
 La risposta viene quindi restituita alla GUI e mostrata sul display.
 
@@ -207,62 +204,45 @@ Questa soluzione mantiene invariato il protocollo applicativo QAK già validato 
 
 Per effettuare l'aggiornamento dello stato sul display si potrebbe:
 
-1. utilizzare un polling periodico da parte della GUI, che interroga il server per verificare eventuali variazioni dello stato, anche in questo caso, notoriamente pesante come meccanismo;
+1. utilizzare un polling periodico da parte della GUI, che interroga il backend per verificare eventuali variazioni dello stato ricavate tramite CoAP dal *cargoservice*, anche in questo caso, notoriamente pesante come meccanismo;
 
-2. utilizzare WebSocket, che realizza invece una comunicazione bidirezionale permanente, permettendo al server di notificare immediatamente ogni aggiornamento ricevuto tramite CoAP Observe.
+2. utilizzare *WebSocket*, un meccanismo che realizza una comunicazione bidirezionale permanente, permettendo al server di notificare immediatamente ogni aggiornamento ricevuto tramite CoAP. Si sceglie tale soluzione in quanto più efficiente e reattiva.
 
-Si sceglie pertanto tale soluzione in quanto più efficiente e reattiva.
-
-In questo modo il server, dopo aver ricevuto l'aggiornamento dello stato del *cargoservice* può inoltrare immediatamente le informazioni alla GUI senza che quest'ultima debba richiederle periodicamente (il codice della gestione del WebSocket si trova al seguente #link("https://github.com/chirichexe/iss-2026/blob/main/sprint2/prototype/ioport-backend/src/main/java/it/unibo/guiserver/WsController.java")[link]).
+Ora il server, dopo aver ricevuto l'aggiornamento dello stato del *cargoservice* può inoltrare immediatamente le informazioni alla GUI senza che quest'ultima debba richiederle periodicamente.
 
 === Evoluzione dell'IOPort
 
-Nei primi sprint l'IOPort era stata modellata come un attore QAK esclusivamente per simulare il comportamento dell'interfaccia utente durante la prototipazione del sistema, verificando velocemente l'interazione con il cargoservice. Con l'introduzione della Web GUI questa modellazione non risulta più necessaria. Il precedente attore QAK viene perciò rimosso e sostituito da una architettura client-server composta da frontend e backend (il quale interagisce con il cargoservice).
+Nei primi Sprint l'IOPort era stata modellata come un attore QAK per simulare il comportamento dell'interfaccia utente durante la prototipazione del sistema, aiutando il team a testare velocemente l'interazione con il cargoservice. Con l'introduzione della Web GUI questa modellazione non risulta più necessaria. Il precedente attore QAK viene perciò rimosso e sostituito dalla suddetta architettura client-server composta da frontend e backend (il quale interagisce a sua volta con il cargoservice).
 
-Il backend assume il ruolo precedentemente svolto dall'attore IOPort, quindi traduce le richieste HTTP della GUI nelle corrispondenti Request QAK verso il cargoservice e propaga verso il browser gli aggiornamenti ricevuti tramite CoAP Observe.
+Il backend assume il ruolo precedentemente svolto dall'attore IOPort, quindi traduce le richieste ora inviate della GUI nelle corrispondenti Request verso il cargoservice e propaga le risposte e gli aggiornamenti.
 
-Il contesto "ctxioport" rappresentava il nodo di esecuzione dell'attore ioport ma, poichè ora l'interfaccia utente è realizzata come applicazione web esterna al sistema QAK, essa non necessita più di un context dedicato. Il backend IOPort costituisce un processo separato che comunica con il sistema mediante protocolli standard: HTTP, WebSocket e CoAP.
+Il contesto "ctxioport" rappresentava il nodo di esecuzione dell'attore ioport ma, poichè ora l'interfaccia utente è realizzata come applicazione web esterna al sistema QAK (e quindi come nodo indipendente), essa non necessita più di un context dedicato. Il backend IOPort costituisce perciò un processo separato che comunica con il sistema mediante protocolli standard: HTTP, WebSocket e CoAP.
 
 // =============================================================================
 == Integrazione del sonar reale
 // =============================================================================
 
+// =============================================================================
+== Integrazione del sonar reale
+// =============================================================================
 
-E DENTRO PYTHON RIVEDERE UN ATTIMO
+Nello sprint precedente, il sonar era stato modellato tramite l'attore `sonarmock`, il quale simulava il comportamento del dispositivo fisico generando eventi di tipo `sonardata` intercettati dal `cargoservice`.
 
+Con l'introduzione del sonar reale, collegato a un dispositivo ESP32, questo approccio non è più applicabile. Infatti non è possibile eseguire codice QAK direttamente da ESP32 e comunicare tramite messaggi verso il `cargoservice`. Verrà quindi realizzato uno script in un linguaggio da esso comprensibile (*MicroPython*) con il compito di acquisire periodicamente la distanza rilevata dal sensore e rendere disponibili tali informazioni al sistema distribuito. 
 
-Nello sprint precedente, il sonar era stato modellato tramite l'attore `sonarmock`, il quale simulava il comportamento del dispositivo fisico generando eventi 
-di tipo `sonardata` direttamente indirizzati al `cargoservice`.
+È adesso necessario adottare un protocollo che garantisca leggerezza, semplicità di integrazione e interoperabilità tra componenti eterogenei. Per questi motivi viene scelto MQTT, un protocollo basato sul modello publish/subscribe, particolarmente adatto a dispositivi con risorse limitate e scenari IoT. MQTT richiede la presenza di un componente intermediario (definito *broker*, per cui si sceglie di utilizzare Mosquitto) che si occupi di ricevere i messaggi pubblicati dall'ESP32 e gestirne la distribuzione al `cargoservice`.
 
-Con l'introduzione del sonar reale, collegato a un dispositivo ESP32, questo approccio non è più applicabile. Infatti non è possibile eseguire codice QAK direttamente da esp32 e quindi comunicare tramite messaggi QAK nativi verso il `cargoservice`. Verrà quindi realizzato uno script in un linguaggio ad esso comprensibile (si è scelto microPython) con il compito di acquisire periodicamente la distanza rilevata dal sensore e rendere disponibili tali informazioni al sistema distribuito. 
+Le misurazioni rilevate dal sonar vengono quindi pubblicate dall'ESP32 su un topic MQTT dedicato (detto *sonardata*), al quale i componenti interessati del sistema possono iscriversi per ricevere gli aggiornamenti in modo disaccoppiato rispetto al dispositivo fisico.
 
-È quindi adesso necessario adottare un protocollo che garantisca leggerezza, semplicità di integrazione e interoperabilità tra componenti eterogenei. 
-Per questi motivi viene scelto MQTT, un protocollo basato sul modello publish/subscribe, particolarmente adatto a dispositivi con risorse limitate e scenari IoT. 
-È poi necessario introdurre un componente intemediario che si occupi di ricevere i messaggi pubblicati dall'ESP32 e inoltrarli al `cargoservice`, 
-definito *broker*.
+Per far sì che il cargoservice riceva i messaggi, una soluzione possibile sarebbe quella di introdurre un componente dedicato `sonaradapter`, simile al `sonarmock` dello Sprint 1, che svolge il compito di integrazione tra il dispositivo fisico e il sistema esistente. Esso potrebbe ricevere le misurazioni pubblicate dall'ESP32 tramite MQTT e inoltrare le informazioni al cargoservice mediante dispatch, modellando quindi una comunicazione affine a quella dei mock. Tuttavia, considerando che *QAK supporta nativamente il protocollo MQTT* (consentendo a un *attore* di iscriversi o di emettere eventi su un topic), tale proposta creerebbe dell'overhead di comunicazione. Risulta infatti più opportuno (e più semplice) modificare il cargoservice affinché, al posto di ricevere messaggi da un qualche attore "sonar", stabilisca la connessione al broker tramite la dichiarazione `mqttBroker` e riceva direttamente i messaggi MQTT sul topic dedicato. 
 
-Le misurazioni rilevate dal sonar vengono quindi pubblicate dall'ESP32 su un topic MQTT dedicato (`sonardata`), al quale i componenti interessati del sistema possono 
-sottoscriversi per ricevere gli aggiornamenti in modo disaccoppiato rispetto al dispositivo fisico.
-
-Per far si che il cargoservice riceva i messaggi una soluzione possibile sarebbe quella di introdurre un componente dedicato (*sonaradapter*) che svolge il compito di integrazione tra il dispositivo fisico e il sistema esistente. Esso potrebbe ricevere le misurazioni pubblicate dall'ESP32 tramite MQTT e inoltrare le informazioni al cargoservice mediante dispatch, modellando quindi una comunicazione affine a quella dei mock. Tuttavia, dato che QAK supporta nativamente il protocollo MQTT (consentendo a un attore di iscriversi o di emettere eventi su un topic), una soluzione sarebbe quella di modificare il cargoservice affinché riceva direttamente lui i messaggi MQTT, sostituendo le precedenti dispatch. 
-
-```qak
-State wait_for_container {
-    println("cargoservice | Waiting for container to be deposited on IOPort (Max 30s)...") color cyan
-}
-Transition t0
-    whenMsg     deposit_timeout_msg -> handle_deposit_timeout
-    whenRequest load_request        -> handle_load_request
-    whenEvent   sonar_event      -> handle_sonar
-```
-
-Il codice può essere trovato al seguente #link("https://github.com/chirichexe/iss-2026/blob/main/sprint2/prototype/cargoservice/src/cargoservice.qak")[link].
+Il codice dell'ESP32 che gestisce il sonar si trova al seguente #link("https://github.com/chirichexe/iss-2026/blob/main/sprint2/prototype/esp32/main.py")[link].
 
 // =============================================================================
 == Validazione temporale delle misure sonar
 // =============================================================================
 
-Da requisiti, una singola misura del sonar non comporta necessariamente una transizione dello stato. Sia la *presenza del container* sia la condizione di *Out of service* devono essere riconosciute solo quando la relativa condizione permane per almeno *tre secondi* consecutivi.
+Da requisiti, una singola misura del sonar non comporta necessariamente una transizione di stato. Sia la *presenza del container* sia la condizione di *Out of service* devono essere riconosciute solo quando la relativa condizione permane per almeno *tre secondi* consecutivi.
 
 Dal punto di vista applicativo è quindi necessario distinguere tre intervalli di misura:
 
@@ -270,24 +250,29 @@ Dal punto di vista applicativo è quindi necessario distinguere tre intervalli d
 2. `D > DFREE` che indica una possibile condizione di malfunzionamento del sistema di carico (Out of service);
 3. valori intermedi, che non soddisfano nessuna delle due condizioni precedenti.
 
-Si è scelto che il valore di `DFREE` sia pari a 20 secondi.
+Si è scelto un valore di `DFREE` pari a 20 cm.
 
-Una possibile soluzione sarebbe demandare questa validazione direttamente all'ESP32, facendogli pubblicare solamente eventi già validati temporalmente. In questo modo però l'accoppiamento del dispositivo con il dominio applicativo aumenta notevolmente.
+Una possibile soluzione sarebbe demandare questa validazione direttamente all'ESP32, facendogli pubblicare solamente eventi già validati temporalmente. In questo modo però l'accoppiamento del dispositivo con il dominio applicativo aumenterebbe notevolmente.
 
-Si preferisce pertanto mantenere quindi l'ESP32 una semplice componente di acquisizione dati. Sarà quindi il cargoservice a dover memorizzare:
+Si preferisce pertanto mantenere l'ESP32 come semplice componente di acquisizione dati. Sarà quindi il `cargoservice` a dover memorizzare:
 
-1. l'istante in cui viene rilevata per la prima volta la condizione D < DFREE/2;
-2. l'istante in cui viene rilevata per la prima volta la condizione D > DFREE;
+1. l'istante in cui viene rilevata per la prima volta la condizione `D < DFREE/2`;
+2. l'istante in cui viene rilevata per la prima volta la condizione `D > DFREE`;
 3. l'annullamento del conteggio quando la misura torna nell'intervallo normale.
 
-Solo quando una delle due condizioni permane per almeno tre secondi consecutivi viene effettivamente effettuata una transizione di stato (Il codice responsabile della gestione delle transizioni di statoè riportato al seguente #link("https://github.com/chirichexe/iss-2026/blob/main/sprint2/prototype/cargoservice/src/cargoservice.qak")[link].).
+Solo quando una delle due condizioni permane per almeno tre secondi consecutivi viene effettivamente effettuata una transizione di stato.
 
-```qak
-...
+```kt
+// condizione PRESENZA CONTAINER verificata
 if (Dist < DFreeDiv2) {
     if (ContainerPendingStart < 0L) {
+        
+        // inizio del conteggio dei 3 secondi
         ContainerPendingStart = Now
+
     } else if (Now - ContainerPendingStart >= 3000L) {
+
+        // Condizione sostenuta per 3s -> Container rilevato
         IOPortOccupied = true
         ContainerPendingStart = -1L
     }
@@ -296,33 +281,41 @@ if (Dist < DFreeDiv2) {
     IOPortOccupied = false
 }
 
+// condizione OUT OF SERVICE verificata
 if (Dist > DFree) {
     if (ServiceWorking) {
+
         if (OutOfServicePendingStart < 0L) {
+            // inizio del conteggio dei 3 secondi
             OutOfServicePendingStart = Now
+        
         } else if (Now - OutOfServicePendingStart >= 3000L) {
+
+            // guasto sostenuto per 3s: Transizione ad OUT OF SERVICE e stop robot
             ServiceWorking = false
             OutOfServicePendingStart = -1L
-            println("cargoservice | Sonar D>DFREE ($Dist > $DFree) sostenuto per 3s -> OUT OF SERVICE!")
+            println("cargoservice | Sonar D>DFREE ($Dist >$DFree) sustained for 3s -> OUT OF SERVICE!")
             forward("stop_robot", "stop(none)", "cargorobot")
         }
     }
 } else {
+    // ripristino del servizio 
     OutOfServicePendingStart = -1L
+
     if (!ServiceWorking) {
+        // ripresa delle attività del robot
         ServiceWorking = true
-        println("cargoservice | Sonar D<=DFREE ($Dist <= $DFree) -> SERVICE WORKING again!")
+        println("cargoservice | Sonar D<=DFREE ($Dist <=$DFree) -> SERVICE WORKING again!")
         forward("resume_robot", "resume(none)", "cargorobot")
     }
 }
 ...
 ```
 
-Il timer non viene riavviato ad ogni misura. Viene registrato solamente il primo istante in cui la condizione diventa vera.
-
-Se una misura interrompe la continuità della condizione, il conteggio viene annullato e dovrà eventualmente ripartire dalla misura successiva.
+Il timer non viene riavviato ad ogni misura: viene registrato solamente il primo istante in cui la condizione diventa vera. Se una misura interrompe la continuità della condizione, il conteggio viene annullato e dovrà eventualmente ripartire dalla misura successiva.
 
 Lo stesso identico schema vale per lo stato Out of service, sostituendo la condizione D > DFREE e la variabile che memorizza il tempo di inizio del possibile guasto.
+
 
 // =============================================================================
 == Integrazione del LED reale
@@ -330,42 +323,35 @@ Lo stesso identico schema vale per lo stato Out of service, sostituendo la condi
 
 Anche il LED costituisce un dispositivo fisico e pone il medesimo problema di integrazione affrontato per il sonar.
 
-Risulta quindi anche qui possibile evitare l'introduzione di un ulteriore componente intermedio e consentire al cargoservice di pubblicare direttamente i comandi sul topic MQTT dedicato al LED.
+Risulta quindi anche qui possibile evitare l'introduzione di un ulteriore componente intermedio e consentire al `cargoservice` di pubblicare direttamente i comandi sul topic MQTT dedicato al LED.
 
-L'ESP32 si sottoscrive a tale topic e interpreta i messaggi ricevuti traducendoli nelle corrispondenti operazioni hardware (spegnimento e blink del LED).
+L'ESP32 si sottoscrive a tale topic e interpreta i messaggi ricevuti traducendoli nelle corrispondenti operazioni hardware (blink e spegnimento del LED).
 
-Il codice dell'ESP32 che gestisce il LED si trova al seguente #link("https://github.com/chirichexe/iss-2026/blob/main/sprint2/prototype/esp32/main.py")[link].
+(I riferimenti al codice sono i medesimi del sonar)
 
 // =============================================================================
-== Gestione dello stato Out of service
+== Gestione dello stato Out of service e interruzione robot
 // =============================================================================
 
-Nello Sprint 1 il *cargoservice* aggiornava la variabile `ServiceWorking` sulla base degli eventi sonar, ma non interrompeva un movimento già in corso.
+Nello Sprint 1 il *cargoservice* aggiornava la variabile `ServiceWorking` sulla base degli eventi sonar, ma non interrompeva un movimento del robot già in corso, come invece definito successivamente dalla committente.
 
-Nello Sprint 2 il comportamento viene completato in accordo con il chiarimento fornito dalla committente:
+Nello Sprint 2 il comportamento viene completato nel seguente modo:
 
-- quando la condizione `D > D_FREE` persiste per almeno tre secondi, il sistema entra nello stato *Out of service*;
-- durante tale stato non vengono accettate nuove richieste;
-- se il robot è in movimento, il piano deve essere interrotto;
+- se il robot è in movimento e il sistema entra in stato *Out of Service* secondo le mdalità già implementate, il piano deve essere interrotto;
 - quando il sonar torna a misurare `D <= D_FREE`, il sistema ritorna nello stato *Service working*;
 - se un movimento era stato interrotto, deve essere ripreso.
 
-La gestione richiede di distinguere almeno due situazioni:
+Si noti che la gestione richiede di distinguere almeno due situazioni:
 
 1. il sistema entra in *Out of service* mentre non è in corso alcun movimento;
 2. il sistema entra in *Out of service* durante l'esecuzione di una procedura di movimentazione.
 
-Nel primo caso è sufficiente aggiornare lo stato operativo e impedire l'accettazione di nuove richieste.
+Nel primo caso è sufficiente aggiornare lo stato operativo e impedire l'accettazione di nuove richieste (già implementato).
 
 Nel secondo caso il *cargoservice* deve inoltre richiedere l'interruzione del movimento e ricordare che esiste una procedura sospesa. Al ripristino del servizio, il movimento viene ripreso secondo le operazioni offerte da *RobotSmart26*.
 
-L'ingresso nello stato *Out of service* non deve:
 
-- liberare automaticamente lo slot riservato;
-- riportare il sistema nello stato `disengaged`;
-- annullare la procedura di carico.
-
-Si tratta infatti di una sospensione temporanea e non del fallimento definitivo dell'operazione.
+CONTINUA...
 
 // =============================================================================
 == Architettura finale dello Sprint 2
@@ -408,35 +394,31 @@ Si prevede di mostrare al committente il funzionamento della piattaforma fisica,
 
 Gli scenari di test da mostrare sono i seguenti:
 
-1. *Monitoraggio dello stato del sistema*
+1. *Monitoraggio dello stato*
 
-   A sistema fermo viene mostrata la rilevazione dello stato corrente del sistema, verificando il passaggio tra *System Working* e *Out Of Service* e la corretta indicazione sul display.
+   A sistema fermo viene mostrata la rilevazione dello stato corrente del sistema, verificando il passaggio tra *System Working* e *Out Of Service* e la corretta indicazione sul display. Viene quindi mostrato il rilevamento dell'IOPort come libera o occupata posizionando o rimuovendo l'oggetto davanti al sonar entro DFREE/2.
 
-2. *Monitoraggio dell'IOPort*
-
-   Viene mostrato il rilevamento dell'IOPort come libera o occupata posizionando o rimuovendo l'oggetto davanti al sonar entro DFREE/2.
-
-3. *Richiesta di caricamento non disponibile*
+2. *Richiesta di caricamento non disponibile*
 
    Viene effettuata una richiesta di caricamento mentre l'IOPort è occupata oppure il sistema è in stato *Out Of Service*, verificando la risposta di attesa _retrylater_.
 
-4. *Richiesta di caricamento rifiutata*
-
-   Viene simulata una richiesta quando tutti gli slot disponibili sono occupati, verificando la visualizzazione del messaggio _refused_ sul display.
-
-5. *Accettazione della richiesta di caricamento*
+3. *Accettazione della richiesta di caricamento*
 
    Viene effettuata una richiesta di caricamento in condizioni operative, con IOPort libera, sistema funzionante e almeno uno slot disponibile.
    Viene verificata la risposta positiva della richiesta e l'assegnazione dello slot al container mediante il lo stato _riservato_.
 
-6. *Mancato deposito del container entro il tempo previsto*
+4. *Mancato deposito del container entro il tempo previsto*
 
    Dopo una richiesta accettata, il container non viene posizionato nell'IOPort entro i 30 secondi disponibili.
    Viene verificato che lo slot assegnato (_riservato_) torni nuovamente disponibile (_libero_).
 
-7. *Gestione dell'interruzione durante il movimento*
+5. *Gestione dell'interruzione durante il movimento*
 
    Viene simulata una condizione di *Out Of Service* durante il movimento del robot, verificando l'arresto e la successiva ripresa dell'operazione al ripristino del servizio.
+
+6. *Richiesta di caricamento rifiutata*
+
+   Viene simulata una richiesta quando tutti gli slot disponibili sono occupati, verificando la visualizzazione del messaggio _refused_ sul display.
 
 == Test Automatizzati
 
