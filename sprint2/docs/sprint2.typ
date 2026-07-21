@@ -230,7 +230,7 @@ Con l'introduzione del sonar reale, collegato a un dispositivo ESP32, questo app
 
 Le misurazioni rilevate dal sonar vengono quindi pubblicate dall'ESP32 su un topic MQTT dedicato (detto *sonardata*), al quale i componenti interessati del sistema possono iscriversi per ricevere gli aggiornamenti in modo disaccoppiato rispetto al dispositivo fisico.
 
-Per far sì che il cargoservice riceva i messaggi, una soluzione possibile sarebbe quella di introdurre un componente dedicato `sonaradapter`, simile al `sonarmock` dello Sprint 1, che svolge il compito di integrazione tra il dispositivo fisico e il sistema esistente. Esso potrebbe ricevere le misurazioni pubblicate dall'ESP32 tramite MQTT e inoltrare le informazioni al cargoservice mediante dispatch, modellando quindi una comunicazione affine a quella dei mock. Tuttavia, considerando che *QAK supporta nativamente il protocollo MQTT* (consentendo a un *attore* di iscriversi o di emettere eventi su un topic), tale proposta creerebbe dell'overhead di comunicazione. Risulta infatti più opportuno (e più semplice) sfruttare il supporto nativo di QAK per MQTT e modificare il cargoservice affinché, al posto di ricevere messaggi da un qualche attore "sonar", stabilisca la connessione al broker tramite la dichiarazione `mqttBroker` e riceva direttamente i messaggi MQTT sul topic dedicato. 
+Per far sì che il cargoservice riceva i messaggi, una soluzione possibile sarebbe quella di introdurre un componente dedicato `sonaradapter`, simile al `sonarmock` dello Sprint 1, che svolge il compito di integrazione tra il dispositivo fisico e il sistema esistente. Esso potrebbe ricevere le misurazioni pubblicate dall'ESP32 tramite MQTT e inoltrare le informazioni al cargoservice mediante dispatch, modellando quindi una comunicazione affine a quella dei mock. Tuttavia, considerando che *QAK supporta nativamente il protocollo MQTT* (consentendo a un *attore* di iscriversi o di emettere eventi su un topic), tale proposta creerebbe dell'overhead di comunicazione. Risulta infatti più opportuno (e più semplice) per MQTT e modificare il cargoservice affinché, al posto di ricevere messaggi da un qualche attore "sonar", stabilisca la connessione al broker tramite la dichiarazione `mqttBroker` e riceva direttamente i messaggi MQTT sul topic dedicato. 
 
 Il codice dell'ESP32 che gestisce il sonar si trova al seguente #link("https://github.com/chirichexe/iss-2026/blob/main/sprint2/prototype/esp32/main.py")[link].
 
@@ -391,7 +391,7 @@ Gli scenari di test da mostrare sono i seguenti:
 3. *Accettazione della richiesta di caricamento*
 
    Viene effettuata una richiesta di caricamento in condizioni operative, con IOPort libera, sistema funzionante e almeno uno slot disponibile.
-   Viene verificata la risposta positiva della richiesta e l'assegnazione dello slot al container mediante il lo stato _riservato_.
+   Viene verificata la risposta positiva della richiesta e l'assegnazione dello slot al container mediante lo stato _riservato_.
 
 4. *Mancato deposito del container entro il tempo previsto*
 
@@ -428,7 +428,7 @@ Gli scenari principali verificati sono i seguenti:
 
 - Dopo l'accettazione della richiesta, il container non viene depositato nell'IOPort entro 30 secondi. L'operazione viene annullata e lo slot torna disponibile.
 
-- Viene simulata una distanza del sonar superiore a *D_FREE* per almeno 3 secondi. Il sistema riconosce la condizione di *Out Of Service*.
+- Viene simulata una distanza del sonar superiore a `D <= D_FREE` per almeno 3 secondi. Il sistema riconosce la condizione di *Out Of Service*.
 
 - Viene inviata una richiesta mentre il sistema è nello stato *Out Of Service*. Il sistema risponde con *retrylater*.
 
@@ -439,7 +439,7 @@ Gli scenari principali verificati sono i seguenti:
 - Vengono occupati progressivamente tutti gli slot disponibili e viene inviata un'ulteriore richiesta. Il sistema rifiuta la richiesta poiché l'hold risulta pieno.
 
 
-Il link al codice dei test automatici è il seguente #link("https://github.com/chirichexe/iss-2026/blob/main/sprint2/tests/test_system.py")[link].")
+Il link al codice dei test automatici è il seguente #link("https://github.com/chirichexe/iss-2026/blob/main/sprint2/tests/test_system.py")[link].
 
 // =============================================================================
 = Deployment <deployment>
@@ -476,7 +476,7 @@ Al termine dell'avvio, le interfacce grafiche del sistema sono accessibili dal b
 - *Ambiente grafico del robot* disponibile sulla porta locale 8090
 
 // =============================================================================
-= Pagina di sintesi
+//= Pagina di sintesi
 // =============================================================================
 
 
