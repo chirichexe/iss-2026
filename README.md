@@ -24,4 +24,4 @@ Progetto per il corso **Ingegneria dei Sistemi Software M** - A.A. 2025/2026
 | Sprint 0 | v3 | [PDF](sprint0/docs/sprint0_v3.pdf) |
 | Sprint 1 | v1 | [PDF](sprint1/docs/sprint1_v1.pdf) |
 | Sprint 1 | v2 | [PDF](sprint1/docs/sprint1_v2.pdf) |
-| Sprint 2 | v1 | [PDF](sprint2/docs/sprint1_v1.pdf) |
+| Sprint 2 | v1 | [PDF](sprint2/docs/sprint2_v1.pdf) |
