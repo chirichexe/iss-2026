@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<project name="maven-antrun-" default="main"  >
+<target name="main">
+  <copy todir="/home/gabri/Scrivania/Ingegneria Informatica/IngegneriaSistemiSW/project/iss-2026/unibolibs/Estratte/2p301/META-INF/maven/org.apache.commons/commons-lang3/target/apidocs/META-INF">
+    <fileset dir="/home/gabri/Scrivania/Ingegneria Informatica/IngegneriaSistemiSW/project/iss-2026/unibolibs/Estratte/2p301/META-INF/maven/org.apache.commons/commons-lang3">
+      <include name="LICENSE.txt"/>
+      <include name="NOTICE.txt"/>
+    </fileset>
+  </copy>
+</target>
+</project>

@@ -1,7 +1,5 @@
 package it.unibo.guiserver;
 
-import kotlinx.coroutines.GlobalScope;
-
 /**
  * Main entrypoint for the standalone external Web GUI Server (guiserver26qak0).
  * Implements the Inbound Adapter pattern with strict Separation of Concerns (SoC).
@@ -20,18 +18,15 @@ public class GuiServerMain {
             } catch (NumberFormatException ignored) {}
         }
 
-        // 1. Initialize formal QAK Actor representing the web server
-        GuiServerQakActor guiActor = new GuiServerQakActor("guiserver26qak0", GlobalScope.INSTANCE);
-
-        // 2. Initialize specialized SoC Controllers
+        // 1. Initialize specialized SoC Controllers
         WsController wsController = new WsController();
-        HttpController httpController = new HttpController(guiActor, wsController);
+        HttpController httpController = new HttpController(wsController);
 
-        // 3. Initialize and start the internal Javalin GUI Handler
+        // 2. Initialize and start the internal Javalin GUI Handler
         JavalinGuiHandler guiHandler = new JavalinGuiHandler(port, httpController, wsController);
         guiHandler.start();
 
-        // 4. Register CoAP Observe (push) to stream domain state updates to WebSocket clients
+        // 3. Register CoAP Observe (push) to stream domain state updates to WebSocket clients
         CoapObserver coapObserver = new CoapObserver(wsController);
     }
 }

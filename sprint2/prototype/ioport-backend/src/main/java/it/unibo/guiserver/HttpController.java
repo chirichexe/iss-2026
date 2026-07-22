@@ -10,16 +10,14 @@ import unibo.basicomm23.utils.ConnectionFactory;
 /**
  * SoC: Dedicated controller for short HTTP REST transactions.
  * Acts as an Inbound Adapter translating HTTP POST requests from the browser
- * into formal QAK requests (load_request) sent over TCP/MQTT to the domain actor (cargoservice).
+ * into QAK requests (load_request) sent over TCP/MQTT to the domain actor (cargoservice).
  */
 public class HttpController {
-    private final GuiServerQakActor guiActor;
     private final WsController wsController;
     private final String targetHost = "127.0.0.1";
     private final String targetPort = "8050";
 
-    public HttpController(GuiServerQakActor guiActor, WsController wsController) {
-        this.guiActor = guiActor;
+    public HttpController(WsController wsController) {
         this.wsController = wsController;
     }
 
@@ -37,11 +35,6 @@ public class HttpController {
             Interaction tcpConn = ConnectionFactory.createClientSupport23(ProtocolType.tcp, targetHost, targetPort);
             if (tcpConn != null) {
                 try {
-                    // Notify the formal QAK actor of user interaction (Inbound Adapter translation)
-                    if (guiActor != null) {
-                        guiActor.notifyUserAction("load_request");
-                    }
-
                     IApplMessage reqMsg = CommUtils.buildRequest("ioportgui", "load_request", "loadRequest(none)", "cargoservice");
                     System.out.println("HttpController | Forwarding formal QAK request to cargoservice: " + reqMsg);
                     IApplMessage replyMsg = tcpConn.request(reqMsg);
