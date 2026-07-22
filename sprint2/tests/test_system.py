@@ -111,7 +111,7 @@ def probe():
 # PIANO DI TEST
 # =====================================================================
 
-def test_01_req1_richiesta_accettata(probe):
+def test_1(probe):
     state = probe.get_current_state()
     assert state.get("serviceState") == "disengaged"
     
@@ -124,7 +124,7 @@ def test_01_req1_richiesta_accettata(probe):
     new_state = probe.wait_for_state(lambda s: s.get("serviceState") == "engaged", timeout=5)
     assert new_state["serviceState"] == "engaged"
 
-def test_02_req2_richiesta_rinviata_area_occupata(probe):
+def test_2(probe):
     probe.simulate_container_present()
     probe.wait_for_state(lambda s: s.get("ioPortOccupied") == True, timeout=10)
     
@@ -132,24 +132,24 @@ def test_02_req2_richiesta_rinviata_area_occupata(probe):
     assert response.status_code == 200
     assert response.json().get("status") == "retrylater"
 
-def test_03_req17_richieste_concorrenti_durante_operazione(probe):
+def test_3(probe):
     response = probe.send_load_request()
     assert response.json().get("status") == "retrylater"
 
-def test_04_req6_deposito_entro_tempo_previsto(probe):
+def test_4(probe):
     state = probe.wait_for_state(lambda s: s.get("ioPortOccupied") == False, timeout=20)
     assert state["ioPortOccupied"] == False
     probe.simulate_container_absent()
 
-def test_05_req12_workflow_completo_carico(probe):
+def test_5(probe):
     state = probe.wait_for_state(lambda s: s.get("serviceState") == "disengaged", timeout=60)
     assert state["serviceState"] == "disengaged"
 
-def test_06_req18_nuova_richiesta_dopo_completamento(probe):
+def test_6(probe):
     response = probe.send_load_request()
     assert response.json().get("status") == "accepted"
 
-def test_07_req8_ignorare_rilevamenti_temporanei(probe):
+def test_7(probe):
     probe.simulate_container_present()
     time.sleep(1) 
     probe.simulate_container_absent()
@@ -157,11 +157,11 @@ def test_07_req8_ignorare_rilevamenti_temporanei(probe):
     state = probe.get_current_state()
     assert state.get("serviceState") == "engaged"
 
-def test_08_req5_timeout_del_cliente(probe):
+def test_8(probe):
     state = probe.wait_for_state(lambda s: s.get("serviceState") == "disengaged", timeout=TIME_TIMEOUT_CLIENTE + 5)
     assert state["serviceState"] == "disengaged"
 
-def test_09_req9_rilevamento_condizione_fuori_servizio(probe):
+def test_9(probe):
     probe.send_load_request()
     probe.simulate_container_present()
     probe.wait_for_state(lambda s: s.get("ioPortOccupied") == True, timeout=10)
@@ -173,11 +173,11 @@ def test_09_req9_rilevamento_condizione_fuori_servizio(probe):
     state = probe.wait_for_state(lambda s: s.get("workingState") == "Out of service", timeout=TIME_STABLE_PRESENCE + 2)
     assert state["workingState"] == "Out of service"
 
-def test_10_req3_richiesta_rinviata_servizio_non_disponibile(probe):
+def test_10(probe):
     response = probe.send_load_request()
     assert response.json().get("status") == "retrylater"
 
-def test_11_req10_ignorare_anomalie_temporanee(probe):
+def test_11(probe):
     probe.simulate_container_absent()
     probe.wait_for_state(lambda s: s.get("workingState") == "Service working", timeout=TIME_STABLE_PRESENCE + 2)
     
@@ -189,7 +189,7 @@ def test_11_req10_ignorare_anomalie_temporanee(probe):
     state = probe.get_current_state()
     assert state.get("workingState") == "Service working"
 
-def test_12_req11_ripristino_servizio(probe):
+def test_12(probe):
     probe.simulate_out_of_service()
     probe.wait_for_state(lambda s: s.get("workingState") == "Out of service", timeout=5)
     
@@ -202,7 +202,7 @@ def test_12_req11_ripristino_servizio(probe):
     probe.simulate_container_absent()
     probe.wait_for_state(lambda s: s.get("serviceState") == "disengaged", timeout=60)
 
-def test_13_req19_sequenza_riempimento_completo(probe):
+def test_13(probe):
     max_slots = 4
     for _ in range(max_slots):
         state = probe.get_current_state()
@@ -214,8 +214,8 @@ def test_13_req19_sequenza_riempimento_completo(probe):
         if resp.json().get("status") == "accepted":
             probe.simulate_container_present()
             probe.wait_for_state(lambda s: s.get("ioPortOccupied") == True, timeout=10)
-            probe.wait_for_state(lambda s: s.get("ioPortOccupied") == False, timeout=20)
             probe.simulate_container_absent()
+            probe.wait_for_state(lambda s: s.get("ioPortOccupied") == False, timeout=20)
             probe.wait_for_state(lambda s: s.get("serviceState") == "disengaged", timeout=60)
             
     state_before = probe.get_current_state()
