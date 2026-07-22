@@ -19,7 +19,7 @@
 
 Il punto di partenza di questo Sprint è il prototipo realizzato nello Sprint 1, documentato al seguente #link("https://github.com/chirichexe/iss-2026/blob/main/sprint1/docs/sprint1.pdf")[link].
 
-Lo Sprint 1 ha prodotto un prototipo eseguibile del *cargoservice* in cui il ciclo principale di carico viene gestito tramite attori QAK, con componenti simulati per IOPort, sonar e LED, e con il *cargorobot* modellato come wrapper del servizio esterno *robotsmart26*.
+Lo Sprint 1 ha prodotto un prototipo eseguibile del *cargoservice* in cui il ciclo principale di carico viene gestito tramite attori QAK, con componenti simulati per IOPort, sonar e LED, e con il *cargorobot* modellato come adapter del servizio esterno *robotsmart26*.
 
 L'architettura finale dello Sprint 1, riportata di seguito, costituisce il riferimento di partenza per lo Sprint 2.
 
